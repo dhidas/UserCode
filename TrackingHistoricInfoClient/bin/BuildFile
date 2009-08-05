@@ -1,0 +1,13 @@
+<bin name=TrackingHDQMInspector file=TrackingHDQMInspector.cc>
+  <use name=FWCore/Framework>
+  <use name=CondCore/DBCommon>
+  <use name=DQM/SiStripCommon>
+  <lib name=testDQMServicesDiagnostic>
+  <lib name=testTrackingHistoricDQM>
+</bin>
+
+
+
+
+
+
