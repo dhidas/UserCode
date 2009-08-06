@@ -2,6 +2,9 @@
 #include "DQM/TrackingHistoricInfoClient/test/HDQMInspectorConfigTracking.h"
 #include <string>
 
+
+std::string const Condition = "268435456@Chi2overDoF_CKFTk@entries > 10000";
+
 void TrackingHDQMInspector (const std::string & tagName, std::string const& Password, int const NRuns) {
 /////////////////////////////////////////////////////////////////
 //
@@ -37,40 +40,40 @@ void TrackingHDQMInspector (const std::string & tagName, std::string const& Pass
 
   //A.setBlackList("68286");
   // 268435456
-  A.createTrendLastRuns("268435456@NumberOfTracks_CosmicTk@entries", "NumberOfTracks_CosmicTk_entries.gif", 0, "268435456@NumberOfTracks_CosmicTk@entries > 0", NRuns);
-  A.createTrendLastRuns("268435456@Chi2overDoF_CosmicTk@entries", "Chi2overDoF_CosmicTk_entries.gif", 0, "268435456@Chi2overDoF_CosmicTk@entries > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfTracks_CKFTk@entries", "NumberOfTracks_CKFTk_entries.gif", 0, "268435456@NumberOfTracks_CKFTk@entries > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, "268435456@NumberOfRecHitsPerTrack_CKFTk@entries > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfTracks_CKFTk@mean", "NumberOfTracks_CKFTk_mean.gif", 0, "268435456@NumberOfTracks_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, "268435456@NumberOfRecHitsPerTrack_CKFTk@entries > 0", NRuns);
-  A.createTrendLastRuns("268435456@Chi2overDoF_CosmicTk@mean", "Chi2overDoF_CosmicTk.gif", 0, "268435456@Chi2overDoF_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@Chi2overDoF_CKFTk@mean", "Chi2overDoF_CKFTk.gif", 0, "268435456@Chi2overDoF_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@Chi2overDoF_RSTk@mean", "Chi2overDoF_RSTk.gif", 0, "268435456@Chi2overDoF_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfTracks_CosmicTk@mean", "NumberOfTracks_CosmicTk.gif", 0, "268435456@NumberOfTracks_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_CosmicTk@mean", "NumberOfRecHitsPerTrack_CosmicTk.gif", 0, "268435456@NumberOfRecHitsPerTrack_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPt_CosmicTk@mean", "TrackPt_CosmicTk.gif", 0, "268435456@TrackPt_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPz_CosmicTk@mean", "TrackPz_CosmicTk.gif", 0, "268435456@TrackPz_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPx_CosmicTk@mean", "TrackPx_CosmicTk.gif", 0, "268435456@TrackPx_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPy_CosmicTk@mean", "TrackPy_CosmicTk.gif", 0, "268435456@TrackPy_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPhi_CosmicTk@mean", "TrackPhi_CosmicTk.gif", 0, "268435456@TrackPhi_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackEta_CosmicTk@mean", "TrackEta_CosmicTk.gif", 0, "268435456@TrackEta_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@DistanceOfClosestApproach_CosmicTk@mean", "DistanceOfClosestApproach_CosmicTk.gif", 0, "268435456@DistanceOfClosestApproach_CosmicTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPt_CKFTk@mean", "TrackPt_CKFTk.gif", 0, "268435456@TrackPt_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPz_CKFTk@mean", "TrackPz_CKFTk.gif", 0, "268435456@TrackPz_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPx_CKFTk@mean", "TrackPx_CKFTk.gif", 0, "268435456@TrackPx_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPy_CKFTk@mean", "TrackPy_CKFTk.gif", 0, "268435456@TrackPy_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPhi_CKFTk@mean", "TrackPhi_CKFTk.gif", 0, "268435456@TrackPhi_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackEta_CKFTk@mean", "TrackEta_CKFTk.gif", 0, "268435456@TrackEta_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@DistanceOfClosestApproach_CKFTk@mean", "DistanceOfClosestApproach_CKFTk.gif", 0, "268435456@DistanceOfClosestApproach_CKFTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfTracks_RSTk@mean", "NumberOfTracks_RSTk.gif", 0, "268435456@NumberOfTracks_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_RSTk@mean", "NumberOfRecHitsPerTrack_RSTk.gif", 0, "268435456@NumberOfRecHitsPerTrack_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPt_RSTk@mean", "TrackPt_RSTk.gif", 0, "268435456@TrackPt_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPz_RSTk@mean", "TrackPz_RSTk.gif", 0, "268435456@TrackPz_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPx_RSTk@mean", "TrackPx_RSTk.gif", 0, "268435456@TrackPx_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPy_RSTk@mean", "TrackPy_RSTk.gif", 0, "268435456@TrackPy_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackPhi_RSTk@mean", "TrackPhi_RSTk.gif", 0, "268435456@TrackPhi_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@TrackEta_RSTk@mean", "TrackEta_RSTk.gif", 0, "268435456@TrackEta_RSTk@mean > 0", NRuns);
-  A.createTrendLastRuns("268435456@DistanceOfClosestApproach_RSTk@mean", "DistanceOfClosestApproach_RSTk.gif", 0, "268435456@DistanceOfClosestApproach_RSTk@mean > 0", NRuns);
+  A.createTrendLastRuns("268435456@NumberOfTracks_CosmicTk@entries", "NumberOfTracks_CosmicTk_entries.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@Chi2overDoF_CosmicTk@entries", "Chi2overDoF_CosmicTk_entries.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfTracks_CKFTk@entries", "NumberOfTracks_CKFTk_entries.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfTracks_CKFTk@mean", "NumberOfTracks_CKFTk_mean.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@Chi2overDoF_CosmicTk@mean", "Chi2overDoF_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@Chi2overDoF_CKFTk@mean", "Chi2overDoF_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@Chi2overDoF_RSTk@mean", "Chi2overDoF_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfTracks_CosmicTk@mean", "NumberOfTracks_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_CosmicTk@mean", "NumberOfRecHitsPerTrack_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPt_CosmicTk@mean", "TrackPt_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPz_CosmicTk@mean", "TrackPz_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPx_CosmicTk@mean", "TrackPx_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPy_CosmicTk@mean", "TrackPy_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPhi_CosmicTk@mean", "TrackPhi_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackEta_CosmicTk@mean", "TrackEta_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@DistanceOfClosestApproach_CosmicTk@mean", "DistanceOfClosestApproach_CosmicTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPt_CKFTk@mean", "TrackPt_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPz_CKFTk@mean", "TrackPz_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPx_CKFTk@mean", "TrackPx_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPy_CKFTk@mean", "TrackPy_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPhi_CKFTk@mean", "TrackPhi_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackEta_CKFTk@mean", "TrackEta_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@DistanceOfClosestApproach_CKFTk@mean", "DistanceOfClosestApproach_CKFTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfTracks_RSTk@mean", "NumberOfTracks_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@NumberOfRecHitsPerTrack_RSTk@mean", "NumberOfRecHitsPerTrack_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPt_RSTk@mean", "TrackPt_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPz_RSTk@mean", "TrackPz_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPx_RSTk@mean", "TrackPx_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPy_RSTk@mean", "TrackPy_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackPhi_RSTk@mean", "TrackPhi_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@TrackEta_RSTk@mean", "TrackEta_RSTk.gif", 0, Condition, NRuns);
+  A.createTrendLastRuns("268435456@DistanceOfClosestApproach_RSTk@mean", "DistanceOfClosestApproach_RSTk.gif", 0, Condition, NRuns);
 
   A.closeFile();
 
@@ -112,40 +115,40 @@ void TrackingHDQMInspector (const std::string &tagName, std::string const& Passw
   A.setDoStat(1);
 
   //A.setBlackList("68286");
-  A.createTrend("268435456@NumberOfTracks_CosmicTk@entries", "NumberOfTracks_CosmicTk_entries.gif", 0, "268435456@NumberOfTracks_CosmicTk@entries > 0", Start, End);
-  A.createTrend("268435456@Chi2overDoF_CosmicTk@entries", "Chi2overDoF_CosmicTk_entries.gif", 0, "268435456@Chi2overDoF_CosmicTk@entries > 0", Start, End);
-  A.createTrend("268435456@NumberOfTracks_CKFTk@entries", "NumberOfTracks_CKFTk_entries.gif", 0, "268435456@NumberOfTracks_CKFTk@entries > 0", Start, End);
-  A.createTrend("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, "268435456@NumberOfRecHitsPerTrack_CKFTk@entries > 0", Start, End);
-  A.createTrend("268435456@NumberOfTracks_CKFTk@mean", "NumberOfTracks_CKFTk_mean.gif", 0, "268435456@NumberOfTracks_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, "268435456@NumberOfRecHitsPerTrack_CKFTk@entries > 0", Start, End);
-  A.createTrend("268435456@Chi2overDoF_CosmicTk@mean", "Chi2overDoF_CosmicTk.gif", 0, "268435456@Chi2overDoF_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@Chi2overDoF_CKFTk@mean", "Chi2overDoF_CKFTk.gif", 0, "268435456@Chi2overDoF_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@Chi2overDoF_RSTk@mean", "Chi2overDoF_RSTk.gif", 0, "268435456@Chi2overDoF_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@NumberOfTracks_CosmicTk@mean", "NumberOfTracks_CosmicTk.gif", 0, "268435456@NumberOfTracks_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@NumberOfRecHitsPerTrack_CosmicTk@mean", "NumberOfRecHitsPerTrack_CosmicTk.gif", 0, "268435456@NumberOfRecHitsPerTrack_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPt_CosmicTk@mean", "TrackPt_CosmicTk.gif", 0, "268435456@TrackPt_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPz_CosmicTk@mean", "TrackPz_CosmicTk.gif", 0, "268435456@TrackPz_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPx_CosmicTk@mean", "TrackPx_CosmicTk.gif", 0, "268435456@TrackPx_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPy_CosmicTk@mean", "TrackPy_CosmicTk.gif", 0, "268435456@TrackPy_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPhi_CosmicTk@mean", "TrackPhi_CosmicTk.gif", 0, "268435456@TrackPhi_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackEta_CosmicTk@mean", "TrackEta_CosmicTk.gif", 0, "268435456@TrackEta_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@DistanceOfClosestApproach_CosmicTk@mean", "DistanceOfClosestApproach_CosmicTk.gif", 0, "268435456@DistanceOfClosestApproach_CosmicTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPt_CKFTk@mean", "TrackPt_CKFTk.gif", 0, "268435456@TrackPt_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPz_CKFTk@mean", "TrackPz_CKFTk.gif", 0, "268435456@TrackPz_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPx_CKFTk@mean", "TrackPx_CKFTk.gif", 0, "268435456@TrackPx_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPy_CKFTk@mean", "TrackPy_CKFTk.gif", 0, "268435456@TrackPy_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPhi_CKFTk@mean", "TrackPhi_CKFTk.gif", 0, "268435456@TrackPhi_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackEta_CKFTk@mean", "TrackEta_CKFTk.gif", 0, "268435456@TrackEta_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@DistanceOfClosestApproach_CKFTk@mean", "DistanceOfClosestApproach_CKFTk.gif", 0, "268435456@DistanceOfClosestApproach_CKFTk@mean > 0", Start, End);
-  A.createTrend("268435456@NumberOfTracks_RSTk@mean", "NumberOfTracks_RSTk.gif", 0, "268435456@NumberOfTracks_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@NumberOfRecHitsPerTrack_RSTk@mean", "NumberOfRecHitsPerTrack_RSTk.gif", 0, "268435456@NumberOfRecHitsPerTrack_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPt_RSTk@mean", "TrackPt_RSTk.gif", 0, "268435456@TrackPt_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPz_RSTk@mean", "TrackPz_RSTk.gif", 0, "268435456@TrackPz_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPx_RSTk@mean", "TrackPx_RSTk.gif", 0, "268435456@TrackPx_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPy_RSTk@mean", "TrackPy_RSTk.gif", 0, "268435456@TrackPy_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackPhi_RSTk@mean", "TrackPhi_RSTk.gif", 0, "268435456@TrackPhi_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@TrackEta_RSTk@mean", "TrackEta_RSTk.gif", 0, "268435456@TrackEta_RSTk@mean > 0", Start, End);
-  A.createTrend("268435456@DistanceOfClosestApproach_RSTk@mean", "DistanceOfClosestApproach_RSTk.gif", 0, "268435456@DistanceOfClosestApproach_RSTk@mean > 0", Start, End);
+  A.createTrend("268435456@NumberOfTracks_CosmicTk@entries", "NumberOfTracks_CosmicTk_entries.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@Chi2overDoF_CosmicTk@entries", "Chi2overDoF_CosmicTk_entries.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfTracks_CKFTk@entries", "NumberOfTracks_CKFTk_entries.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfTracks_CKFTk@mean", "NumberOfTracks_CKFTk_mean.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfRecHitsPerTrack_CKFTk@entries", "NumberOfRecHitsPerTrack_CKFTk_entries.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@Chi2overDoF_CosmicTk@mean", "Chi2overDoF_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@Chi2overDoF_CKFTk@mean", "Chi2overDoF_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@Chi2overDoF_RSTk@mean", "Chi2overDoF_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfTracks_CosmicTk@mean", "NumberOfTracks_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfRecHitsPerTrack_CosmicTk@mean", "NumberOfRecHitsPerTrack_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPt_CosmicTk@mean", "TrackPt_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPz_CosmicTk@mean", "TrackPz_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPx_CosmicTk@mean", "TrackPx_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPy_CosmicTk@mean", "TrackPy_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPhi_CosmicTk@mean", "TrackPhi_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackEta_CosmicTk@mean", "TrackEta_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@DistanceOfClosestApproach_CosmicTk@mean", "DistanceOfClosestApproach_CosmicTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPt_CKFTk@mean", "TrackPt_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPz_CKFTk@mean", "TrackPz_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPx_CKFTk@mean", "TrackPx_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPy_CKFTk@mean", "TrackPy_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPhi_CKFTk@mean", "TrackPhi_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackEta_CKFTk@mean", "TrackEta_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@DistanceOfClosestApproach_CKFTk@mean", "DistanceOfClosestApproach_CKFTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfTracks_RSTk@mean", "NumberOfTracks_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@NumberOfRecHitsPerTrack_RSTk@mean", "NumberOfRecHitsPerTrack_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPt_RSTk@mean", "TrackPt_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPz_RSTk@mean", "TrackPz_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPx_RSTk@mean", "TrackPx_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPy_RSTk@mean", "TrackPy_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackPhi_RSTk@mean", "TrackPhi_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@TrackEta_RSTk@mean", "TrackEta_RSTk.gif", 0, Condition, Start, End);
+  A.createTrend("268435456@DistanceOfClosestApproach_RSTk@mean", "DistanceOfClosestApproach_RSTk.gif", 0, Condition, Start, End);
 
 
 
