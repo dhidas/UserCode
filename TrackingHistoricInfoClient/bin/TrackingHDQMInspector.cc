@@ -38,7 +38,7 @@ void TrackingHDQMInspector (const std::string & tagName, std::string const& Pass
 
 
 
-  //A.setBlackList("68286");
+  A.setBlackList("109468");
   // 268435456
   A.createTrendLastRuns("268435456@NumberOfTracks_CosmicTk@entries", "NumberOfTracks_CosmicTk_entries.gif", 0, Condition, NRuns);
   A.createTrendLastRuns("268435456@Chi2overDoF_CosmicTk@entries", "Chi2overDoF_CosmicTk_entries.gif", 0, Condition, NRuns);
@@ -114,7 +114,7 @@ void TrackingHDQMInspector (const std::string &tagName, std::string const& Passw
   A.setDebug(1);
   A.setDoStat(1);
 
-  //A.setBlackList("68286");
+  A.setBlackList("109468");
   A.createTrend("268435456@NumberOfTracks_CosmicTk@entries", "NumberOfTracks_CosmicTk_entries.gif", 0, Condition, Start, End);
   A.createTrend("268435456@Chi2overDoF_CosmicTk@entries", "Chi2overDoF_CosmicTk_entries.gif", 0, Condition, Start, End);
   A.createTrend("268435456@NumberOfTracks_CKFTk@entries", "NumberOfTracks_CKFTk_entries.gif", 0, Condition, Start, End);
