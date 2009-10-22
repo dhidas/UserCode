@@ -1,14 +1,13 @@
 CC = g++
 CFLAGS = `root-config --cflags`
-LIBS = `root-config --libs` -Llib -lMinuit
-INCLUDE = -Iinclude -Idict -I.
+LIBS = `root-config --libs` -lMinuit
 SCRIPTS = $(patsubst %.cc,%,$(wildcard *.cc))
 
 
 all: $(SCRIPTS)
 
 % : %.cc
-	$(CC) -Wall $(CFLAGS) $(LIBS) $(INCLUDE) $< -o $@
+	$(CC) -Wall $(CFLAGS) $(LIBS) $< -o $@
 
 
 

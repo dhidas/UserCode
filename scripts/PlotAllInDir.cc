@@ -12,14 +12,16 @@
 #include "TFile.h"
 #include "TString.h"
 #include "TH1D.h"
+#include "TH2D.h"
 #include "TKey.h"
 #include "TDirectory.h"
 #include "TCanvas.h"
 #include "TROOT.h"
 #include "TStyle.h"
+#include "TSystem.h"
 
 
-int PlotAllInDir (TString const DirName, TString const FileName)
+int PlotAllInDir (TString const FileName, TString const DirName = "", TString const OutDir = "")
 {
   // Open File
   TFile File(FileName, "read");
@@ -28,32 +30,62 @@ int PlotAllInDir (TString const DirName, TString const FileName)
     return 1;
   }
 
+  if (DirName == "") {
+    File.ls();
+    return 0;
+  }
+
   // Get the directory of interest
-  TDirectory* Dir = (TDirectory*) File.Get(DirName);
+  TDirectory* Dir;
+  if (DirName.BeginsWith(".")) {
+    Dir = (TDirectory*) File.GetDirectory("");
+  } else {
+    Dir = (TDirectory*) File.Get(DirName);
+  }
   if (Dir == 0x0) {
     std::cerr << "ERROR: cannot get directory" << std::endl;
     return 1;
   }
 
+  Dir->ls();
+  if (OutDir != "") {
+    gSystem->mkdir(OutDir, kTRUE);
+  }
+
   // Set some basic style options
   gROOT->SetStyle("Plain");
-  gStyle->SetOptStat(11111111);
+  gStyle->SetOptStat(111111);
 
   // Get contents and loop over them
   TIter MyIter(Dir->GetListOfKeys());
   TKey* Key;
   while ( (Key = (TKey*) MyIter()) ) {
-    TObject *Object = (TObject*) Key;
-    if (Object->ClassName() != "TH1D") {
-      continue;
-    }
-    TH1D* Hist = (TH1D*) Object;
-    TString const Name = Hist->GetName();
+    TObject *Object = (TObject*) Key->ReadObj();
+    std::cout << "ClassName: " << Object->ClassName() << std::endl;
 
     TCanvas Can;
-    Can.cd();
-    Hist->Draw();
-    Can.SaveAs(Name+".gif");
+    TString Name;
+    TString const ClassName(Object->ClassName());
+    if (ClassName == "TH1D" || ClassName == "TH1F") {
+      TH1D* Hist = (TH1D*) Object;
+      Name = Hist->GetName();
+      Can.cd();
+      Hist->Draw();
+      Can.SetLogy(1);
+    } else if (ClassName == "TH2D" || ClassName == "TH2F") {
+      TH2D* Hist = (TH2D*) Object;
+      Name = Hist->GetName();
+      Can.cd();
+      Hist->Draw();
+    } else {
+      continue;
+    }
+    std::cout << "Name: " << Name << std::endl;
+    if (OutDir == "") {
+      Can.SaveAs(Name+".gif");
+    } else {
+      Can.SaveAs(OutDir+"/"+Name+".gif");
+    }
 
 
   }
@@ -63,12 +95,18 @@ int PlotAllInDir (TString const DirName, TString const FileName)
 
 int main (int argc, char* argv[])
 {
-  if (argc != 3) {
-    std::cerr << "Usage: " << argv[0] << " [DirName] [FileName]" << std::endl;
+  if (argc != 2 && argc != 3 && argc != 4) {
+    std::cerr << "Usage: " << argv[0] << " [DirName] [FileName] ([OutDir])" << std::endl;
     return 1;
   }
 
-  PlotAllInDir(argv[1], argv[2]);
+  if (argc == 2) {
+    PlotAllInDir(argv[1]);
+  } else if (argc == 3) {
+    PlotAllInDir(argv[2], argv[1]);
+  } else if (argc == 4) {
+    PlotAllInDir(argv[2], argv[1], argv[3]);
+  }
 
   return 0;
 }
