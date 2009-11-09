@@ -13,6 +13,7 @@
 
 int TestWriteDtuple ()
 {
+  std::cout << "Begin TestWriteDtuple" << std::endl;
   DtupleWriter A("TestOutFile.root");
 
   for (int i = 0; i != 200000; ++i) {
