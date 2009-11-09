@@ -11,15 +11,16 @@
 
 #include "DHidasAna/Dtuple/interface/Dtuple.h"
 
+
 class DtupleReader : public Dtuple
 {
   public:
     DtupleReader ();
     DtupleReader (TString const&);
+    DtupleReader (std::vector<TString> const&);
     virtual ~DtupleReader ();
 
     void InitializeTree ();
-
 
 };
 

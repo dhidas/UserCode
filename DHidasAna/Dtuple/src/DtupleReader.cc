@@ -33,9 +33,20 @@ DtupleReader::DtupleReader (TString const& FileName)
   fDtupleTree = (TTree*) Chain;
 }
 
+DtupleReader::DtupleReader (std::vector<TString> const& FileNames)
+{
+  // Set the TTree
+  TChain* Chain = new TChain("Dtuple", "Dtuple");
+  for (size_t i = 0; i != FileNames.size(); ++i) {
+    Chain->Add(FileNames[i]);
+  }
+  fDtupleTree = (TTree*) Chain;
+}
+
 void DtupleReader::InitializeTree ()
 {
   fDtupleTree->SetBranchAddress("Event", &fEvent);
   return;
 }
+
 
