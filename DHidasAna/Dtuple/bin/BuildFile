@@ -2,6 +2,11 @@
  <use name="DHidasAna/Dtuple">
 </bin>
 
-<bin name="TestWriteDtuple" file="TestWriteDtuple.cc">
+<bin name="TestDtupleWriter" file="TestDtupleWriter.cc">
  <use name="DHidasAna/Dtuple">
 </bin>
+
+<bin name="TestDtupleReader" file="TestDtupleReader.cc">
+ <use name="DHidasAna/Dtuple">
+</bin>
+

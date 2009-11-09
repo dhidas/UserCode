@@ -11,9 +11,9 @@
 
 #include "DHidasAna/Dtuple/interface/DtupleWriter.h"
 
-int TestWriteDtuple ()
+int TestDtupleWriter ()
 {
-  std::cout << "Begin TestWriteDtuple" << std::endl;
+  std::cout << "Begin TestDtupleWriter" << std::endl;
   DtupleWriter A("TestOutFile.root");
 
   for (int i = 0; i != 200000; ++i) {
@@ -32,7 +32,7 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  TestWriteDtuple();
+  TestDtupleWriter();
 
   return 0;
 }
