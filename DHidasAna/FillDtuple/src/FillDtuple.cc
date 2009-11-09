@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id$
+// $Id: FillDtuple.cc,v 1.1 2009/11/09 13:49:18 dhidas Exp $
 //
 //
 
@@ -37,6 +37,7 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
 
@@ -61,6 +62,7 @@ class FillDtuple : public edm::EDAnalyzer {
     void GetHandles (const edm::Event&);
     void FillBasicEventQuantities (const edm::Event&, DtupleWriter::Event_Struct&);
     void FillLeptons (const edm::Event&, DtupleWriter::Event_Struct&);
+    void FillPhotons (const edm::Event&, DtupleWriter::Event_Struct&);
     void FillJets (const edm::Event&, DtupleWriter::Event_Struct&);
 
     Dtuple* fDtupleWriter;
@@ -68,6 +70,7 @@ class FillDtuple : public edm::EDAnalyzer {
     edm::Handle< edm::View<pat::Electron> > fElectrons;
     edm::Handle< edm::View<pat::Muon> > fMuons;
     edm::Handle< edm::View<pat::Jet> > fJets;
+    edm::Handle< edm::View<pat::Photon> > fPhotons;
     edm::Handle< edm::View<pat::MET> > fMETs;
 
     struct ReallyBasicLepton {
@@ -156,6 +159,7 @@ FillDtuple::GetHandles(const edm::Event& iEvent)
   iEvent.getByLabel("cleanLayer1Electrons", fElectrons);
   iEvent.getByLabel("cleanLayer1Muons", fMuons);
   iEvent.getByLabel("cleanLayer1Jets", fJets);
+  iEvent.getByLabel("cleanLayer1Photons", fPhotons);
   iEvent.getByLabel("layer1METs", fMETs);
   return;
 }
@@ -289,6 +293,30 @@ FillDtuple::FillJets(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
     Ev.Jet_HadF[i] = jet.energyFractionHadronic();
 
 
+  }
+
+  return;
+}
+
+
+
+// ------------ Fill the electrons  ------------
+void 
+FillDtuple::FillPhotons (const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
+{
+  Ev.NPhotons = fPhotons->size();
+  for (size_t i = 0; i != fPhotons->size() && i < (size_t) Dtuple::NMaxPhotons; ++i) {
+
+    pat::Photon photon = fPhotons->at(i);
+
+    Ev.Photon_Px[i] = photon.px();
+    Ev.Photon_Py[i] = photon.py();
+    Ev.Photon_Pz[i] = photon.pz();
+    Ev.Photon_Pt[i] = photon.pt();
+    Ev.Photon_Eta[i] = photon.eta();
+    Ev.Photon_Phi[i] = photon.phi();
+    Ev.Photon_TrkIso[i] = photon.trackIso();
+    Ev.Photon_CalIso[i] = photon.caloIso();
   }
 
   return;

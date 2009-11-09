@@ -74,6 +74,8 @@ class Dtuple
       float Photon_Py[NMaxPhotons];
       float Photon_Pz[NMaxPhotons];
       float Photon_Pt[NMaxPhotons];
+      float Photon_Eta[NMaxPhotons];
+      float Photon_Phi[NMaxPhotons];
       float Photon_TrkIso[NMaxPhotons];
       float Photon_CalIso[NMaxPhotons];
 

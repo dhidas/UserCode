@@ -45,6 +45,8 @@ const TString Dtuple::fEvent_Format =
   "Photon_Py[4]/F:"
   "Photon_Pz[4]/F:"
   "Photon_Pt[4]/F:"
+  "Photon_Eta[4]/F:"
+  "Photon_Phi[4]/F:"
   "Photon_TrkIso[4]/F:"
   "Photon_CalIso[4]/F:"
 
@@ -111,6 +113,8 @@ void Dtuple::DefaultValues ()
     fEvent.Photon_Py[i] = -999999;
     fEvent.Photon_Pz[i] = -999999;
     fEvent.Photon_Pt[i] = -999999;
+    fEvent.Photon_Eta[i] = -999999;
+    fEvent.Photon_Phi[i] = -999999;
     fEvent.Photon_TrkIso[i] = -999999;
     fEvent.Photon_CalIso[i] = -999999;
   }
