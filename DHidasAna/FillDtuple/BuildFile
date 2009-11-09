@@ -1,0 +1,14 @@
+<use name=FWCore/Framework>
+<use name=FWCore/PluginManager>
+<use name=FWCore/ParameterSet>
+<use name=DHidasAna/Dtuple>
+<use name=DataFormats/PatCandidates>
+<flags EDM_PLUGIN=1>
+<export>
+   <lib name=DHidasAnaFillDtuple>
+   <use name=FWCore/Framework>
+   <use name=FWCore/PluginManager>
+   <use name=FWCore/ParameterSet>
+   <use name=DHidasAna/Dtuple>
+   <use name=DataFormats/PatCandidates>
+</export>
