@@ -1,0 +1,7 @@
+<bin name="TestDtuple" file="TestDtuple.cc">
+ <use name="DHidasAna/Dtuple">
+</bin>
+
+<bin name="TestWriteDtuple" file="TestWriteDtuple.cc">
+ <use name="DHidasAna/Dtuple">
+</bin>
