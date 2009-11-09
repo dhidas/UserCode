@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.2 2009/11/09 14:39:06 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.3 2009/11/09 16:16:03 dhidas Exp $
 //
 //
 
@@ -64,6 +64,9 @@ class FillDtuple : public edm::EDAnalyzer {
     void FillLeptons (const edm::Event&, DtupleWriter::Event_Struct&);
     void FillPhotons (const edm::Event&, DtupleWriter::Event_Struct&);
     void FillJets (const edm::Event&, DtupleWriter::Event_Struct&);
+
+    void EventSummary (DtupleWriter::Event_Struct&);
+    bool KeepEvent (DtupleWriter::Event_Struct&);
 
     Dtuple* fDtupleWriter;
 
@@ -116,7 +119,6 @@ FillDtuple::~FillDtuple()
   // Bye bye writer
   delete fDtupleWriter;
 
-
 }
 
 
@@ -145,8 +147,13 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   FillPhotons(iEvent, Ev);
   FillJets(iEvent, Ev);
 
+  // Print the even summary
+  EventSummary(Ev);
+
   // Actually save this event!!
-  fDtupleWriter->Fill();
+  if (KeepEvent(Ev)) {
+    fDtupleWriter->Fill();
+  }
 
 
   return;
@@ -196,9 +203,10 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
   for (size_t i = 0; i != fElectrons->size(); ++i) {
 
     pat::Electron electron = fElectrons->at(i);
-    if (electron.electronID("eidRobustHighEnergy") != 1) {
-      continue;
-    }
+    //if (electron.electronID("eidRobustHighEnergy") != 1) {
+    //  continue;
+    //}
+    //std::cout << "Electron Pt: " << electron.et() << std::endl;
 
     ThisLep.Pt = electron.et();
     ThisLep.Flavor = Dtuple::kElectron;
@@ -326,6 +334,35 @@ FillDtuple::FillPhotons (const edm::Event& iEvent, DtupleWriter::Event_Struct& E
 
   return;
 }
+
+
+
+// ------------ print brief event summary ------------
+void 
+FillDtuple::EventSummary (DtupleWriter::Event_Struct& Ev)
+{
+  // Print a very basic event summary
+  printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n", Ev.NLeptons, Ev.NPhotons, Ev.NJets, Ev.MetMag);
+  return;
+}
+
+
+
+
+// ------------ Keep this event or not? ------------
+bool
+FillDtuple::KeepEvent (DtupleWriter::Event_Struct& Ev)
+{
+  bool keep = true;
+  if (Ev.NLeptons != 1) {
+    keep = false;
+  }
+  if (Ev.NPhotons != 1) {
+    keep = false;
+  }
+  return keep;
+}
+
 
 
 
