@@ -28,6 +28,8 @@ const TString Dtuple::fEvent_Format =
   "Lepton_Pz[4]/F:"
   "Lepton_Pt[4]/F:"
   "Lepton_TrkPt[4]/F:"
+  "Lepton_Eta[4]/F:"
+  "Lepton_Phi[4]/F:"
   "Lepton_D0[4]/F:"
   "Lepton_Z0[4]/F:"
   "Lepton_Charge[4]/I:"
@@ -94,6 +96,8 @@ void Dtuple::DefaultValues ()
     fEvent.Lepton_Pz[i] = -999999;
     fEvent.Lepton_Pt[i] = -999999;
     fEvent.Lepton_TrkPt[i] = -999999;
+    fEvent.Lepton_Eta[i] = -999999;
+    fEvent.Lepton_Phi[i] = -999999;
     fEvent.Lepton_D0[i] = -999999;
     fEvent.Lepton_Z0[i] = -999999;
     fEvent.Lepton_Charge[i] = -999999;

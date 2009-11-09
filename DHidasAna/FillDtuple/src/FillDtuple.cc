@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.3 2009/11/09 16:16:03 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.4 2009/11/09 17:11:40 dhidas Exp $
 //
 //
 
@@ -243,6 +243,8 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_Pz[i] = electron.pz();
         Ev.Lepton_Pt[i] = electron.et();
         Ev.Lepton_TrkPt[i] = sqrt(electron.trackMomentumAtVtx().perp2());
+        Ev.Lepton_Eta[i] = electron.eta();
+        Ev.Lepton_Phi[i] = electron.phi();
         Ev.Lepton_D0[i] = 0;
         Ev.Lepton_Z0[i] = 0;
         Ev.Lepton_Charge[i] = electron.charge();
@@ -262,6 +264,8 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_Pz[i] = muon.pz();
         Ev.Lepton_Pt[i] = muon.pt();
         Ev.Lepton_TrkPt[i] = muon.pt();
+        Ev.Lepton_Eta[i] = muon.eta();
+        Ev.Lepton_Phi[i] = muon.phi();
         Ev.Lepton_D0[i] = 0;
         Ev.Lepton_Z0[i] = 0;
         Ev.Lepton_Charge[i] = muon.charge();

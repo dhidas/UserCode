@@ -57,6 +57,8 @@ class Dtuple
       float Lepton_Pz[NMaxLeptons];
       float Lepton_Pt[NMaxLeptons];
       float Lepton_TrkPt[NMaxLeptons];
+      float Lepton_Eta[NMaxLeptons];
+      float Lepton_Phi[NMaxLeptons];
       float Lepton_D0[NMaxLeptons];
       float Lepton_Z0[NMaxLeptons];
       int   Lepton_Charge[NMaxLeptons];
