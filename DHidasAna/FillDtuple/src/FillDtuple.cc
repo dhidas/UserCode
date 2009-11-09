@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.1 2009/11/09 13:49:18 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.2 2009/11/09 14:39:06 dhidas Exp $
 //
 //
 
@@ -139,10 +139,13 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   static DtupleWriter::Event_Struct& Ev = fDtupleWriter->fEvent;
 
 
+  // Load this event in the dtuple with stuff of interest
   FillBasicEventQuantities(iEvent, Ev);
   FillLeptons(iEvent, Ev);
+  FillPhotons(iEvent, Ev);
   FillJets(iEvent, Ev);
 
+  // Actually save this event!!
   fDtupleWriter->Fill();
 
 
@@ -156,6 +159,7 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 void 
 FillDtuple::GetHandles(const edm::Event& iEvent)
 {
+  // This function gets the physics objects of interest
   iEvent.getByLabel("cleanLayer1Electrons", fElectrons);
   iEvent.getByLabel("cleanLayer1Muons", fMuons);
   iEvent.getByLabel("cleanLayer1Jets", fJets);
@@ -169,6 +173,7 @@ FillDtuple::GetHandles(const edm::Event& iEvent)
 void 
 FillDtuple::FillBasicEventQuantities (const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
 {
+  // Fill some event quantities
 
   Ev.Run    = iEvent.id().run();
   Ev.Event  = iEvent.id().event();
