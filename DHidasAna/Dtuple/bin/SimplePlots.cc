@@ -32,6 +32,7 @@ int SimplePlots (TString const FileName)
   Hist["PhotonEt"] = new TH1D("PhotonEt", "PhotonEt", 50, 0, 100);
   Hist["PhotonTrkIso"] = new TH1D("PhotonTrkIso", "PhotonTrkIso", 50, 0, 20);
   Hist["PhotonCalIso"] = new TH1D("PhotonCalIso", "PhotonCalIso", 50, 0, 20);
+  Hist["PhotonHCalOverECal"] = new TH1D("PhotonHCalOverECal", "PhotonHCalOverECal", 50, 0, 1);
   for (std::map<TString, TH1D*>::iterator It = Hist.begin(); It != Hist.end(); ++It) {
     It->second->SetDirectory(&OutFile);
   }
@@ -49,6 +50,7 @@ int SimplePlots (TString const FileName)
       Hist["PhotonEt"]->Fill( Ev.Photon_Pt[0] );
       Hist["PhotonTrkIso"]->Fill( Ev.Photon_TrkIso[0] );
       Hist["PhotonCalIso"]->Fill( Ev.Photon_CalIso[0] );
+      Hist["PhotonHCalOverECal"]->Fill( Ev.Photon_HCalOverECal[0] );
     }
   }
 
