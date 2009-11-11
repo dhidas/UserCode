@@ -80,6 +80,7 @@ class Dtuple
       float Photon_Phi[NMaxPhotons];
       float Photon_TrkIso[NMaxPhotons];
       float Photon_CalIso[NMaxPhotons];
+      float Photon_HCalOverECal[NMaxLeptons];
 
       int   NJets;
       float Jet_Px[NMaxJets];

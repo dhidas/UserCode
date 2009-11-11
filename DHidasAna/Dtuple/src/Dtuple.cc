@@ -51,6 +51,7 @@ const TString Dtuple::fEvent_Format =
   "Photon_Phi[4]/F:"
   "Photon_TrkIso[4]/F:"
   "Photon_CalIso[4]/F:"
+  "Photon_HCalOverECal[4]/F:"
 
   "NJets/I:"
   "Jet_Px[10]/F:"
@@ -121,6 +122,7 @@ void Dtuple::DefaultValues ()
     fEvent.Photon_Phi[i] = -999999;
     fEvent.Photon_TrkIso[i] = -999999;
     fEvent.Photon_CalIso[i] = -999999;
+    fEvent.Photon_HCalOverECal[i] = -999999;
   }
 
   fEvent.NJets = -1;
