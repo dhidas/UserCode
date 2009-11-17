@@ -10,3 +10,7 @@
  <use name="DHidasAna/Dtuple">
 </bin>
 
+<bin name="SimplePlots" file="SimplePlots.cc">
+ <use name="DHidasAna/Dtuple">
+</bin>
+

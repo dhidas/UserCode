@@ -11,6 +11,8 @@
 
 #include "DHidasAna/Dtuple/interface/DtupleReader.h"
 
+#include "TH1D.h"
+
 int TestDtupleReader (TString const FileName)
 {
   DtupleReader DR(FileName);

@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.4 2009/11/09 17:11:40 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.5 2009/11/09 19:34:20 dhidas Exp $
 //
 //
 
@@ -39,6 +39,7 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
+#include "PhysicsTools/PatUtils/interface/TriggerHelper.h"
 
 
 #include <algorithm>
@@ -75,6 +76,11 @@ class FillDtuple : public edm::EDAnalyzer {
     edm::Handle< edm::View<pat::Jet> > fJets;
     edm::Handle< edm::View<pat::Photon> > fPhotons;
     edm::Handle< edm::View<pat::MET> > fMETs;
+
+    edm::Handle< pat::TriggerEvent > fTriggerEvent;
+    //edm::Handle< pat::TriggerPathCollection > fTriggerPaths;
+    //edm::Handle< pat::TriggerFilterCollection > fTriggerFilters;
+    //edm::Handle< pat::TriggerObjectCollection > fTriggerObjects;
 
     struct ReallyBasicLepton {
       float Pt;
@@ -135,6 +141,7 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   // Better get all the labels you want right here!
   GetHandles(iEvent);
 
+
   // Set Dtuple to default values
   fDtupleWriter->DefaultValues();
 
@@ -172,6 +179,10 @@ FillDtuple::GetHandles(const edm::Event& iEvent)
   iEvent.getByLabel("cleanLayer1Jets", fJets);
   iEvent.getByLabel("cleanLayer1Photons", fPhotons);
   iEvent.getByLabel("layer1METs", fMETs);
+  iEvent.getByLabel("patTrigger", fTriggerEvent );
+  //iEvent.getByLabel( "patTrigger", fTriggerPaths );
+  //iEvent.getByLabel( "patTrigger", fTriggerFilters );
+  //iEvent.getByLabel( "patTrigger", fTriggerObjects );
   return;
 }
 
@@ -199,6 +210,9 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
 {
   std::vector<ReallyBasicLepton> Leptons;
   static ReallyBasicLepton ThisLep;
+
+  const pat::helper::TriggerMatchHelper matchHelper;
+  const pat::TriggerObjectMatch* triggerMatch( fTriggerEvent->triggerObjectMatchResult( "muonTriggerMatchHLTMuons" ) );
 
   for (size_t i = 0; i != fElectrons->size(); ++i) {
 
@@ -334,6 +348,7 @@ FillDtuple::FillPhotons (const edm::Event& iEvent, DtupleWriter::Event_Struct& E
     Ev.Photon_Phi[i] = photon.phi();
     Ev.Photon_TrkIso[i] = photon.trackIso();
     Ev.Photon_CalIso[i] = photon.caloIso();
+    Ev.Photon_HCalOverECal[i] = photon.hadronicOverEm();
   }
 
   return;
