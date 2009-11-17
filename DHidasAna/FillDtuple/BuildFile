@@ -3,6 +3,7 @@
 <use name=FWCore/ParameterSet>
 <use name=DHidasAna/Dtuple>
 <use name=DataFormats/PatCandidates>
+<use name=PhysicsTools/PatUtils>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=DHidasAnaFillDtuple>
@@ -11,4 +12,5 @@
    <use name=FWCore/ParameterSet>
    <use name=DHidasAna/Dtuple>
    <use name=DataFormats/PatCandidates>
+   <use name=PhysicsTools/PatUtils>
 </export>

@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.5 2009/11/09 19:34:20 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.6 2009/11/17 15:09:24 dhidas Exp $
 //
 //
 
@@ -40,6 +40,9 @@
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "PhysicsTools/PatUtils/interface/TriggerHelper.h"
+
+
+
 
 
 #include <algorithm>
@@ -211,8 +214,21 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
   std::vector<ReallyBasicLepton> Leptons;
   static ReallyBasicLepton ThisLep;
 
+  // PAT object collection
+  edm::Handle< pat::MuonCollection > muons;
+  iEvent.getByLabel( "selectedLayer1Muons", muons );
   const pat::helper::TriggerMatchHelper matchHelper;
   const pat::TriggerObjectMatch* triggerMatch( fTriggerEvent->triggerObjectMatchResult( "muonTriggerMatchHLTMuons" ) );
+  for (size_t i = 0; i != muons->size(); ++i) {
+    const reco::CandidateBaseRef candBaseRef( pat::MuonRef( muons, i ) );
+    const pat::TriggerObjectRef trigRef( matchHelper.triggerMatchObject( candBaseRef, triggerMatch, iEvent, *fTriggerEvent ) );
+    if ( trigRef.isAvailable() ) { // check references (necessary!)
+       printf("pt  %10.2f %10.2f\n", candBaseRef->pt(), trigRef->pt() );
+       printf("eta %10.2f %10.2f\n", candBaseRef->eta(), trigRef->eta() );
+       printf("phi %10.2f %10.2f\n", candBaseRef->phi(), trigRef->phi() );
+    }
+  }
+
 
   for (size_t i = 0; i != fElectrons->size(); ++i) {
 
