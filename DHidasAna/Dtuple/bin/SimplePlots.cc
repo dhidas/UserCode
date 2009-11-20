@@ -28,13 +28,14 @@ int SimplePlots (TString const FileName)
 
   // Define histograms and set them to outfile
   std::map<TString, TH1D*> Hist;
-  Hist["DeltaREGamma"] = new TH1D ("DeltaREGamma", "DeltaREGamma", 50, 0, 4);
-  Hist["PhotonEt"] = new TH1D("PhotonEt", "PhotonEt", 50, 0, 100);
-  Hist["PhotonTrkIso"] = new TH1D("PhotonTrkIso", "PhotonTrkIso", 50, 0, 20);
-  Hist["PhotonCalIso"] = new TH1D("PhotonCalIso", "PhotonCalIso", 50, 0, 20);
-  Hist["PhotonHCalOverECal"] = new TH1D("PhotonHCalOverECal", "PhotonHCalOverECal", 50, 0, 1);
+  Hist["DeltaREGamma"] = new TH1D ("DeltaREGamma", "DeltaREGamma;#Delta R (e,#gamma);Events / 0.08", 50, 0, 4);
+  Hist["PhotonEt"] = new TH1D("PhotonEt", "PhotonEt;Photon E_T (GeV);Events / (2 GeV)", 50, 0, 100);
+  Hist["PhotonTrkIso"] = new TH1D("PhotonTrkIso", "PhotonTrkIso;Photon Track Isolation (GeV);Number of Photons", 50, 0, 20);
+  Hist["PhotonCalIso"] = new TH1D("PhotonCalIso", "PhotonCalIso;Photon Calorimeter Isolation (GeV);Number of Photons", 50, 0, 20);
+  Hist["PhotonHCalOverECal"] = new TH1D("PhotonHCalOverECal", "PhotonHCalOverECal;Photon E_{HCal} / E_{ECal};Number of Photons", 50, 0, 1);
   for (std::map<TString, TH1D*>::iterator It = Hist.begin(); It != Hist.end(); ++It) {
     It->second->SetDirectory(&OutFile);
+    It->second->Sumw2();
   }
 
 

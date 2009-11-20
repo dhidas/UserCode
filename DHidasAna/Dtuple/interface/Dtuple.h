@@ -21,8 +21,8 @@ class Dtuple
     Dtuple (TString const&) {};
     virtual ~Dtuple () {};
 
-    int GetEntry (unsigned long const);
-    int Fill ();
+    int  GetEntry (unsigned long const);
+    int  Fill ();
     void DefaultValues ();
 
 

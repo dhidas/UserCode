@@ -13,16 +13,23 @@
 
 DtupleWriter::DtupleWriter ()
 {
+  // Default constructor
 }
 
 
 DtupleWriter::DtupleWriter (TString const& OutName)
 {
+  // Constructor which takes the name of the output file.
+
+  // Create new file
   fDtupleFile = new TFile(OutName, "recreate");
   if (fDtupleFile) {
+    // Set the tree
     fDtupleTree = new TTree("Dtuple", "Dtuple");
     fDtupleTree->SetDirectory(fDtupleFile);
     fDtupleTree->Branch("Event", &fEvent, fEvent_Format);
+  } else {
+    std::cerr << "ERROR: cannot open output file " << OutName << std::endl;
   }
 
   //std::cout << "DtupleWriter::DtupleWriter done." << std::endl;
@@ -34,6 +41,9 @@ DtupleWriter::DtupleWriter (TString const& OutName)
 
 DtupleWriter::~DtupleWriter ()
 {
+  // Destructor
+
+  // At the end, let's grab the current file, write, and close it
   TFile* File = fDtupleTree->GetCurrentFile();
   File->Write();
   File->Close();

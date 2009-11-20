@@ -14,6 +14,9 @@
 
 
 
+// This is the format of the ntuple.  The order must be taken exactly from the struct.
+// If you update this you need to update the struct.  Also, the size of the arrays
+// is important.  If you update that here you must change the struct
 const TString Dtuple::fEvent_Format = 
   "Run/I:"
   "Event/I:"
@@ -68,12 +71,15 @@ const TString Dtuple::fEvent_Format =
 
 int Dtuple::GetEntry (unsigned long const ientry)
 {
+  // Get the i-th entry from the Dtuple tree.
   return fDtupleTree->GetEntry(ientry);
 }
 
 
 int Dtuple::Fill ()
 {
+  // Fill an entry!!
+
   //std::cout << "Begin fill" << std::endl;
   return fDtupleTree->Fill();
   //std::cout << "End fill" << std::endl;
@@ -82,6 +88,8 @@ int Dtuple::Fill ()
 
 void Dtuple::DefaultValues ()
 {
+  // Set default values for all entries in the dtuple
+
   //std::cout << "Begin default values" << std::endl;
   fEvent.Run    = -999999;
   fEvent.Event  = -999999;
