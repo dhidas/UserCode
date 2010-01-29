@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.6 2009/11/17 15:09:24 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.7 2009/11/17 16:34:05 dhidas Exp $
 //
 //
 
@@ -41,6 +41,12 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "PhysicsTools/PatUtils/interface/TriggerHelper.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "PhysicsTools/UtilAlgos/interface/TFileService.h"
+
+
+#include "TString.h"
+#include <string>
 
 
 
@@ -96,6 +102,7 @@ class FillDtuple : public edm::EDAnalyzer {
     };
 
     // ----------member data ---------------------------
+    std::string fOutFileName;
 };
 
 
@@ -111,8 +118,8 @@ class FillDtuple : public edm::EDAnalyzer {
 //
 // constructors and destructor
 //
-FillDtuple::FillDtuple(const edm::ParameterSet& iConfig)
-
+FillDtuple::FillDtuple(const edm::ParameterSet& iConfig) :
+fOutFileName( iConfig.getUntrackedParameter< std::string >( "OutFileName" ) )
 {
    //now do what ever initialization is needed
 
@@ -177,12 +184,12 @@ void
 FillDtuple::GetHandles(const edm::Event& iEvent)
 {
   // This function gets the physics objects of interest
-  iEvent.getByLabel("cleanLayer1Electrons", fElectrons);
-  iEvent.getByLabel("cleanLayer1Muons", fMuons);
-  iEvent.getByLabel("cleanLayer1Jets", fJets);
-  iEvent.getByLabel("cleanLayer1Photons", fPhotons);
+  iEvent.getByLabel("allLayer1Electrons", fElectrons);
+  iEvent.getByLabel("allLayer1Muons", fMuons);
+  iEvent.getByLabel("allLayer1Jets", fJets);
+  iEvent.getByLabel("allLayer1Photons", fPhotons);
   iEvent.getByLabel("layer1METs", fMETs);
-  iEvent.getByLabel("patTrigger", fTriggerEvent );
+  //iEvent.getByLabel("patTrigger", fTriggerEvent );
   //iEvent.getByLabel( "patTrigger", fTriggerPaths );
   //iEvent.getByLabel( "patTrigger", fTriggerFilters );
   //iEvent.getByLabel( "patTrigger", fTriggerObjects );
@@ -215,19 +222,19 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
   static ReallyBasicLepton ThisLep;
 
   // PAT object collection
-  edm::Handle< pat::MuonCollection > muons;
-  iEvent.getByLabel( "selectedLayer1Muons", muons );
-  const pat::helper::TriggerMatchHelper matchHelper;
-  const pat::TriggerObjectMatch* triggerMatch( fTriggerEvent->triggerObjectMatchResult( "muonTriggerMatchHLTMuons" ) );
-  for (size_t i = 0; i != muons->size(); ++i) {
-    const reco::CandidateBaseRef candBaseRef( pat::MuonRef( muons, i ) );
-    const pat::TriggerObjectRef trigRef( matchHelper.triggerMatchObject( candBaseRef, triggerMatch, iEvent, *fTriggerEvent ) );
-    if ( trigRef.isAvailable() ) { // check references (necessary!)
-       printf("pt  %10.2f %10.2f\n", candBaseRef->pt(), trigRef->pt() );
-       printf("eta %10.2f %10.2f\n", candBaseRef->eta(), trigRef->eta() );
-       printf("phi %10.2f %10.2f\n", candBaseRef->phi(), trigRef->phi() );
-    }
-  }
+  //edm::Handle< pat::MuonCollection > muons;
+  //iEvent.getByLabel( "selectedLayer1Muons", muons );
+  //const pat::helper::TriggerMatchHelper matchHelper;
+  //const pat::TriggerObjectMatch* triggerMatch( fTriggerEvent->triggerObjectMatchResult( "muonTriggerMatchHLTMuons" ) );
+  //for (size_t i = 0; i != muons->size(); ++i) {
+  //  const reco::CandidateBaseRef candBaseRef( pat::MuonRef( muons, i ) );
+  //  const pat::TriggerObjectRef trigRef( matchHelper.triggerMatchObject( candBaseRef, triggerMatch, iEvent, *fTriggerEvent ) );
+  //  if ( trigRef.isAvailable() ) { // check references (necessary!)
+  //     printf("pt  %10.2f %10.2f\n", candBaseRef->pt(), trigRef->pt() );
+  //     printf("eta %10.2f %10.2f\n", candBaseRef->eta(), trigRef->eta() );
+  //     printf("phi %10.2f %10.2f\n", candBaseRef->phi(), trigRef->phi() );
+  //  }
+  //}
 
 
   for (size_t i = 0; i != fElectrons->size(); ++i) {
@@ -389,12 +396,10 @@ bool
 FillDtuple::KeepEvent (DtupleWriter::Event_Struct& Ev)
 {
   bool keep = true;
-  if (Ev.NLeptons != 1) {
+  if (Ev.NLeptons < 1) {
     keep = false;
   }
-  if (Ev.NPhotons != 1) {
-    keep = false;
-  }
+
   return keep;
 }
 
@@ -405,7 +410,12 @@ FillDtuple::KeepEvent (DtupleWriter::Event_Struct& Ev)
 void 
 FillDtuple::beginJob()
 {
-  fDtupleWriter = new DtupleWriter("TestDtupleFile.root");
+  edm::Service<TFileService> fs;
+  TTree* DtupleTree = fs->make<TTree>("Dtuple", "Dtuple");
+  DtupleTree->SetDirectory( &(fs->file()) );
+
+  fDtupleWriter = new DtupleWriter(DtupleTree);
+  //fDtupleWriter = new DtupleWriter(fOutFileName);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

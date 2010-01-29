@@ -4,6 +4,8 @@
 <use name=DHidasAna/Dtuple>
 <use name=DataFormats/PatCandidates>
 <use name=PhysicsTools/PatUtils>
+<use name=FWCore/ServiceRegistry>
+<use name=PhysicsTools/UtilAlgos>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=DHidasAnaFillDtuple>
@@ -13,4 +15,6 @@
    <use name=DHidasAna/Dtuple>
    <use name=DataFormats/PatCandidates>
    <use name=PhysicsTools/PatUtils>
+   <use name=FWCore/ServiceRegistry>
+   <use name=PhysicsTools/UtilAlgos>
 </export>
