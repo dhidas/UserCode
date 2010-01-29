@@ -39,6 +39,25 @@ DtupleWriter::DtupleWriter (TString const& OutName)
 
 }
 
+DtupleWriter::DtupleWriter (TTree* DtupleTree)
+{
+  // Constructor which takes the name of the output file.
+
+  if (DtupleTree) {
+    // Set the tree
+    fDtupleTree = DtupleTree;
+    fDtupleTree->Branch("Event", &fEvent, fEvent_Format);
+  } else {
+    std::cerr << "ERROR: input TTree* is 0x0" << std::endl;
+  }
+
+  //std::cout << "DtupleWriter::DtupleWriter done." << std::endl;
+
+  // Comment this in if you want to change the default tree size
+  //fDtupleTree->SetMaxTreeSize(4000000);
+
+}
+
 DtupleWriter::~DtupleWriter ()
 {
   // Destructor

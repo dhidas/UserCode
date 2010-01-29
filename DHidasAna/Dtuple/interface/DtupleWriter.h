@@ -16,6 +16,7 @@ class DtupleWriter : public Dtuple
   public:
     DtupleWriter ();
     DtupleWriter (TString const&);
+    DtupleWriter (TTree*);
     virtual ~DtupleWriter ();
 
 };
