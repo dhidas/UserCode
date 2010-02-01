@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.7 2009/11/17 16:34:05 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.8 2010/01/29 08:39:59 dhidas Exp $
 //
 //
 
@@ -286,10 +286,13 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_Z0[i] = 0;
         Ev.Lepton_Charge[i] = electron.charge();
         Ev.Lepton_Flavor[i] = Dtuple::kElectron;
-        Ev.Lepton_TrkIso[i] = electron.trackIso();
+        //Ev.Lepton_TrkIso[i] = electron.trackIso();
+        Ev.Lepton_TrkIso[i] = electron.dr03TkSumPt();
         Ev.Lepton_CalIso[i] = electron.caloIso();
-        Ev.Lepton_ECalIso[i] = electron.ecalIso();
-        Ev.Lepton_HCalIso[i] = electron.hcalIso();
+        //Ev.Lepton_ECalIso[i] = electron.ecalIso();
+        Ev.Lepton_ECalIso[i] = electron.dr03EcalRecHitSumEt();
+        //Ev.Lepton_HCalIso[i] = electron.hcalIso();
+        Ev.Lepton_HCalIso[i] = electron.dr03HcalTowerSumEt();
         Ev.Lepton_CalE[i] = electron.caloEnergy();
         Ev.Lepton_HCalOverECal[i] = electron.hadronicOverEm();
         Ev.Lepton_EoverPin[i] = electron.eSuperClusterOverP();

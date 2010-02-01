@@ -20,8 +20,8 @@
 const TString Dtuple::fEvent_Format = 
   "Run/I:"
   "Event/I:"
-  "EventWeight/D:"
-  "TriggerEff/F:"
+  //"EventWeight/D:"
+  //"TriggerEff/F:"
   "MetMag/F:"
   "MetPhi/F:"
   "SumEt/F:"
