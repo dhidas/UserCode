@@ -20,6 +20,8 @@
 const TString Dtuple::fEvent_Format = 
   "Run/I:"
   "Event/I:"
+  "EventWeight/D:"
+  "TriggerEff/F:"
   "MetMag/F:"
   "MetPhi/F:"
   "SumEt/F:"
@@ -72,6 +74,7 @@ const TString Dtuple::fEvent_Format =
 int Dtuple::GetEntry (unsigned long const ientry)
 {
   // Get the i-th entry from the Dtuple tree.
+  fDtupleTree->GetEntry(ientry);
   return fDtupleTree->GetEntry(ientry);
 }
 
@@ -93,6 +96,8 @@ void Dtuple::DefaultValues ()
   //std::cout << "Begin default values" << std::endl;
   fEvent.Run    = -999999;
   fEvent.Event  = -999999;
+  //fEvent.EventWeight  = -999999;
+  //fEvent.TriggerEff   = -999999;
   fEvent.MetMag = -999999;
   fEvent.MetPhi = -999999;
   fEvent.SumEt  = -999999;

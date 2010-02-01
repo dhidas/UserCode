@@ -14,3 +14,7 @@
  <use name="DHidasAna/Dtuple">
 </bin>
 
+<bin name="MakeSimpleSUSYPlots" file="MakeSimpleSUSYPlots.cc">
+ <use name="DHidasAna/Dtuple">
+</bin>
+
