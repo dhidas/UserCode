@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.8 2010/01/29 08:39:59 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.9 2010/02/01 15:43:46 dhidas Exp $
 //
 //
 
@@ -275,6 +275,13 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
     switch (Leptons[i].Flavor) {
       case Dtuple::kElectron: {
         pat::Electron electron = fElectrons->at( Leptons[i].Id );
+        electron.caloPosition().eta();
+        if (electron.isConvertedPhoton() != electron.isPhoton()) {
+          std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXX" << std::endl;
+          exit(0);
+        }
+        // Conversion
+        // IsEE IsEB ...
         Ev.Lepton_Px[i] = electron.px();
         Ev.Lepton_Py[i] = electron.py();
         Ev.Lepton_Pz[i] = electron.pz();
