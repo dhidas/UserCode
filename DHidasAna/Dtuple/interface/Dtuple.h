@@ -43,7 +43,11 @@ class Dtuple
     };
 
     enum ElectronSel {
-      kElectronSel_RobustHighEnergy = 0
+      kElectronSel_RobustHighEnergy = 0,
+      kElectronSel_RobustLoose = 1,
+      kElectronSel_RobustTight = 2,
+      kElectronSel_Loose = 3,
+      kElectronSel_Tight = 4
     };
 
     enum ElectronDet {
@@ -95,6 +99,7 @@ class Dtuple
       float Lepton_CalE[NMaxLeptons];
       float Lepton_HCalOverECal[NMaxLeptons];
       float Lepton_EoverPin[NMaxLeptons];
+      float Lepton_fBrem[NMaxLeptons];
       int   Lepton_IsConvertedPhoton[NMaxLeptons];
       int   Lepton_PassSelection[NMaxLeptons];
       int   Lepton_Detector[NMaxLeptons];

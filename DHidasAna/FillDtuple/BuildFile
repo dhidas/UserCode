@@ -6,6 +6,7 @@
 <use name=PhysicsTools/PatUtils>
 <use name=FWCore/ServiceRegistry>
 <use name=PhysicsTools/UtilAlgos>
+<use name=DataFormats/BeamSpot>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=DHidasAnaFillDtuple>
@@ -17,4 +18,5 @@
    <use name=PhysicsTools/PatUtils>
    <use name=FWCore/ServiceRegistry>
    <use name=PhysicsTools/UtilAlgos>
+   <use name=DataFormats/BeamSpot>
 </export>
