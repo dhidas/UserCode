@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.11 2010/02/02 11:49:52 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.12 2010/02/02 12:04:16 dhidas Exp $
 //
 //
 
@@ -292,7 +292,8 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_TrkPt[i] = sqrt(electron.trackMomentumAtVtx().perp2());
         Ev.Lepton_Eta[i] = electron.eta();
         Ev.Lepton_Phi[i] = electron.phi();
-        Ev.Lepton_D0[i] = 0; // change to dxy, add dz
+        Ev.Lepton_dxy[i] = electron.gsfTrack()->dxy(fBeamSpot->position());
+        Ev.Lepton_dz[i] = electron.gsfTrack()->dz(fBeamSpot->position());
         Ev.Lepton_Z0[i] = electron.vz();
         Ev.Lepton_Charge[i] = electron.charge();
         Ev.Lepton_Flavor[i] = Dtuple::kLeptonFlavor_Electron;
@@ -378,8 +379,9 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_TrkPt[i] = muon.pt();
         Ev.Lepton_Eta[i] = muon.eta();
         Ev.Lepton_Phi[i] = muon.phi();
-        Ev.Lepton_D0[i] = 0;
-        Ev.Lepton_Z0[i] = 0;
+        Ev.Lepton_dxy[i] = muon.innerTrack()->dxy();
+        Ev.Lepton_dz[i] = muon.innerTrack()->dz();
+        Ev.Lepton_Z0[i] = muon.vz();
         Ev.Lepton_Charge[i] = muon.charge();
         Ev.Lepton_Flavor[i] = Dtuple::kLeptonFlavor_Muon;
         Ev.Lepton_TrkIso[i] = muon.trackIso();
