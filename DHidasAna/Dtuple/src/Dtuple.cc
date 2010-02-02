@@ -46,6 +46,14 @@ const TString Dtuple::fEvent_Format =
   "Lepton_CalE[4]/F:"
   "Lepton_HCalOverECal[4]/F:"
   "Lepton_EoverPin[4]/F:"
+  "Lepton_IsConvertedPhoton[4]/I:"
+  "Lepton_PassSelection[4]/I:"
+  "Lepton_Detector[4]/I:"
+  "Lepton_Classification[4]/I:"
+  "Lepton_SigmaIEtaIEta[4]/F:"
+  "Lepton_DeltaEtaIn[4]/F:"
+  "Lepton_DeltaPhiIn[4]/F:"
+  "Lepton_E2x5overE5x5[4]/F:"
 
   "NPhotons/I:"
   "Photon_Px[4]/F:"
@@ -123,6 +131,15 @@ void Dtuple::DefaultValues ()
     fEvent.Lepton_CalE[i] = -999999;
     fEvent.Lepton_HCalOverECal[i] = -999999;
     fEvent.Lepton_EoverPin[i] = -999999;
+    fEvent.Lepton_IsConvertedPhoton[i] = -999999;
+    fEvent.Lepton_PassSelection[i] = 0x0;
+    fEvent.Lepton_Detector[i] = 0x0;
+    fEvent.Lepton_Classification[i] = 0x0;
+    fEvent.Lepton_SigmaIEtaIEta[i] = -999999;
+    fEvent.Lepton_DeltaEtaIn[i] = -999999;
+    fEvent.Lepton_DeltaPhiIn[i] = -999999;
+    fEvent.Lepton_E2x5overE5x5[i] = -999999;
+
   }
 
   fEvent.NPhotons = -1;

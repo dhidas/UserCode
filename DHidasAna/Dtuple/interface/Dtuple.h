@@ -37,9 +37,34 @@ class Dtuple
     static int const NMaxJets = 10;
 
     enum LeptonFlavor {
-      kElectron,
-      kMuon,
-      kTau
+      kLeptonFlavor_Electron,
+      kLeptonFlavor_Muon,
+      kLeptonFlavor_Tau
+    };
+
+    enum ElectronSel {
+      kElectronSel_RobustHighEnergy = 0
+    };
+
+    enum ElectronDet {
+      kElectronDet_EE = 0,
+      kElectronDet_EB = 1,
+      kElectronDet_EBEEGap = 2,
+      kElectronDet_EBEtaGap = 3,
+      kElectronDet_EBGap = 4,
+      kElectronDet_EBPhiGap = 5,
+      kElectronDet_EEDeeGap = 6,
+      kElectronDet_EEGap = 7,
+      kElectronDet_EERingGap = 8
+    };
+
+    enum ElectronClass {
+      kElectronClass_Unknown = -1,
+      kElectronClass_Golden,
+      kElectronClass_BigBrem,
+      kElectronClass_Narrow,
+      kElectronClass_Showering,
+      kElectronClass_Gap
     };
 
   public:
@@ -70,6 +95,16 @@ class Dtuple
       float Lepton_CalE[NMaxLeptons];
       float Lepton_HCalOverECal[NMaxLeptons];
       float Lepton_EoverPin[NMaxLeptons];
+      int   Lepton_IsConvertedPhoton[NMaxLeptons];
+      int   Lepton_PassSelection[NMaxLeptons];
+      int   Lepton_Detector[NMaxLeptons];
+
+      int   Lepton_Classification[NMaxLeptons];
+      float Lepton_SigmaIEtaIEta[NMaxLeptons];
+      float Lepton_DeltaEtaIn[NMaxLeptons];
+      float Lepton_DeltaPhiIn[NMaxLeptons];
+      float Lepton_E2x5overE5x5[NMaxLeptons];
+
 
       int   NPhotons;
       float Photon_Px[NMaxPhotons];

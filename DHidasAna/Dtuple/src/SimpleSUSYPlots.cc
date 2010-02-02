@@ -71,11 +71,11 @@ void SimpleSUSYPlots::Loop ()
 
     // Loop over all leptons
     for (int ilepton = 0; ilepton < Ev.NLeptons; ++ilepton) {
-      if (Ev.Lepton_Flavor[ilepton] == Dtuple::kElectron) {
+      if (Ev.Lepton_Flavor[ilepton] == Dtuple::kLeptonFlavor_Electron) {
         Hist1D["Electron_ECalIso"]->Fill(Ev.Lepton_ECalIso[ilepton]);
         Hist1D["Electron_HCalIso"]->Fill(Ev.Lepton_HCalIso[ilepton]);
         Hist1D["Electron_TrkIso"]->Fill(Ev.Lepton_TrkIso[ilepton]);
-      } else if (Ev.Lepton_Flavor[ilepton] == Dtuple::kMuon) {
+      } else if (Ev.Lepton_Flavor[ilepton] == Dtuple::kLeptonFlavor_Muon) {
         Hist1D["Muon_ECalIso"]->Fill(Ev.Lepton_ECalIso[ilepton]);
         Hist1D["Muon_HCalIso"]->Fill(Ev.Lepton_HCalIso[ilepton]);
         Hist1D["Muon_TrkIso"]->Fill(Ev.Lepton_TrkIso[ilepton]);
