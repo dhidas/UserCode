@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.12 2010/02/02 12:04:16 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.13 2010/02/02 16:18:39 dhidas Exp $
 //
 //
 
@@ -324,9 +324,6 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         if (electron.electronID("eidTight") == 1) {
           Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_Tight);
         }
-        printf("Vertex A:   %12.5f %12.5f\n", sqrt(electron.vx()*electron.vx() + electron.vy()*electron.vy()), electron.vz());
-        printf("Vertex B:   %12.5f %12.5f\n", electron.gsfTrack()->dxy(fBeamSpot->position()), electron.gsfTrack()->dz(fBeamSpot->position()));
-        printf("BeamSpot P: %12.5f %12.5f %12.5f\n", fBeamSpot->x0(), fBeamSpot->y0(), fBeamSpot->z0());
 
         // Electron regions
         if (electron.isEE())        { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EE); }
@@ -390,6 +387,12 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_HCalIso[i] = muon.hcalIso();
         Ev.Lepton_CalE[i] = muon.calEnergy().em + muon.calEnergy().had;
         Ev.Lepton_HCalOverECal[i] = muon.calEnergy().had / muon.calEnergy().em;
+
+        // Muon types
+        if (muon.isGlobalMuon())     { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Global); }
+        if (muon.isTrackerMuon())    { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Tracker); }
+        if (muon.isStandAloneMuon()) { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_StandAlone); }
+        if (muon.isCaloMuon())       { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Calo); }
         break;
       } default: {
         std::cerr << "ERROR: lepton type not known" << std::endl;
