@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.14 2010/02/03 08:45:19 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.15 2010/02/03 10:08:24 dhidas Exp $
 //
 //
 
@@ -376,9 +376,11 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_TrkPt[i] = muon.pt();
         Ev.Lepton_Eta[i] = muon.eta();
         Ev.Lepton_Phi[i] = muon.phi();
-        edm::reco::TrackRef MyTrackRef = muon.innerTrack();
+        reco::TrackRef MyTrackRef = muon.innerTrack();
+        if (MyTrackRef.isNonnull()) {
         Ev.Lepton_dxy[i] = muon.innerTrack()->dxy(fBeamSpot->position());
         Ev.Lepton_dz[i] = muon.innerTrack()->dz(fBeamSpot->position());
+        }
         Ev.Lepton_Z0[i] = muon.vz();
         Ev.Lepton_Charge[i] = muon.charge();
         Ev.Lepton_Flavor[i] = Dtuple::kLeptonFlavor_Muon;
