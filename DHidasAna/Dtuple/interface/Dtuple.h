@@ -62,6 +62,13 @@ class Dtuple
       kElectronDet_EERingGap = 8
     };
 
+    enum MuonDet {
+      kMuonDet_Global = 0,
+      kMuonDet_Tracker = 1,
+      kMuonDet_StandAlone = 2,
+      kMuonDet_Calo = 3
+    };
+
     enum ElectronClass {
       kElectronClass_Unknown = -1,
       kElectronClass_Golden,
@@ -75,6 +82,8 @@ class Dtuple
     struct Event_Struct {
       int   Run;
       int   Event;
+      float EventWeight;
+      float TriggerEff;
       float MetMag;
       float MetPhi;
       float SumEt;
