@@ -50,6 +50,20 @@ class Dtuple
       kElectronSel_Tight = 4
     };
 
+    enum MuonSel {
+      kMuonSel_TrackerMuonArbitrated = 0,
+      kMuonSel_AllArbitrated = 1,
+      kMuonSel_GlobalMuonPromptTight = 2,
+      kMuonSel_TMLastStationLoose = 3,
+      kMuonSel_TMLastStationTight = 4,
+      kMuonSel_TM2DCompatibilityLoose = 5,
+      kMuonSel_TM2DCompatibilityTight = 6,
+      kMuonSel_TMOneStationLoose = 7,
+      kMuonSel_TMOneStationTight = 8,
+      kMuonSel_TMLastStationOptimizedLowPtLoose = 9,
+      kMuonSel_TMLastStationOptimizedLowPtTight = 10
+    };
+
     enum ElectronDet {
       kElectronDet_EE = 0,
       kElectronDet_EB = 1,

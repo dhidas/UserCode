@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.15 2010/02/03 10:08:24 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.16 2010/02/03 10:33:01 dhidas Exp $
 //
 //
 
@@ -186,10 +186,10 @@ void
 FillDtuple::GetHandles(const edm::Event& iEvent)
 {
   // This function gets the physics objects of interest
-  iEvent.getByLabel("allLayer1Electrons", fElectrons);
-  iEvent.getByLabel("allLayer1Muons", fMuons);
-  iEvent.getByLabel("allLayer1Jets", fJets);
-  iEvent.getByLabel("allLayer1Photons", fPhotons);
+  iEvent.getByLabel("selectedLayer1Electrons", fElectrons);
+  iEvent.getByLabel("selectedLayer1Muons", fMuons);
+  iEvent.getByLabel("selectedLayer1Jets", fJets);
+  iEvent.getByLabel("selectedLayer1Photons", fPhotons);
   iEvent.getByLabel("layer1METs", fMETs);
   iEvent.getByLabel("offlineBeamSpot", fBeamSpot);
   //iEvent.getByLabel("patTrigger", fTriggerEvent );
@@ -378,8 +378,8 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_Phi[i] = muon.phi();
         reco::TrackRef MyTrackRef = muon.innerTrack();
         if (MyTrackRef.isNonnull()) {
-        Ev.Lepton_dxy[i] = muon.innerTrack()->dxy(fBeamSpot->position());
-        Ev.Lepton_dz[i] = muon.innerTrack()->dz(fBeamSpot->position());
+          Ev.Lepton_dxy[i] = MyTrackRef->dxy(fBeamSpot->position());
+          Ev.Lepton_dz[i] = MyTrackRef->dz(fBeamSpot->position());
         }
         Ev.Lepton_Z0[i] = muon.vz();
         Ev.Lepton_Charge[i] = muon.charge();
@@ -390,6 +390,41 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_HCalIso[i] = muon.hcalIso();
         Ev.Lepton_CalE[i] = muon.calEnergy().em + muon.calEnergy().had;
         Ev.Lepton_HCalOverECal[i] = muon.calEnergy().had / muon.calEnergy().em;
+
+        // Muon selections
+        if (muon.muonID("TrackerMuonArbitrated") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TrackerMuonArbitrated);
+        }
+        if (muon.muonID("AllArbitrated") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_AllArbitrated);
+        }
+        if (muon.muonID("GlobalMuonPromptTight") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_GlobalMuonPromptTight);
+        }
+        if (muon.muonID("TMLastStationLoose") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationLoose);
+        }
+        if (muon.muonID("TMLastStationTight") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationTight);
+        }
+        if (muon.muonID("TM2DCompatibilityLoose") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TM2DCompatibilityLoose);
+        }
+        if (muon.muonID("TM2DCompatibilityTight") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TM2DCompatibilityTight);
+        }
+        if (muon.muonID("TMOneStationLoose") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMOneStationLoose);
+        }
+        if (muon.muonID("TMOneStationTight") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMOneStationTight);
+        }
+        if (muon.muonID("TMLastStationOptimizedLowPtLoose") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationOptimizedLowPtLoose);
+        }
+        if (muon.muonID("TMLastStationOptimizedLowPtTight") == 1) {
+          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationOptimizedLowPtTight);
+        }
 
         // Muon types
         if (muon.isGlobalMuon())     { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Global); }
