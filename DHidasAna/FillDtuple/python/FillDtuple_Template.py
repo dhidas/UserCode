@@ -33,10 +33,10 @@ process.TFileService = cms.Service("TFileService",
 # PAT Layer 0+1
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
-process.selectedLayer1Muons.cut = "pt > 10"
-process.selectedLayer1Electrons.cut = "pt > 10"
-process.selectedLayer1Jets.cut = "pt > 10"
-process.selectedLayer1Photons.cut = "pt > 10"
+process.selectedLayer1Muons.cut = "pt > 8"
+process.selectedLayer1Electrons.cut = "pt > 8"
+process.selectedLayer1Jets.cut = "pt > 8"
+process.selectedLayer1Photons.cut = "pt > 8"
 
 # sometimes you might need to restrict to only AOD input
 from PhysicsTools.PatAlgos.tools.coreTools import restrictInputToAOD
