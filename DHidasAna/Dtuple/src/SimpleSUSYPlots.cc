@@ -112,6 +112,14 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
 {
   DtupleReader::Event_Struct NewEv;
 
+  // Quick check of lepton and jet numbers
+  if (Ev.NLeptons > Dtuple::NMaxLeptons) {
+    std::cerr << "WARNING: NLeptons > Dtuple::NMaxLeptons.  You are definitely missing some leptons." << std::endl;
+  }
+  if (Ev.NJets > Dtuple::NMaxJets) {
+    std::cerr << "WARNING: NJets > Dtuple::NMaxJets.  You are definitely missing some jets." << std::endl;
+  }
+
   std::vector<int> Muons;
   for (int i = 0; i < Ev.NLeptons; ++i) {
     if (Ev.Lepton_Flavor[i] == Dtuple::kLeptonFlavor_Muon) {
@@ -148,7 +156,7 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
     }
   }
 
-  printf("%4i %4i %4i %4i\n", (int) Ev.NLeptons, (int) Muons.size() + (int) Electrons.size(), (int) Ev.NJets, (int) Jets.size());
+  //printf("%4i %4i %4i %4i\n", (int) Ev.NLeptons, (int) Muons.size() + (int) Electrons.size(), (int) Ev.NJets, (int) Jets.size());
 
 
   return;
