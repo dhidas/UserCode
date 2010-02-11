@@ -20,6 +20,8 @@ class SimpleSUSYPlots : public DtupleReader
     void InitializeHists ();
     void Loop ();
 
+    void SortOutOverlaps (DtupleReader::Event_Struct&);
+
   private:
     TFile* fOutFile;
     std::map<TString, TH1D*> Hist1D;
