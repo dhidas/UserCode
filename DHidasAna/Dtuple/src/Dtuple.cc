@@ -99,76 +99,83 @@ int Dtuple::Fill ()
 }
 
 
+
 void Dtuple::DefaultValues ()
+{
+  DefaultValues(fEvent);
+  return;
+}
+
+void Dtuple::DefaultValues (Dtuple::Event_Struct& Ev)
 {
   // Set default values for all entries in the dtuple
 
   //std::cout << "Begin default values" << std::endl;
-  fEvent.Run    = -999999;
-  fEvent.Event  = -999999;
-  fEvent.EventWeight  = -999999;
-  fEvent.TriggerEff   = -999999;
-  fEvent.MetMag = -999999;
-  fEvent.MetPhi = -999999;
-  fEvent.SumEt  = -999999;
-  fEvent.MetSig = -999999;
+  Ev.Run    = -999999;
+  Ev.Event  = -999999;
+  Ev.EventWeight  = -999999;
+  Ev.TriggerEff   = -999999;
+  Ev.MetMag = -999999;
+  Ev.MetPhi = -999999;
+  Ev.SumEt  = -999999;
+  Ev.MetSig = -999999;
 
-  fEvent.NLeptons = -1;
+  Ev.NLeptons = 0;
   for (int i = 0; i != NMaxLeptons; ++i) {
-    fEvent.Lepton_Px[i] = -999999;
-    fEvent.Lepton_Py[i] = -999999;
-    fEvent.Lepton_Pz[i] = -999999;
-    fEvent.Lepton_Pt[i] = -999999;
-    fEvent.Lepton_TrkPt[i] = -999999;
-    fEvent.Lepton_Eta[i] = -999999;
-    fEvent.Lepton_Phi[i] = -999999;
-    fEvent.Lepton_dxy[i] = -999999;
-    fEvent.Lepton_dz[i] = -999999;
-    fEvent.Lepton_Z0[i] = -999999;
-    fEvent.Lepton_Charge[i] = -999999;
-    fEvent.Lepton_Flavor[i] = -999999;
-    fEvent.Lepton_TrkIso[i] = -999999;
-    fEvent.Lepton_CalIso[i] = -999999;
-    fEvent.Lepton_ECalIso[i] = -999999;
-    fEvent.Lepton_HCalIso[i] = -999999;
-    fEvent.Lepton_CalE[i] = -999999;
-    fEvent.Lepton_HCalOverECal[i] = -999999;
-    fEvent.Lepton_EoverPin[i] = -999999;
-    fEvent.Lepton_fBrem[i] = -999999;
-    fEvent.Lepton_IsConvertedPhoton[i] = -999999;
-    fEvent.Lepton_PassSelection[i] = 0x0;
-    fEvent.Lepton_Detector[i] = 0x0;
-    fEvent.Lepton_Classification[i] = -999999;
-    fEvent.Lepton_SigmaIEtaIEta[i] = -999999;
-    fEvent.Lepton_DeltaEtaIn[i] = -999999;
-    fEvent.Lepton_DeltaPhiIn[i] = -999999;
-    fEvent.Lepton_E2x5overE5x5[i] = -999999;
+    Ev.Lepton_Px[i] = -999999;
+    Ev.Lepton_Py[i] = -999999;
+    Ev.Lepton_Pz[i] = -999999;
+    Ev.Lepton_Pt[i] = -999999;
+    Ev.Lepton_TrkPt[i] = -999999;
+    Ev.Lepton_Eta[i] = -999999;
+    Ev.Lepton_Phi[i] = -999999;
+    Ev.Lepton_dxy[i] = -999999;
+    Ev.Lepton_dz[i] = -999999;
+    Ev.Lepton_Z0[i] = -999999;
+    Ev.Lepton_Charge[i] = -999999;
+    Ev.Lepton_Flavor[i] = -999999;
+    Ev.Lepton_TrkIso[i] = -999999;
+    Ev.Lepton_CalIso[i] = -999999;
+    Ev.Lepton_ECalIso[i] = -999999;
+    Ev.Lepton_HCalIso[i] = -999999;
+    Ev.Lepton_CalE[i] = -999999;
+    Ev.Lepton_HCalOverECal[i] = -999999;
+    Ev.Lepton_EoverPin[i] = -999999;
+    Ev.Lepton_fBrem[i] = -999999;
+    Ev.Lepton_IsConvertedPhoton[i] = -999999;
+    Ev.Lepton_PassSelection[i] = 0x0;
+    Ev.Lepton_Detector[i] = 0x0;
+    Ev.Lepton_Classification[i] = -999999;
+    Ev.Lepton_SigmaIEtaIEta[i] = -999999;
+    Ev.Lepton_DeltaEtaIn[i] = -999999;
+    Ev.Lepton_DeltaPhiIn[i] = -999999;
+    Ev.Lepton_E2x5overE5x5[i] = -999999;
 
   }
 
-  fEvent.NPhotons = -1;
+  Ev.NPhotons = 0;
   for (int i = 0; i != NMaxPhotons; ++i) {
-    fEvent.Photon_Px[i] = -999999;
-    fEvent.Photon_Py[i] = -999999;
-    fEvent.Photon_Pz[i] = -999999;
-    fEvent.Photon_Pt[i] = -999999;
-    fEvent.Photon_Eta[i] = -999999;
-    fEvent.Photon_Phi[i] = -999999;
-    fEvent.Photon_TrkIso[i] = -999999;
-    fEvent.Photon_CalIso[i] = -999999;
-    fEvent.Photon_HCalOverECal[i] = -999999;
+    Ev.Photon_Px[i] = -999999;
+    Ev.Photon_Py[i] = -999999;
+    Ev.Photon_Pz[i] = -999999;
+    Ev.Photon_Pt[i] = -999999;
+    Ev.Photon_Eta[i] = -999999;
+    Ev.Photon_Phi[i] = -999999;
+    Ev.Photon_TrkIso[i] = -999999;
+    Ev.Photon_CalIso[i] = -999999;
+    Ev.Photon_HCalOverECal[i] = -999999;
   }
 
-  fEvent.NJets = -1;
+  Ev.NJets = 0;
   for (int i = 0; i != NMaxJets; ++i) {
-    fEvent.Jet_Px[i] = -999999;
-    fEvent.Jet_Py[i] = -999999;
-    fEvent.Jet_Pz[i] = -999999;
-    fEvent.Jet_Pt[i] = -999999;
-    fEvent.Jet_Eta[i] = -999999;
-    fEvent.Jet_Phi[i] = -999999;
-    fEvent.Jet_EmF[i] = -999999;
-    fEvent.Jet_HadF[i] = -999999;
+    Ev.Jet_Px[i] = -999999;
+    Ev.Jet_Py[i] = -999999;
+    Ev.Jet_Pz[i] = -999999;
+    Ev.Jet_Pt[i] = -999999;
+    Ev.Jet_Eta[i] = -999999;
+    Ev.Jet_Phi[i] = -999999;
+    Ev.Jet_EmF[i] = -999999;
+    Ev.Jet_HadF[i] = -999999;
   }
   //std::cout << "End default values" << std::endl;
 

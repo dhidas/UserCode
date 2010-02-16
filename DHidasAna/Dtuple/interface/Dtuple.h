@@ -23,7 +23,6 @@ class Dtuple
 
     int  GetEntry (unsigned long const);
     int  Fill ();
-    void DefaultValues ();
 
 
   protected:
@@ -127,7 +126,6 @@ class Dtuple
       int   Lepton_IsConvertedPhoton[NMaxLeptons];
       int   Lepton_PassSelection[NMaxLeptons];
       int   Lepton_Detector[NMaxLeptons];
-
       int   Lepton_Classification[NMaxLeptons];
       float Lepton_SigmaIEtaIEta[NMaxLeptons];
       float Lepton_DeltaEtaIn[NMaxLeptons];
@@ -156,6 +154,8 @@ class Dtuple
       float Jet_EmF[NMaxJets];
       float Jet_HadF[NMaxJets];
     };
+    void DefaultValues ();
+    void DefaultValues (Dtuple::Event_Struct&);
 
 
   public:
