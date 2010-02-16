@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.17 2010/02/04 08:45:52 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.18 2010/02/16 16:19:14 dhidas Exp $
 //
 //
 
@@ -532,7 +532,7 @@ void
 FillDtuple::EventSummary (DtupleWriter::Event_Struct& Ev)
 {
   // Print a very basic event summary
-  printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n", Ev.NLeptons, Ev.NPhotons, Ev.NJets, Ev.MetMag);
+  //printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n", Ev.NLeptons, Ev.NPhotons, Ev.NJets, Ev.MetMag);
   return;
 }
 
