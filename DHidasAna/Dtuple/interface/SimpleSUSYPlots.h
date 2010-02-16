@@ -21,6 +21,7 @@ class SimpleSUSYPlots : public DtupleReader
     void Loop ();
 
     void SortOutOverlaps (DtupleReader::Event_Struct&);
+    void CopyILeptonFromTo (int const, Dtuple::Event_Struct&, Dtuple::Event_Struct&);
 
   private:
     TFile* fOutFile;

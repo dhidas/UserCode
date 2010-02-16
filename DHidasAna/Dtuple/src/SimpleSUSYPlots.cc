@@ -110,8 +110,6 @@ void SimpleSUSYPlots::Loop ()
 
 void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
 {
-  DtupleReader::Event_Struct NewEv;
-
   // Quick check of lepton and jet numbers
   if (Ev.NLeptons > Dtuple::NMaxLeptons) {
     std::cerr << "WARNING: NLeptons > Dtuple::NMaxLeptons.  You are definitely missing some leptons." << std::endl;
@@ -156,6 +154,16 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
     }
   }
 
+  std::vector<int> Leptons;
+  Leptons.insert(Leptons.end(), Electrons.begin(), Electrons.end());
+  Leptons.insert(Leptons.end(), Muons.begin(), Muons.end());
+  std::sort(Leptons.begin(), Leptons.end());
+  std::reverse(Leptons.begin(), Leptons.end());
+
+  DtupleReader::Event_Struct NewEv;
+  DefaultValues(NewEv);
+  CopyILeptonFromTo(1, Ev, NewEv);
+  //Ev = NewEv;
   //printf("%4i %4i %4i %4i\n", (int) Ev.NLeptons, (int) Muons.size() + (int) Electrons.size(), (int) Ev.NJets, (int) Jets.size());
 
 
@@ -163,3 +171,46 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
 }
 
 
+
+void SimpleSUSYPlots::CopyILeptonFromTo (int const i, Dtuple::Event_Struct& From, Dtuple::Event_Struct& To)
+{
+  if (i >= Dtuple::NMaxLeptons || To.NLeptons >= Dtuple::NMaxLeptons || i >= From.NLeptons) {
+    std::cerr << "ERROR: you're over the lepton limit.  There is something wrong with your copying" << std::endl;
+    std::cout << "  i=" << i << " From.NLeptons=" << From.NLeptons << " To.NLeptons=" << To.NLeptons << " Max=" << Dtuple::NMaxLeptons << std::endl;
+    return;
+  }
+
+  int const iTo = To.NLeptons;
+  ++To.NLeptons;
+
+  To.Lepton_Px[iTo]                 = From.Lepton_Px[i];
+  To.Lepton_Py[iTo]                 = From.Lepton_Py[i];
+  To.Lepton_Pz[iTo]                 = From.Lepton_Pz[i];
+  To.Lepton_Pt[iTo]                 = From.Lepton_Pt[i];
+  To.Lepton_TrkPt[iTo]              = From.Lepton_TrkPt[i];
+  To.Lepton_Eta[iTo]                = From.Lepton_Eta[i];
+  To.Lepton_Phi[iTo]                = From.Lepton_Phi[i];
+  To.Lepton_dxy[iTo]                = From.Lepton_dxy[i];
+  To.Lepton_dz[iTo]                 = From.Lepton_dz[i];
+  To.Lepton_Z0[iTo]                 = From.Lepton_Z0[i];
+  To.Lepton_Charge[iTo]             = From.Lepton_Charge[i];
+  To.Lepton_Flavor[iTo]             = From.Lepton_Flavor[i];
+  To.Lepton_TrkIso[iTo]             = From.Lepton_TrkIso[i];
+  To.Lepton_CalIso[iTo]             = From.Lepton_CalIso[i];
+  To.Lepton_ECalIso[iTo]            = From.Lepton_ECalIso[i];
+  To.Lepton_HCalIso[iTo]            = From.Lepton_HCalIso[i];
+  To.Lepton_CalE[iTo]               = From.Lepton_CalE[i];
+  To.Lepton_HCalOverECal[iTo]       = From.Lepton_HCalOverECal[i];
+  To.Lepton_EoverPin[iTo]           = From.Lepton_EoverPin[i];
+  To.Lepton_fBrem[iTo]              = From.Lepton_fBrem[i];
+  To.Lepton_IsConvertedPhoton[iTo]  = From.Lepton_IsConvertedPhoton[i];
+  To.Lepton_PassSelection[iTo]      = From.Lepton_PassSelection[i];
+  To.Lepton_Detector[iTo]           = From.Lepton_Detector[i];
+  To.Lepton_Classification[iTo]     = From.Lepton_Classification[i];
+  To.Lepton_SigmaIEtaIEta[iTo]      = From.Lepton_SigmaIEtaIEta[i];
+  To.Lepton_DeltaEtaIn[iTo]         = From.Lepton_DeltaEtaIn[i];
+  To.Lepton_DeltaPhiIn[iTo]         = From.Lepton_DeltaPhiIn[i];
+  To.Lepton_E2x5overE5x5[iTo]       = From.Lepton_E2x5overE5x5[i];
+
+  return;
+}
