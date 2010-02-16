@@ -22,6 +22,9 @@ class SimpleSUSYPlots : public DtupleReader
 
     void SortOutOverlaps (DtupleReader::Event_Struct&);
     void CopyILeptonFromTo (int const, Dtuple::Event_Struct&, Dtuple::Event_Struct&);
+    void CopyIJetFromTo (int const, Dtuple::Event_Struct&, Dtuple::Event_Struct&);
+    void CopyIPhotonFromTo (int const, Dtuple::Event_Struct&, Dtuple::Event_Struct&);
+    void CopyEvInfoFromTo (Dtuple::Event_Struct&, Dtuple::Event_Struct&);
 
   private:
     TFile* fOutFile;

@@ -49,6 +49,8 @@ void SimpleSUSYPlots::InitializeHists ()
   Hist1D["Electron_HCalIso"] = new TH1D("Electron_HCalIso", "Electron HCal Iso", 100, -1, 4);
   Hist1D["Electron_TrkIso"] = new TH1D("Electron_TrkIso", "Electron Trk Iso", 100, -1, 4);
   Hist1D["Electron_IsConvertedPhoton"] = new TH1D("Electron_IsConvertedPhoton", "Electron IsConvertedPhoton", 2, 0, 2);
+  Hist1D["Electron_ConvDist"] = new TH1D("Electron_ConvDist", "Conversion Dist", 100, -0.2, 0.3);
+  Hist1D["Electron_ConvdCotTheta"] = new TH1D("Electron_ConvdCotTheta", "Conversion dCotTheta", 100, 0, 0.2);
   Hist1D["Muon_ECalIso"] = new TH1D("Muon_ECalIso", "Muon ECal Iso", 100, -1, 4);
   Hist1D["Muon_HCalIso"] = new TH1D("Muon_HCalIso", "Muon HCal Iso", 100, -1, 4);
   Hist1D["Muon_TrkIso"] = new TH1D("Muon_TrkIso", "Muon Trk Iso", 100, -1, 4);
@@ -90,6 +92,8 @@ void SimpleSUSYPlots::Loop ()
         Hist1D["Electron_HCalIso"]->Fill(Ev.Lepton_HCalIso[ilepton]);
         Hist1D["Electron_TrkIso"]->Fill(Ev.Lepton_TrkIso[ilepton]);
         Hist1D["Electron_IsConvertedPhoton"]->Fill(Ev.Lepton_IsConvertedPhoton[ilepton]);
+        Hist1D["Electron_ConvDist"]->Fill(Ev.Lepton_ConvDist[ilepton]);
+        Hist1D["Electron_ConvdCotTheta"]->Fill(Ev.Lepton_ConvdCotTheta[ilepton]);
       } else if (Ev.Lepton_Flavor[ilepton] == Dtuple::kLeptonFlavor_Muon) {
         Hist1D["Muon_ECalIso"]->Fill(Ev.Lepton_ECalIso[ilepton]);
         Hist1D["Muon_HCalIso"]->Fill(Ev.Lepton_HCalIso[ilepton]);
@@ -130,7 +134,7 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
     if (Ev.Lepton_Flavor[i] == Dtuple::kLeptonFlavor_Electron) {
       bool AcceptElectron = true;
       for (size_t iMu = 0; iMu != Muons.size(); ++iMu) {
-        if ( TMath::Sqrt( TMath::Power( Ev.Lepton_Eta[iMu] - Ev.Lepton_Eta[i], 2) + TMath::Power( Ev.Lepton_Phi[iMu] - Ev.Lepton_Phi[i], 2) ) < 0.4 ) {
+        if ( TMath::Sqrt( TMath::Power( Ev.Lepton_Eta[iMu] - Ev.Lepton_Eta[i], 2) + TMath::Power( Ev.Lepton_Phi[iMu] - Ev.Lepton_Phi[i], 2) ) < 0.3 ) {
           AcceptElectron = false;
         }
       }
@@ -144,8 +148,8 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
   std::vector<int> Jets;
   for (int i = 0; i < Ev.NJets; ++i) {
     bool AcceptJet = true;
-    for (size_t iLep = 0; iLep != Ev.NLeptons; ++iLep) {
-      if ( TMath::Sqrt( TMath::Power( Ev.Lepton_Eta[iLep] - Ev.Jet_Eta[i], 2) + TMath::Power( Ev.Lepton_Phi[iLep] - Ev.Jet_Phi[i], 2) ) < 0.4 ) {
+    for (size_t iLep = 0; iLep != (size_t) Ev.NLeptons; ++iLep) {
+      if ( TMath::Sqrt( TMath::Power( Ev.Lepton_Eta[iLep] - Ev.Jet_Eta[i], 2) + TMath::Power( Ev.Lepton_Phi[iLep] - Ev.Jet_Phi[i], 2) ) < 0.3 ) {
         AcceptJet = false;
       }
     }
@@ -162,9 +166,23 @@ void SimpleSUSYPlots::SortOutOverlaps (DtupleReader::Event_Struct& Ev)
 
   DtupleReader::Event_Struct NewEv;
   DefaultValues(NewEv);
-  CopyILeptonFromTo(1, Ev, NewEv);
-  //Ev = NewEv;
-  //printf("%4i %4i %4i %4i\n", (int) Ev.NLeptons, (int) Muons.size() + (int) Electrons.size(), (int) Ev.NJets, (int) Jets.size());
+
+  // Loop over leptons
+  for (size_t i = 0; i != Leptons.size(); ++i) {
+    CopyILeptonFromTo(Leptons[i], Ev, NewEv);
+  }
+  // Loop over jets
+  for (size_t i = 0; i != Jets.size(); ++i) {
+    CopyIJetFromTo(Jets[i], Ev, NewEv);
+  }
+  // Just copy all photons for now..
+  for (int i = 0; i != Ev.NPhotons; ++i) {
+    CopyIPhotonFromTo(i, Ev, NewEv);
+  }
+  CopyEvInfoFromTo(Ev, NewEv);
+  //printf("B %4i %4i %4i\n", (int) Ev.NLeptons, (int) Ev.NJets, (int) Ev.NPhotons);
+  Ev = NewEv;
+  //printf("A %4i %4i %4i\n", (int) Ev.NLeptons, (int) Ev.NJets, (int) Ev.NPhotons);
 
 
   return;
@@ -211,6 +229,77 @@ void SimpleSUSYPlots::CopyILeptonFromTo (int const i, Dtuple::Event_Struct& From
   To.Lepton_DeltaEtaIn[iTo]         = From.Lepton_DeltaEtaIn[i];
   To.Lepton_DeltaPhiIn[iTo]         = From.Lepton_DeltaPhiIn[i];
   To.Lepton_E2x5overE5x5[iTo]       = From.Lepton_E2x5overE5x5[i];
+  To.Lepton_ConvDist[iTo]           = From.Lepton_ConvDist[i];
+  To.Lepton_ConvdCotTheta[iTo]      = From.Lepton_ConvdCotTheta[i];
+
+  return;
+}
+
+
+
+
+void SimpleSUSYPlots::CopyIJetFromTo (int const i, Dtuple::Event_Struct& From, Dtuple::Event_Struct& To)
+{
+  if (i >= Dtuple::NMaxJets || To.NJets >= Dtuple::NMaxJets || i >= From.NJets) {
+    std::cerr << "ERROR: you're over the jet limit.  There is something wrong with your copying" << std::endl;
+    std::cout << "  i=" << i << " From.NJets=" << From.NJets << " To.NJets=" << To.NJets << " Max=" << Dtuple::NMaxJets << std::endl;
+    return;
+  }
+
+  int const iTo = To.NJets;
+  ++To.NJets;
+
+  To.Jet_Px[iTo]   = From.Jet_Px[i];
+  To.Jet_Py[iTo]   = From.Jet_Py[i];
+  To.Jet_Pz[iTo]   = From.Jet_Pz[i];
+  To.Jet_Pt[iTo]   = From.Jet_Pt[i];
+  To.Jet_Eta[iTo]  = From.Jet_Eta[i];
+  To.Jet_Phi[iTo]  = From.Jet_Phi[i];
+  To.Jet_EmF[iTo]  = From.Jet_EmF[i];
+  To.Jet_HadF[iTo] = From.Jet_HadF[i];
+
+  return;
+}
+
+
+
+
+void SimpleSUSYPlots::CopyIPhotonFromTo (int const i, Dtuple::Event_Struct& From, Dtuple::Event_Struct& To)
+{
+  if (i >= Dtuple::NMaxPhotons || To.NPhotons >= Dtuple::NMaxPhotons || i >= From.NPhotons) {
+    std::cerr << "ERROR: you're over the photon limit.  There is something wrong with your copying" << std::endl;
+    std::cout << "  i=" << i << " From.NPhotons=" << From.NPhotons << " To.NPhotons=" << To.NPhotons << " Max=" << Dtuple::NMaxPhotons << std::endl;
+    return;
+  }
+
+  int const iTo = To.NPhotons;
+  ++To.NPhotons;
+
+  To.Photon_Px[iTo]           = From.Photon_Px[i];
+  To.Photon_Py[iTo]           = From.Photon_Py[i];
+  To.Photon_Pz[iTo]           = From.Photon_Pz[i];
+  To.Photon_Pt[iTo]           = From.Photon_Pt[i];
+  To.Photon_Eta[iTo]          = From.Photon_Eta[i];
+  To.Photon_Phi[iTo]          = From.Photon_Phi[i];
+  To.Photon_TrkIso[iTo]       = From.Photon_TrkIso[i];
+  To.Photon_CalIso[iTo]       = From.Photon_CalIso[i];
+  To.Photon_HCalOverECal[iTo] = From.Photon_HCalOverECal[i];
+
+  return;
+}
+
+
+
+void SimpleSUSYPlots::CopyEvInfoFromTo (Dtuple::Event_Struct& From, Dtuple::Event_Struct& To)
+{
+  To.Run         = From.Run;
+  To.Event       = From.Event;
+  To.EventWeight = From.EventWeight;
+  To.TriggerEff  = From.TriggerEff;
+  To.MetMag      = From.MetMag;
+  To.MetPhi      = From.MetPhi;
+  To.SumEt       = From.SumEt;
+  To.MetSig      = From.MetSig;
 
   return;
 }

@@ -56,6 +56,8 @@ const TString Dtuple::fEvent_Format =
   "Lepton_DeltaEtaIn[4]/F:"
   "Lepton_DeltaPhiIn[4]/F:"
   "Lepton_E2x5overE5x5[4]/F:"
+  "Lepton_ConvDist[4]/F:"
+  "Lepton_ConvdCotTheta[4]/F:"
 
   "NPhotons/I:"
   "Photon_Px[4]/F:"
@@ -150,6 +152,8 @@ void Dtuple::DefaultValues (Dtuple::Event_Struct& Ev)
     Ev.Lepton_DeltaEtaIn[i] = -999999;
     Ev.Lepton_DeltaPhiIn[i] = -999999;
     Ev.Lepton_E2x5overE5x5[i] = -999999;
+    Ev.Lepton_ConvDist[i] = -999999;
+    Ev.Lepton_ConvdCotTheta[i] = -999999;
 
   }
 

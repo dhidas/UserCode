@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.16 2010/02/03 10:33:01 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.17 2010/02/04 08:45:52 dhidas Exp $
 //
 //
 
@@ -44,9 +44,11 @@
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "PhysicsTools/UtilAlgos/interface/TFileService.h"
+#include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
 
 
 #include "TString.h"
+#include "TH1D.h"
 #include <string>
 
 
@@ -87,6 +89,7 @@ class FillDtuple : public edm::EDAnalyzer {
     edm::Handle< edm::View<pat::Photon> > fPhotons;
     edm::Handle< edm::View<pat::MET> > fMETs;
     edm::Handle<reco::BeamSpot> fBeamSpot;
+    edm::Handle<reco::TrackCollection> fTrackCollection;
 
     edm::Handle< pat::TriggerEvent > fTriggerEvent;
     //edm::Handle< pat::TriggerPathCollection > fTriggerPaths;
@@ -105,6 +108,9 @@ class FillDtuple : public edm::EDAnalyzer {
 
     // ----------member data ---------------------------
     std::string fOutFileName;
+
+    // ---------- Histograms ---------------------------
+    std::map<TString, TH1D*> Hist1D;
 };
 
 
@@ -192,6 +198,7 @@ FillDtuple::GetHandles(const edm::Event& iEvent)
   iEvent.getByLabel("selectedLayer1Photons", fPhotons);
   iEvent.getByLabel("layer1METs", fMETs);
   iEvent.getByLabel("offlineBeamSpot", fBeamSpot);
+  iEvent.getByLabel("generalTracks", fTrackCollection);
   //iEvent.getByLabel("patTrigger", fTriggerEvent );
   //iEvent.getByLabel( "patTrigger", fTriggerPaths );
   //iEvent.getByLabel( "patTrigger", fTriggerFilters );
@@ -279,12 +286,13 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
       case Dtuple::kLeptonFlavor_Electron: {
         pat::Electron electron = fElectrons->at( Leptons[i].Id );
         electron.caloPosition().eta();
-        if (electron.isConvertedPhoton() != electron.isPhoton()) {
-          std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXX" << std::endl;
-          exit(0);
+        if ( !(electron.electronID("eidRobustHighEnergy") == 1) ) {
+          continue;
         }
-        // Conversion
-        // IsEE IsEB ...
+        if (!electron.isEcalDriven()) {
+          // This is something to keep in mind.  what does it mean to not be ecal driven for an electron??
+          std::cout << "NOT ECAL DRIVEN" << std::endl;
+        }
         Ev.Lepton_Px[i] = electron.px();
         Ev.Lepton_Py[i] = electron.py();
         Ev.Lepton_Pz[i] = electron.pz();
@@ -308,7 +316,8 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_HCalOverECal[i] = electron.hadronicOverEm();
         Ev.Lepton_EoverPin[i] = electron.eSuperClusterOverP();
         Ev.Lepton_fBrem[i] = electron.fbrem();
-        Ev.Lepton_IsConvertedPhoton[i] = electron.isConvertedPhoton();
+        //Ev.Lepton_IsConvertedPhoton[i] = electron.isConvertedPhoton();
+        Ev.Lepton_IsConvertedPhoton[i] = ConversionFinder::isElFromConversion( (reco::GsfElectron) electron, fTrackCollection, 3.8) ? 1 : 0;
         if (electron.electronID("eidRobustHighEnergy") == 1) {
           Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_RobustHighEnergy);
         }
@@ -365,6 +374,28 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
         Ev.Lepton_DeltaEtaIn[i] = electron.deltaEtaSuperClusterTrackAtVtx();
         Ev.Lepton_DeltaPhiIn[i] = electron.deltaPhiSuperClusterTrackAtVtx();
         Ev.Lepton_E2x5overE5x5[i] = electron.scE2x5Max() / electron.scE5x5();
+
+        // This is to study conversions.
+
+        // Get the reco track which is the closest match to the gsf track
+        const reco::Track* electronCTFTrack = ConversionFinder::getElectronTrack(electron, 0.45);
+        if (electronCTFTrack) {
+          // Get the next closest track to the gsf electron
+          reco::TrackRef Partner  = ConversionFinder::getConversionPartnerTrack((reco::GsfElectron) electron, fTrackCollection, 3.8, 99999, 99999);
+          if (Partner.isNonnull()) {
+            math::XYZTLorentzVector electron4V(electronCTFTrack->px(), electronCTFTrack->py(), electronCTFTrack->pz(), electronCTFTrack->p());
+            math::XYZTLorentzVector Partnet4V(Partner->px(), Partner->py(), Partner->pz(), Partner->p());
+
+            // Calculate the distance and delta-cot-theta
+            std::pair<double, double> convInfo =  ConversionFinder::getConversionInfo(electron4V, electronCTFTrack->charge(), electronCTFTrack->d0(),
+                Partnet4V, Partner->charge(), Partner->d0(), 3.8);
+
+            // Save the Dist and dCotTheta to dtuple
+            Ev.Lepton_ConvDist[i] = convInfo.first;
+            Ev.Lepton_ConvdCotTheta[i] = convInfo.second;
+          }
+        }
+        // end conversion test
 
         break;
       } case Dtuple::kLeptonFlavor_Muon: {
@@ -533,6 +564,7 @@ FillDtuple::beginJob()
 
   fDtupleWriter = new DtupleWriter(DtupleTree);
   //fDtupleWriter = new DtupleWriter(fOutFileName);
+
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

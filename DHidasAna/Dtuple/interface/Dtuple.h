@@ -131,6 +131,8 @@ class Dtuple
       float Lepton_DeltaEtaIn[NMaxLeptons];
       float Lepton_DeltaPhiIn[NMaxLeptons];
       float Lepton_E2x5overE5x5[NMaxLeptons];
+      float Lepton_ConvDist[NMaxLeptons];
+      float Lepton_ConvdCotTheta[NMaxLeptons];
 
 
       int   NPhotons;
