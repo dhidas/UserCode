@@ -2,14 +2,13 @@ CC = g++
 LD = g++
 CFLAGS = -Wall `root-config --cflags`
 LIBS = `root-config --libs` -Llib -lMinuit
-INCLUDE = -Iinterface -Idict -I../../
+INCLUDE = -Iinterface -Isrc -I../../ -I.
 OBJS  = $(patsubst src/%.cc,lib/%.o,$(wildcard src/*.cc))
 EXECS = $(patsubst bin/%.cc,%,$(wildcard bin/*.cc))
 SCRIPTS = $(patsubst scripts/%.cc,%,$(wildcard scripts/*.cc))
 EXEOBJS  = $(patsubst bin/%.cc,lib/%.o,$(wildcard bin/*.cc))
-LINKDEFCC  = $(patsubst dict/%_linkdef.h,dict/%_dict.cc,$(wildcard dict/*_linkdef.h))
-LINKDEFOBJ  = $(patsubst dict/%_linkdef.h,lib/%_dict.o,$(wildcard dict/*_linkdef.h))
-
+LINKDEFCC  = $(patsubst src/%_LinkDef.h,src/%_dict.cc,$(wildcard src/*_LinkDef.h))
+LINKDEFOBJ  = $(patsubst src/%_LinkDef.h,lib/%_dict.o,$(wildcard src/*_LinkDef.h))
 
 all: $(LINKDEFCC) $(LINKDEFOBJ) $(OBJS) $(EXEOBJS) $(SCRIPTS) $(EXECS)
 
@@ -25,8 +24,8 @@ lib/%.o : scripts/%.cc
 lib/%.o : dict/%.cc
 	$(CC) -Wall $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-dict/%_dict.cc : include/%.h dict/%_linkdef.h
-	rootcint -f $@ -c $<
+src/%_dict.cc : interface/%.h src/%_LinkDef.h
+	rootcint -f $@ -c -I../../ $<
 
 % : $(OBJS) lib/%.o
 	$(LD) $(LIBS) $(OBJS) $(LINKDEFOBJ) lib/$@.o -o $@
@@ -36,4 +35,4 @@ dict/%_dict.cc : include/%.h dict/%_linkdef.h
 
 
 clean:
-	rm -f $(EXECS) $(SCRIPTS) lib/*.o dict/*_dict.cc dict/*_dict.h
+	rm -f $(EXECS) $(SCRIPTS) lib/*.o src/*_dict.cc src/*_dict.h
