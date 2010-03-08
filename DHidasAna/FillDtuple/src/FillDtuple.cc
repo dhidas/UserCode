@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.18 2010/02/16 16:19:14 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.19 2010/02/16 16:43:47 dhidas Exp $
 //
 //
 
@@ -31,7 +31,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 
-#include "DHidasAna/Dtuple/interface/DtupleWriter.h"
+#include "DHidasAna/Dtuple/interface/TDtuple.h"
 
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
@@ -50,6 +50,7 @@
 #include "TString.h"
 #include "TH1D.h"
 #include <string>
+#include <vector>
 
 
 
@@ -73,15 +74,15 @@ class FillDtuple : public edm::EDAnalyzer {
     virtual void endJob() ;
 
     void GetHandles (const edm::Event&);
-    void FillBasicEventQuantities (const edm::Event&, DtupleWriter::Event_Struct&);
-    void FillLeptons (const edm::Event&, DtupleWriter::Event_Struct&);
-    void FillPhotons (const edm::Event&, DtupleWriter::Event_Struct&);
-    void FillJets (const edm::Event&, DtupleWriter::Event_Struct&);
+    void FillBasicEventQuantities (const edm::Event&);
+    void FillLeptons (const edm::Event&);
+    void FillPhotons (const edm::Event&);
+    void FillJets (const edm::Event&);
 
-    void EventSummary (DtupleWriter::Event_Struct&);
-    bool KeepEvent (DtupleWriter::Event_Struct&);
+    void EventSummary ();
+    bool KeepEvent ();
 
-    Dtuple* fDtupleWriter;
+    TDtuple* fDtuple;
 
     edm::Handle< edm::View<pat::Electron> > fElectrons;
     edm::Handle< edm::View<pat::Muon> > fMuons;
@@ -92,22 +93,8 @@ class FillDtuple : public edm::EDAnalyzer {
     edm::Handle<reco::TrackCollection> fTrackCollection;
 
     edm::Handle< pat::TriggerEvent > fTriggerEvent;
-    //edm::Handle< pat::TriggerPathCollection > fTriggerPaths;
-    //edm::Handle< pat::TriggerFilterCollection > fTriggerFilters;
-    //edm::Handle< pat::TriggerObjectCollection > fTriggerObjects;
-
-    struct ReallyBasicLepton {
-      float Pt;
-      int   Flavor;
-      int   Id;
-    };
-    static bool CompareReallyBasicLeptonPt (FillDtuple::ReallyBasicLepton A, FillDtuple::ReallyBasicLepton B)
-    {
-      return (A.Pt > B.Pt);
-    };
 
     // ----------member data ---------------------------
-    std::string fOutFileName;
 
     // ---------- Histograms ---------------------------
     std::map<TString, TH1D*> Hist1D;
@@ -126,8 +113,7 @@ class FillDtuple : public edm::EDAnalyzer {
 //
 // constructors and destructor
 //
-FillDtuple::FillDtuple(const edm::ParameterSet& iConfig) :
-fOutFileName( iConfig.getUntrackedParameter< std::string >( "OutFileName" ) )
+FillDtuple::FillDtuple(const edm::ParameterSet& iConfig)
 {
    //now do what ever initialization is needed
 
@@ -141,7 +127,7 @@ FillDtuple::~FillDtuple()
    // (e.g. close files, deallocate resources etc.)
 
   // Bye bye writer
-  delete fDtupleWriter;
+  delete fDtuple;
 
 }
 
@@ -161,23 +147,21 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
   // Set Dtuple to default values
-  fDtupleWriter->DefaultValues();
-
-  static DtupleWriter::Event_Struct& Ev = fDtupleWriter->fEvent;
+  fDtuple->DefaultValues();
 
 
   // Load this event in the dtuple with stuff of interest
-  FillBasicEventQuantities(iEvent, Ev);
-  FillLeptons(iEvent, Ev);
-  FillPhotons(iEvent, Ev);
-  FillJets(iEvent, Ev);
+  FillBasicEventQuantities(iEvent);
+  FillLeptons(iEvent);
+  FillPhotons(iEvent);
+  FillJets(iEvent);
 
   // Print the even summary
-  EventSummary(Ev);
+  EventSummary();
 
   // Actually save this event!!
-  if (KeepEvent(Ev)) {
-    fDtupleWriter->Fill();
+  if (KeepEvent()) {
+    fDtuple->Fill();
   }
 
 
@@ -209,16 +193,16 @@ FillDtuple::GetHandles(const edm::Event& iEvent)
 
 // ------------ Fill basic event quantities  ------------
 void 
-FillDtuple::FillBasicEventQuantities (const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
+FillDtuple::FillBasicEventQuantities (const edm::Event& iEvent)
 {
   // Fill some event quantities
 
-  Ev.Run    = iEvent.id().run();
-  Ev.Event  = iEvent.id().event();
-  Ev.MetMag = fMETs->front().et();
-  Ev.MetPhi = fMETs->front().phi();
-  Ev.SumEt  = fMETs->front().sumEt();
-  Ev.MetSig = fMETs->front().mEtSig();
+  fDtuple->SetRun    ( iEvent.id().run() );
+  fDtuple->SetEvent  ( iEvent.id().event() );
+  fDtuple->SetMetX   ( fMETs->front().px() );
+  fDtuple->SetMetY   ( fMETs->front().py() );
+  fDtuple->SetSumEt  ( fMETs->front().sumEt() );
+  //fDtuple->SetMetSig ( fMETs->front().mEtSig() );
 
   return;
 }
@@ -226,249 +210,222 @@ FillDtuple::FillBasicEventQuantities (const edm::Event& iEvent, DtupleWriter::Ev
 
 // ------------ Fill the electrons  ------------
 void 
-FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
+FillDtuple::FillLeptons(const edm::Event& iEvent)
 {
-  std::vector<ReallyBasicLepton> Leptons;
-  static ReallyBasicLepton ThisLep;
 
-  // PAT object collection
-  //edm::Handle< pat::MuonCollection > muons;
-  //iEvent.getByLabel( "selectedLayer1Muons", muons );
-  //const pat::helper::TriggerMatchHelper matchHelper;
-  //const pat::TriggerObjectMatch* triggerMatch( fTriggerEvent->triggerObjectMatchResult( "muonTriggerMatchHLTMuons" ) );
-  //for (size_t i = 0; i != muons->size(); ++i) {
-  //  const reco::CandidateBaseRef candBaseRef( pat::MuonRef( muons, i ) );
-  //  const pat::TriggerObjectRef trigRef( matchHelper.triggerMatchObject( candBaseRef, triggerMatch, iEvent, *fTriggerEvent ) );
-  //  if ( trigRef.isAvailable() ) { // check references (necessary!)
-  //     printf("pt  %10.2f %10.2f\n", candBaseRef->pt(), trigRef->pt() );
-  //     printf("eta %10.2f %10.2f\n", candBaseRef->eta(), trigRef->eta() );
-  //     printf("phi %10.2f %10.2f\n", candBaseRef->phi(), trigRef->phi() );
-  //  }
-  //}
-
+  // The leptons we find here!
+  std::vector<TLepton> Leptons;
 
   for (size_t i = 0; i != fElectrons->size(); ++i) {
 
+    // This lepton
+    TLepton Lep;
+
+    // This electron
     pat::Electron electron = fElectrons->at(i);
     //if (electron.electronID("eidRobustHighEnergy") != 1) {
     //  continue;
     //}
     //std::cout << "Electron Pt: " << electron.et() << std::endl;
 
-    ThisLep.Pt = electron.et();
-    ThisLep.Flavor = Dtuple::kLeptonFlavor_Electron;
-    ThisLep.Id = i;
-    Leptons.push_back(ThisLep);
+    Lep.SetPx( electron.px() );
+    Lep.SetPy( electron.py() );
+    Lep.SetPz( electron.pz() );
+    Lep.SetE( electron.p() );
+    //Lep.SetPt( electron.et() );
+    Lep.SetTrkPt( sqrt(electron.trackMomentumAtVtx().perp2()) );
+    //Lep.SetEta( electron.eta() );
+    //Lep.SetPhi( electron.phi() );
+    Lep.Setdxy( electron.gsfTrack()->dxy(fBeamSpot->position()) );
+    Lep.Setdz( electron.gsfTrack()->dz(fBeamSpot->position()) );
+    Lep.SetZ0( electron.vz() );
+    Lep.SetCharge( electron.charge() );
+    Lep.SetFlavor( TLepton::kLeptonFlavor_Electron );
+    //Lep.SetTrkIso( electron.trackIso() );
+    Lep.SetTrkIso( electron.dr03TkSumPt() );
+    Lep.SetCalIso( electron.caloIso() );
+    //Lep.SetECalIso( electron.ecalIso() );
+    Lep.SetECalIso( electron.dr03EcalRecHitSumEt() );
+    //Lep.SetHCalIso( electron.hcalIso() );
+    Lep.SetHCalIso( electron.dr03HcalTowerSumEt() );
+    Lep.SetCalE( electron.caloEnergy() );
+    Lep.SetHCalOverECal( electron.hadronicOverEm() );
+    Lep.SetEoverPin( electron.eSuperClusterOverP() );
+    Lep.SetfBrem( electron.fbrem() );
+    //Lep.SetIsConvertedPhoton( electron.isConvertedPhoton() );
+    Lep.SetIsConvertedPhoton( ConversionFinder::isElFromConversion( (reco::GsfElectron) electron, fTrackCollection, 3.8) ? 1 : 0 );
+    int PassSelection = 0x0;
+    if (electron.electronID("eidRobustHighEnergy") == 1) {
+      PassSelection |= (0x1 << TLepton::kElectronSel_RobustHighEnergy);
+    }
+    if (electron.electronID("eidRobustLoose") == 1) {
+      PassSelection |= (0x1 << TLepton::kElectronSel_RobustLoose);
+    }
+    if (electron.electronID("eidRobustTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kElectronSel_RobustTight);
+    }
+    if (electron.electronID("eidLoose") == 1) {
+      PassSelection |= (0x1 << TLepton::kElectronSel_Loose);
+    }
+    if (electron.electronID("eidTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kElectronSel_Tight);
+    }
+    Lep.SetPassSelection(PassSelection);
 
+    // Electron regions
+    int Detector = 0x0;
+    if (electron.isEE())        { Detector |= (0x1 << TLepton::kElectronDet_EE); }
+    if (electron.isEB())        { Detector |= (0x1 << TLepton::kElectronDet_EB); }
+    if (electron.isEBEEGap())   { Detector |= (0x1 << TLepton::kElectronDet_EBEEGap); }
+    if (electron.isEBEtaGap())  { Detector |= (0x1 << TLepton::kElectronDet_EBEtaGap); }
+    if (electron.isEBGap())     { Detector |= (0x1 << TLepton::kElectronDet_EBGap); }
+    if (electron.isEBPhiGap())  { Detector |= (0x1 << TLepton::kElectronDet_EBPhiGap); }
+    if (electron.isEEDeeGap())  { Detector |= (0x1 << TLepton::kElectronDet_EEDeeGap); }
+    if (electron.isEEGap())     { Detector |= (0x1 << TLepton::kElectronDet_EEGap); }
+    if (electron.isEERingGap()) { Detector |= (0x1 << TLepton::kElectronDet_EERingGap); }
+    Lep.SetDetector(Detector);
 
+    // Electron Classification
+    switch (electron.classification()) {
+      case reco::GsfElectron::UNKNOWN:
+        Lep.SetClassification( TLepton::kElectronClass_Unknown );
+        break;
+      case reco::GsfElectron::GOLDEN:
+        Lep.SetClassification( TLepton::kElectronClass_Golden );
+        break;
+      case reco::GsfElectron::BIGBREM:
+        Lep.SetClassification( TLepton::kElectronClass_BigBrem );
+        break;
+      case reco::GsfElectron::NARROW:
+        Lep.SetClassification( TLepton::kElectronClass_Narrow );
+        break;
+      case reco::GsfElectron::SHOWERING:
+        Lep.SetClassification( TLepton::kElectronClass_Showering );
+        break;
+      case reco::GsfElectron::GAP:
+        Lep.SetClassification( TLepton::kElectronClass_Gap );
+        break;
+      default:
+        std::cerr << "ERROR in classifying lepton.  classification(): " << electron.classification() << std::endl;
+        break;
+    }
+
+    Lep.SetSigmaIEtaIEta( electron.scSigmaIEtaIEta() );
+    Lep.SetDeltaEtaIn( electron.deltaEtaSuperClusterTrackAtVtx() );
+    Lep.SetDeltaPhiIn( electron.deltaPhiSuperClusterTrackAtVtx() );
+    Lep.SetE2x5overE5x5( electron.scE2x5Max() / electron.scE5x5() );
+
+    // This is to study conversions.
+
+    // Get the reco track which is the closest match to the gsf track
+    const reco::Track* electronCTFTrack = ConversionFinder::getElectronTrack(electron, 0.45);
+    if (electronCTFTrack) {
+      // Get the next closest track to the gsf electron
+      reco::TrackRef Partner  = ConversionFinder::getConversionPartnerTrack((reco::GsfElectron) electron, fTrackCollection, 3.8, 99999, 99999);
+      if (Partner.isNonnull()) {
+        math::XYZTLorentzVector electron4V(electronCTFTrack->px(), electronCTFTrack->py(), electronCTFTrack->pz(), electronCTFTrack->p());
+        math::XYZTLorentzVector Partnet4V(Partner->px(), Partner->py(), Partner->pz(), Partner->p());
+
+        // Calculate the distance and delta-cot-theta
+        std::pair<double, double> convInfo =  ConversionFinder::getConversionInfo(electron4V, electronCTFTrack->charge(), electronCTFTrack->d0(),
+            Partnet4V, Partner->charge(), Partner->d0(), 3.8);
+
+        // Save the Dist and dCotTheta to dtuple
+        Lep.SetConvDist( convInfo.first );
+        Lep.SetConvdCotTheta( convInfo.second );
+      }
+    }
+    // end conversion test
+
+    Leptons.push_back(Lep);
   }
+
 
 
 
   for (size_t i = 0; i != fMuons->size(); ++i) {
+
+    // This lepton
+    TLepton Lep;
+
+    // This muon
     pat::Muon muon = fMuons->at(i);
 
-    ThisLep.Pt = muon.pt();
-    ThisLep.Flavor = Dtuple::kLeptonFlavor_Muon;
-    ThisLep.Id = i;
-    Leptons.push_back(ThisLep);
-
-  }
-
-  std::sort(Leptons.begin(), Leptons.end(), FillDtuple::CompareReallyBasicLeptonPt);
-  //for (size_t i = 0; i != Leptons.size(); ++i) {
-  //  printf("Leptons: Pt=%7.3f Flavor=%3i Id=%3i\n", Leptons[i].Pt, Leptons[i].Flavor, Leptons[i].Id);
-  //}
-
-  Ev.NLeptons = Leptons.size();
-  for (size_t i = 0; (i < (int) Dtuple::NMaxLeptons) && (i != Leptons.size()); ++i) {
-    switch (Leptons[i].Flavor) {
-      case Dtuple::kLeptonFlavor_Electron: {
-        pat::Electron electron = fElectrons->at( Leptons[i].Id );
-        electron.caloPosition().eta();
-        if ( !(electron.electronID("eidRobustHighEnergy") == 1) ) {
-          continue;
-        }
-        if (!electron.isEcalDriven()) {
-          // This is something to keep in mind.  what does it mean to not be ecal driven for an electron??
-          std::cout << "NOT ECAL DRIVEN" << std::endl;
-        }
-        Ev.Lepton_Px[i] = electron.px();
-        Ev.Lepton_Py[i] = electron.py();
-        Ev.Lepton_Pz[i] = electron.pz();
-        Ev.Lepton_Pt[i] = electron.et();
-        Ev.Lepton_TrkPt[i] = sqrt(electron.trackMomentumAtVtx().perp2());
-        Ev.Lepton_Eta[i] = electron.eta();
-        Ev.Lepton_Phi[i] = electron.phi();
-        Ev.Lepton_dxy[i] = electron.gsfTrack()->dxy(fBeamSpot->position());
-        Ev.Lepton_dz[i] = electron.gsfTrack()->dz(fBeamSpot->position());
-        Ev.Lepton_Z0[i] = electron.vz();
-        Ev.Lepton_Charge[i] = electron.charge();
-        Ev.Lepton_Flavor[i] = Dtuple::kLeptonFlavor_Electron;
-        //Ev.Lepton_TrkIso[i] = electron.trackIso();
-        Ev.Lepton_TrkIso[i] = electron.dr03TkSumPt();
-        Ev.Lepton_CalIso[i] = electron.caloIso();
-        //Ev.Lepton_ECalIso[i] = electron.ecalIso();
-        Ev.Lepton_ECalIso[i] = electron.dr03EcalRecHitSumEt();
-        //Ev.Lepton_HCalIso[i] = electron.hcalIso();
-        Ev.Lepton_HCalIso[i] = electron.dr03HcalTowerSumEt();
-        Ev.Lepton_CalE[i] = electron.caloEnergy();
-        Ev.Lepton_HCalOverECal[i] = electron.hadronicOverEm();
-        Ev.Lepton_EoverPin[i] = electron.eSuperClusterOverP();
-        Ev.Lepton_fBrem[i] = electron.fbrem();
-        //Ev.Lepton_IsConvertedPhoton[i] = electron.isConvertedPhoton();
-        Ev.Lepton_IsConvertedPhoton[i] = ConversionFinder::isElFromConversion( (reco::GsfElectron) electron, fTrackCollection, 3.8) ? 1 : 0;
-        if (electron.electronID("eidRobustHighEnergy") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_RobustHighEnergy);
-        }
-        if (electron.electronID("eidRobustLoose") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_RobustLoose);
-        }
-        if (electron.electronID("eidRobustTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_RobustTight);
-        }
-        if (electron.electronID("eidLoose") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_Loose);
-        }
-        if (electron.electronID("eidTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kElectronSel_Tight);
-        }
-
-        // Electron regions
-        if (electron.isEE())        { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EE); }
-        if (electron.isEB())        { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EB); }
-        if (electron.isEBEEGap())   { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EBEEGap); }
-        if (electron.isEBEtaGap())  { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EBEtaGap); }
-        if (electron.isEBGap())     { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EBGap); }
-        if (electron.isEBPhiGap())  { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EBPhiGap); }
-        if (electron.isEEDeeGap())  { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EEDeeGap); }
-        if (electron.isEEGap())     { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EEGap); }
-        if (electron.isEERingGap()) { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kElectronDet_EERingGap); }
-
-        // Electron Classification
-        switch (electron.classification()) {
-          case reco::GsfElectron::UNKNOWN:
-            Ev.Lepton_Classification[i] = Dtuple::kElectronClass_Unknown;
-            break;
-          case reco::GsfElectron::GOLDEN:
-            Ev.Lepton_Classification[i] = Dtuple::kElectronClass_Golden;
-            break;
-          case reco::GsfElectron::BIGBREM:
-            Ev.Lepton_Classification[i] = Dtuple::kElectronClass_BigBrem;
-            break;
-          case reco::GsfElectron::NARROW:
-            Ev.Lepton_Classification[i] = Dtuple::kElectronClass_Narrow;
-            break;
-          case reco::GsfElectron::SHOWERING:
-            Ev.Lepton_Classification[i] = Dtuple::kElectronClass_Showering;
-            break;
-          case reco::GsfElectron::GAP:
-            Ev.Lepton_Classification[i] = Dtuple::kElectronClass_Gap;
-            break;
-          default:
-            std::cerr << "ERROR in classifying lepton.  classification(): " << electron.classification() << std::endl;
-            break;
-        }
-
-        Ev.Lepton_SigmaIEtaIEta[i] = electron.scSigmaIEtaIEta();
-        Ev.Lepton_DeltaEtaIn[i] = electron.deltaEtaSuperClusterTrackAtVtx();
-        Ev.Lepton_DeltaPhiIn[i] = electron.deltaPhiSuperClusterTrackAtVtx();
-        Ev.Lepton_E2x5overE5x5[i] = electron.scE2x5Max() / electron.scE5x5();
-
-        // This is to study conversions.
-
-        // Get the reco track which is the closest match to the gsf track
-        const reco::Track* electronCTFTrack = ConversionFinder::getElectronTrack(electron, 0.45);
-        if (electronCTFTrack) {
-          // Get the next closest track to the gsf electron
-          reco::TrackRef Partner  = ConversionFinder::getConversionPartnerTrack((reco::GsfElectron) electron, fTrackCollection, 3.8, 99999, 99999);
-          if (Partner.isNonnull()) {
-            math::XYZTLorentzVector electron4V(electronCTFTrack->px(), electronCTFTrack->py(), electronCTFTrack->pz(), electronCTFTrack->p());
-            math::XYZTLorentzVector Partnet4V(Partner->px(), Partner->py(), Partner->pz(), Partner->p());
-
-            // Calculate the distance and delta-cot-theta
-            std::pair<double, double> convInfo =  ConversionFinder::getConversionInfo(electron4V, electronCTFTrack->charge(), electronCTFTrack->d0(),
-                Partnet4V, Partner->charge(), Partner->d0(), 3.8);
-
-            // Save the Dist and dCotTheta to dtuple
-            Ev.Lepton_ConvDist[i] = convInfo.first;
-            Ev.Lepton_ConvdCotTheta[i] = convInfo.second;
-          }
-        }
-        // end conversion test
-
-        break;
-      } case Dtuple::kLeptonFlavor_Muon: {
-        pat::Muon muon = fMuons->at( Leptons[i].Id );
-        Ev.Lepton_Px[i] = muon.px();
-        Ev.Lepton_Py[i] = muon.py();
-        Ev.Lepton_Pz[i] = muon.pz();
-        Ev.Lepton_Pt[i] = muon.pt();
-        Ev.Lepton_TrkPt[i] = muon.pt();
-        Ev.Lepton_Eta[i] = muon.eta();
-        Ev.Lepton_Phi[i] = muon.phi();
-        reco::TrackRef MyTrackRef = muon.innerTrack();
-        if (MyTrackRef.isNonnull()) {
-          Ev.Lepton_dxy[i] = MyTrackRef->dxy(fBeamSpot->position());
-          Ev.Lepton_dz[i] = MyTrackRef->dz(fBeamSpot->position());
-        }
-        Ev.Lepton_Z0[i] = muon.vz();
-        Ev.Lepton_Charge[i] = muon.charge();
-        Ev.Lepton_Flavor[i] = Dtuple::kLeptonFlavor_Muon;
-        Ev.Lepton_TrkIso[i] = muon.trackIso();
-        Ev.Lepton_CalIso[i] = muon.caloIso();
-        Ev.Lepton_ECalIso[i] = muon.ecalIso();
-        Ev.Lepton_HCalIso[i] = muon.hcalIso();
-        Ev.Lepton_CalE[i] = muon.calEnergy().em + muon.calEnergy().had;
-        Ev.Lepton_HCalOverECal[i] = muon.calEnergy().had / muon.calEnergy().em;
-
-        // Muon selections
-        if (muon.muonID("TrackerMuonArbitrated") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TrackerMuonArbitrated);
-        }
-        if (muon.muonID("AllArbitrated") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_AllArbitrated);
-        }
-        if (muon.muonID("GlobalMuonPromptTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_GlobalMuonPromptTight);
-        }
-        if (muon.muonID("TMLastStationLoose") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationLoose);
-        }
-        if (muon.muonID("TMLastStationTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationTight);
-        }
-        if (muon.muonID("TM2DCompatibilityLoose") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TM2DCompatibilityLoose);
-        }
-        if (muon.muonID("TM2DCompatibilityTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TM2DCompatibilityTight);
-        }
-        if (muon.muonID("TMOneStationLoose") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMOneStationLoose);
-        }
-        if (muon.muonID("TMOneStationTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMOneStationTight);
-        }
-        if (muon.muonID("TMLastStationOptimizedLowPtLoose") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationOptimizedLowPtLoose);
-        }
-        if (muon.muonID("TMLastStationOptimizedLowPtTight") == 1) {
-          Ev.Lepton_PassSelection[i] |= (0x1 << Dtuple::kMuonSel_TMLastStationOptimizedLowPtTight);
-        }
-
-        // Muon types
-        if (muon.isGlobalMuon())     { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Global); }
-        if (muon.isTrackerMuon())    { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Tracker); }
-        if (muon.isStandAloneMuon()) { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_StandAlone); }
-        if (muon.isCaloMuon())       { Ev.Lepton_Detector[i] |= (0x1 << Dtuple::kMuonDet_Calo); }
-        break;
-      } default: {
-        std::cerr << "ERROR: lepton type not known" << std::endl;
-        break;
-      }
+    Lep.SetPx( muon.px() );
+    Lep.SetPy( muon.py() );
+    Lep.SetPz( muon.pz() );
+    Lep.SetE( muon.p() );
+    Lep.SetTrkPt( muon.pt() );
+    //Lep.SetEta( muon.eta() );
+    //Lep.SetPhi( muon.phi() );
+    reco::TrackRef MyTrackRef = muon.innerTrack();
+    if (MyTrackRef.isNonnull()) {
+      Lep.Setdxy( MyTrackRef->dxy(fBeamSpot->position()) );
+      Lep.Setdz( MyTrackRef->dz(fBeamSpot->position()) );
     }
+    Lep.SetZ0( muon.vz() );
+    Lep.SetCharge( muon.charge() );
+    Lep.SetFlavor( TLepton::kLeptonFlavor_Muon );
+    Lep.SetTrkIso( muon.trackIso() );
+    Lep.SetCalIso( muon.caloIso() );
+    Lep.SetECalIso( muon.ecalIso() );
+    Lep.SetHCalIso( muon.hcalIso() );
+    Lep.SetCalE( muon.calEnergy().em + muon.calEnergy().had );
+    Lep.SetHCalOverECal( muon.calEnergy().had / muon.calEnergy().em );
+
+    // Muon selections
+    int PassSelection = 0x0;
+    if (muon.muonID("TrackerMuonArbitrated") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TrackerMuonArbitrated);
+    }
+    if (muon.muonID("AllArbitrated") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_AllArbitrated);
+    }
+    if (muon.muonID("GlobalMuonPromptTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_GlobalMuonPromptTight);
+    }
+    if (muon.muonID("TMLastStationLoose") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TMLastStationLoose);
+    }
+    if (muon.muonID("TMLastStationTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TMLastStationTight);
+    }
+    if (muon.muonID("TM2DCompatibilityLoose") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TM2DCompatibilityLoose);
+    }
+    if (muon.muonID("TM2DCompatibilityTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TM2DCompatibilityTight);
+    }
+    if (muon.muonID("TMOneStationLoose") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TMOneStationLoose);
+    }
+    if (muon.muonID("TMOneStationTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TMOneStationTight);
+    }
+    if (muon.muonID("TMLastStationOptimizedLowPtLoose") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TMLastStationOptimizedLowPtLoose);
+    }
+    if (muon.muonID("TMLastStationOptimizedLowPtTight") == 1) {
+      PassSelection |= (0x1 << TLepton::kMuonSel_TMLastStationOptimizedLowPtTight);
+    }
+    Lep.SetPassSelection( PassSelection );
+
+    // Muon types
+    int Detector = 0x0;
+    if (muon.isGlobalMuon())     { Detector |= (0x1 << TLepton::kMuonDet_Global); }
+    if (muon.isTrackerMuon())    { Detector |= (0x1 << TLepton::kMuonDet_Tracker); }
+    if (muon.isStandAloneMuon()) { Detector |= (0x1 << TLepton::kMuonDet_StandAlone); }
+    if (muon.isCaloMuon())       { Detector |= (0x1 << TLepton::kMuonDet_Calo); }
+    Lep.SetDetector( Detector );
+
+    Leptons.push_back(Lep);
   }
+
+
+  fDtuple->SortLeptons(Leptons.begin(), Leptons.end());
+  fDtuple->AddLeptons(Leptons);
+
+
 
 
   return;
@@ -477,25 +434,33 @@ FillDtuple::FillLeptons(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev
 
 // ------------ Fill the jets  ------------
 void 
-FillDtuple::FillJets(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
+FillDtuple::FillJets(const edm::Event& iEvent)
 {
 
-  Ev.NJets = fJets->size();
-  for (size_t i = 0; i != fJets->size() && i < (size_t) Dtuple::NMaxJets; ++i) {
+  std::vector<TJet> Jets;
+  for (size_t i = 0; i != fJets->size(); ++i) {
+
+    // This jet
+    TJet MyJet;
 
     pat::Jet jet = fJets->at(i);
 
-    Ev.Jet_Px[i] = jet.px();
-    Ev.Jet_Py[i] = jet.py();
-    Ev.Jet_Pz[i] = jet.pz();
-    Ev.Jet_Pt[i] = jet.pt();
-    Ev.Jet_Eta[i] = jet.eta();
-    Ev.Jet_Phi[i] = jet.phi();
-    Ev.Jet_EmF[i] = jet.emEnergyFraction();
-    Ev.Jet_HadF[i] = jet.energyFractionHadronic();
+    MyJet.SetPx( jet.px() );
+    MyJet.SetPy( jet.py() );
+    MyJet.SetPz( jet.pz() );
+    MyJet.SetE( jet.p() );
+    //MyJet.SetPt( jet.pt() );
+    //MyJet.SetEta( jet.eta() );
+    //MyJet.SetPhi( jet.phi() );
+    MyJet.SetEmF( jet.emEnergyFraction() );
+    MyJet.SetHadF( jet.energyFractionHadronic() );
 
+    Jets.push_back(MyJet);
 
   }
+
+  fDtuple->SortJets(Jets.begin(), Jets.end());
+  fDtuple->AddJets(Jets);
 
   return;
 }
@@ -504,23 +469,32 @@ FillDtuple::FillJets(const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
 
 // ------------ Fill the electrons  ------------
 void 
-FillDtuple::FillPhotons (const edm::Event& iEvent, DtupleWriter::Event_Struct& Ev)
+FillDtuple::FillPhotons (const edm::Event& iEvent)
 {
-  Ev.NPhotons = fPhotons->size();
-  for (size_t i = 0; i != fPhotons->size() && i < (size_t) Dtuple::NMaxPhotons; ++i) {
+  std::vector<TPhoton> Photons;
+
+  for (size_t i = 0; i != fPhotons->size(); ++i) {
+
+    TPhoton MyPhoton;
 
     pat::Photon photon = fPhotons->at(i);
 
-    Ev.Photon_Px[i] = photon.px();
-    Ev.Photon_Py[i] = photon.py();
-    Ev.Photon_Pz[i] = photon.pz();
-    Ev.Photon_Pt[i] = photon.pt();
-    Ev.Photon_Eta[i] = photon.eta();
-    Ev.Photon_Phi[i] = photon.phi();
-    Ev.Photon_TrkIso[i] = photon.trackIso();
-    Ev.Photon_CalIso[i] = photon.caloIso();
-    Ev.Photon_HCalOverECal[i] = photon.hadronicOverEm();
+    MyPhoton.SetPx( photon.px() );
+    MyPhoton.SetPy( photon.py() );
+    MyPhoton.SetPz( photon.pz() );
+    MyPhoton.SetE(  photon.p() );
+    //MyPhoton.SetPt( photon.pt() );
+    //MyPhoton.SetEta( photon.eta() );
+    //MyPhoton.SetPhi( photon.phi() );
+    MyPhoton.SetTrkIso( photon.trackIso() );
+    MyPhoton.SetCalIso( photon.caloIso() );
+    MyPhoton.SetHCalOverECal( photon.hadronicOverEm() );
+
+    Photons.push_back(MyPhoton);
   }
+
+  fDtuple->SortPhotons(Photons.begin(), Photons.end());
+  fDtuple->AddPhotons(Photons);
 
   return;
 }
@@ -529,7 +503,7 @@ FillDtuple::FillPhotons (const edm::Event& iEvent, DtupleWriter::Event_Struct& E
 
 // ------------ print brief event summary ------------
 void 
-FillDtuple::EventSummary (DtupleWriter::Event_Struct& Ev)
+FillDtuple::EventSummary ()
 {
   // Print a very basic event summary
   //printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n", Ev.NLeptons, Ev.NPhotons, Ev.NJets, Ev.MetMag);
@@ -541,12 +515,9 @@ FillDtuple::EventSummary (DtupleWriter::Event_Struct& Ev)
 
 // ------------ Keep this event or not? ------------
 bool
-FillDtuple::KeepEvent (DtupleWriter::Event_Struct& Ev)
+FillDtuple::KeepEvent ()
 {
   bool keep = true;
-  if (Ev.NLeptons < 1) {
-    keep = false;
-  }
 
   return keep;
 }
@@ -559,18 +530,17 @@ void
 FillDtuple::beginJob()
 {
   edm::Service<TFileService> fs;
-  TTree* DtupleTree = fs->make<TTree>("Dtuple", "Dtuple");
-  DtupleTree->SetDirectory( &(fs->file()) );
+  //TTree* DtupleTree = fs->make<TTree>("Dtuple", "Dtuple");
+  //DtupleTree->SetDirectory( &(fs->file()) );
 
-  fDtupleWriter = new DtupleWriter(DtupleTree);
-  //fDtupleWriter = new DtupleWriter(fOutFileName);
+  fDtuple = new TDtuple( &(fs->file()) );
 
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 FillDtuple::endJob() {
-  //delete fDtupleWriter;
+  //delete fDtuple;
 }
 
 //define this as a plug-in

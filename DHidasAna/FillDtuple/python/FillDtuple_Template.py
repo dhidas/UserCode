@@ -19,7 +19,6 @@ process.source = cms.Source("PoolSource",
 
 # Fill the Dtuple
 process.FillDtuple = cms.EDAnalyzer('FillDtuple',
-    OutFileName = cms.untracked.string("")
     )
 
 # This will provide the FillDtuple analyzer the output file
@@ -35,12 +34,12 @@ process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
 process.selectedLayer1Muons.cut = "pt > 8"
 process.selectedLayer1Electrons.cut = "pt > 8"
-process.selectedLayer1Jets.cut = "pt > 8"
+process.selectedLayer1Jets.cut = "pt > 15"
 process.selectedLayer1Photons.cut = "pt > 8"
 
 # sometimes you might need to restrict to only AOD input
-from PhysicsTools.PatAlgos.tools.coreTools import restrictInputToAOD
-restrictInputToAOD(process, ['All'])
+#from PhysicsTools.PatAlgos.tools.coreTools import restrictInputToAOD
+#restrictInputToAOD(process, ['All'])
 
 
 process.p = cms.Path(
