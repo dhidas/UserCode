@@ -19,7 +19,6 @@ process.source = cms.Source("PoolSource",
 
 # Fill the Dtuple
 process.FillDtuple = cms.EDAnalyzer('FillDtuple',
-    OutFileName = cms.untracked.string("")
     )
 
 # This will provide the FillDtuple analyzer the output file
