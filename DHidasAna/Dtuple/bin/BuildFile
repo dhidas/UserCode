@@ -1,20 +1,7 @@
-<bin name="TestDtuple" file="TestDtuple.cc">
- <use name="DHidasAna/Dtuple">
+<bin name="MyTest" file="MyTest.cc">
 </bin>
 
-<bin name="TestDtupleWriter" file="TestDtupleWriter.cc">
- <use name="DHidasAna/Dtuple">
+<bin name="ExampleDtuple" file="ExampleDtuple.cc">
+  <use name="DHidasAna/Dtuple">
+  <use name="root">
 </bin>
-
-<bin name="TestDtupleReader" file="TestDtupleReader.cc">
- <use name="DHidasAna/Dtuple">
-</bin>
-
-<bin name="SimplePlots" file="SimplePlots.cc">
- <use name="DHidasAna/Dtuple">
-</bin>
-
-<bin name="MakeSimpleSUSYPlots" file="MakeSimpleSUSYPlots.cc">
- <use name="DHidasAna/Dtuple">
-</bin>
-
