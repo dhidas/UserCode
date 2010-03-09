@@ -121,7 +121,7 @@ class TDtuple : public TDUtility
 
 
 
-  private:
+  protected:
     std::vector<TLepton> Leptons;     // lepton vector filled in GetEntry
     std::vector<TJet> Jets;           // jet vector filled in GetEntry
     std::vector<TPhoton> Photons;     // photon vector filled in GetEntry

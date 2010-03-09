@@ -59,3 +59,19 @@ bool TDUtility::IsDuplicateEvent (int const run, int const event)
 
 
 
+TString TDUtility::GetLeptonFlavorsString (std::vector<TLepton>& Leptons)
+{
+  TString Electrons, Muons, Taus;
+
+  for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
+    if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+      Electrons += Lep->GetFlavorString();
+    } else if (Lep->IsFlavor(TLepton::kLeptonFlavor_Muon)) {
+      Muons += Lep->GetFlavorString();
+    } else if (Lep->IsFlavor(TLepton::kLeptonFlavor_Tau)) {
+      Taus += Lep->GetFlavorString();
+    }
+  }
+
+  return Electrons+Muons+Taus;
+}

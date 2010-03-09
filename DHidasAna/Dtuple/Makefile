@@ -3,12 +3,12 @@ LD = g++
 CFLAGS = -Wall `root-config --cflags`
 LIBS = `root-config --libs` -Llib -lMinuit
 INCLUDE = -Iinterface -Isrc -I../../ -I.
-OBJS  = $(patsubst src/%.cc,lib/%.o,$(wildcard src/*.cc))
 EXECS = $(patsubst bin/%.cc,%,$(wildcard bin/*.cc))
 SCRIPTS = $(patsubst scripts/%.cc,%,$(wildcard scripts/*.cc))
 EXEOBJS  = $(patsubst bin/%.cc,lib/%.o,$(wildcard bin/*.cc))
 LINKDEFCC  = $(patsubst src/%_LinkDef.h,src/%_dict.cc,$(wildcard src/*_LinkDef.h))
 LINKDEFOBJ  = $(patsubst src/%_LinkDef.h,lib/%_dict.o,$(wildcard src/*_LinkDef.h))
+OBJS  = $(filter-out $(LINKDEFOBJ),$(patsubst src/%.cc,lib/%.o,$(wildcard src/*.cc)) )
 
 all: $(LINKDEFCC) $(LINKDEFOBJ) $(OBJS) $(EXEOBJS) $(SCRIPTS) $(EXECS)
 

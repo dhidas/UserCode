@@ -139,6 +139,8 @@ class TLepton : public TLorentzVector
     float GetConvDist ();
     float GetConvdCotTheta ();
 
+    TString GetFlavorString ();
+
     void DefaultValues ();
 
 
@@ -206,6 +208,7 @@ class TLepton : public TLorentzVector
     };
 
 
+    bool IsFlavor (LeptonFlavor const);
 
 
   public:

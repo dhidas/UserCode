@@ -1,0 +1,40 @@
+#ifndef GUARD_SimpleAna_h
+#define GUARD_SimpleAna_h
+
+#include "DHidasAna/Dtuple/interface/TDtupleReader.h"
+
+class SimpleAna : public TDtupleReader
+{
+  public:
+    SimpleAna (TString const, TChain*);
+    ~SimpleAna ();
+
+    void Analyze (long unsigned int const);
+    void PlotLeptons ();
+    void PlotPhotons ();
+    void PlotJets ();
+    void PlotZllE ();
+    void PlotDileptonMass ();
+
+    void Selection ();
+    void SelectionLepton ();
+    void SelectionPhoton ();
+    void SelectionJet ();
+
+    std::vector<TLepton> ClosestZMatch (std::vector<TLepton>&, bool const RequireOS = true, bool const RequireSF = true);
+
+
+
+  private:
+    TString fProcName;
+    TFile* fOutFile;
+
+};
+
+
+
+
+
+
+
+#endif

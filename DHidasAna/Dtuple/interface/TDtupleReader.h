@@ -10,6 +10,8 @@ class TDtupleReader : public TDtuple
     ~TDtupleReader ();
 
     void Loop (long unsigned int Max = 0);
+    void ObjectCleaning ();
+
     virtual void Analyze (long unsigned int const) = 0;
 
 

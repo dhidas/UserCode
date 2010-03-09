@@ -400,6 +400,20 @@ void TLepton::SetConvdCotTheta (float const in)
 
 
 
+TString TLepton::GetFlavorString ()
+{
+  if (Flavor == kLeptonFlavor_Electron) {
+    return "e";
+  } else if (Flavor == kLeptonFlavor_Muon) {
+    return "m";
+  } else if (Flavor == kLeptonFlavor_Tau) {
+    return "t";
+  }
+
+  return "";
+}
+
+
 
 
 
@@ -440,6 +454,16 @@ void TLepton::DefaultValues ()
   ConvDist          = -999999;
   ConvdCotTheta     = -999999;
 
+}
+
+
+
+bool TLepton::IsFlavor (LeptonFlavor const i)
+{
+  if (i == GetFlavor()) {
+    return true;
+  }
+  return false;
 }
 
 

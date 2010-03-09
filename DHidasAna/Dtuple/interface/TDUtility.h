@@ -3,6 +3,8 @@
 
 #include <set>
 
+#include "DHidasAna/Dtuple/interface/TLepton.h"
+
 #include "TObject.h"
 
 class TDUtility : public TObject
@@ -12,6 +14,7 @@ class TDUtility : public TObject
     virtual ~TDUtility ();
 
     bool IsDuplicateEvent (int const, int const);
+    TString GetLeptonFlavorsString (std::vector<TLepton>&);
 
   public:
     ClassDef(TDUtility,1) // TDUtility class
