@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.19 2010/02/16 16:43:47 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.20 2010/03/08 13:15:12 dhidas Exp $
 //
 //
 
@@ -40,6 +40,8 @@
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
 #include "PhysicsTools/PatUtils/interface/TriggerHelper.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -78,6 +80,7 @@ class FillDtuple : public edm::EDAnalyzer {
     void FillLeptons (const edm::Event&);
     void FillPhotons (const edm::Event&);
     void FillJets (const edm::Event&);
+    void DoMCParticleMatching (const edm::Event&);
 
     void EventSummary ();
     bool KeepEvent ();
@@ -91,6 +94,7 @@ class FillDtuple : public edm::EDAnalyzer {
     edm::Handle< edm::View<pat::MET> > fMETs;
     edm::Handle<reco::BeamSpot> fBeamSpot;
     edm::Handle<reco::TrackCollection> fTrackCollection;
+    edm::Handle<reco::GenParticleCollection> fGenParticleCollection;
 
     edm::Handle< pat::TriggerEvent > fTriggerEvent;
 
@@ -156,6 +160,8 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   FillPhotons(iEvent);
   FillJets(iEvent);
 
+  DoMCParticleMatching(iEvent);
+
   // Print the even summary
   EventSummary();
 
@@ -183,6 +189,7 @@ FillDtuple::GetHandles(const edm::Event& iEvent)
   iEvent.getByLabel("layer1METs", fMETs);
   iEvent.getByLabel("offlineBeamSpot", fBeamSpot);
   iEvent.getByLabel("generalTracks", fTrackCollection);
+  iEvent.getByLabel("genParticles", fGenParticleCollection);
   //iEvent.getByLabel("patTrigger", fTriggerEvent );
   //iEvent.getByLabel( "patTrigger", fTriggerPaths );
   //iEvent.getByLabel( "patTrigger", fTriggerFilters );
@@ -467,7 +474,7 @@ FillDtuple::FillJets(const edm::Event& iEvent)
 
 
 
-// ------------ Fill the electrons  ------------
+// ------------ Fill the photons ------------
 void 
 FillDtuple::FillPhotons (const edm::Event& iEvent)
 {
@@ -495,6 +502,35 @@ FillDtuple::FillPhotons (const edm::Event& iEvent)
 
   fDtuple->SortPhotons(Photons.begin(), Photons.end());
   fDtuple->AddPhotons(Photons);
+
+  return;
+}
+
+
+
+
+void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
+{
+  std::cout << "Number of GenParticles: " << fGenParticleCollection->size() << std::endl;
+  for(size_t iGen = 0; iGen < fGenParticleCollection->size(); ++iGen) {
+    reco::GenParticle const GenP = fGenParticleCollection->at(iGen);
+    int const Status = GenP.status();
+    if (Status != 3) {
+      continue;
+    }
+    int const PDGID = GenP.pdgId();
+    TLorentzVector Vec(GenP.px(), GenP.py(), GenP.pz(), GenP.p());
+
+    // Whhy are the leptons empty?
+    std::cout << "Leptons.size(): " << fDtuple->GetLeptons()->size() << std::endl;
+    for (std::vector<TLepton>::iterator Lep = fDtuple->GetLeptons()->begin(); Lep != fDtuple->GetLeptons()->end(); ++Lep) {
+      std::cout << "LeptonPt: " << Lep->Perp() << std::endl;
+      if ( TMath::Abs(Lep->DeltaR(Vec)) < 0.5 ) {
+        std::cout << "LeptonMatch: " << Lep->DeltaR(Vec) << std::endl;
+      }
+    }
+
+  }
 
   return;
 }
