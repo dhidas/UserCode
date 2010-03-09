@@ -94,9 +94,9 @@ class TDtuple : public TDUtility
     bool  GetEventFlag (std::string const);
     int   GetEventFlags ();
 
-    std::vector<TLepton>  GetLeptons ();
-    std::vector<TJet>     GetJets ();
-    std::vector<TPhoton>  GetPhotons ();
+    std::vector<TLepton>*  GetLeptons ();
+    std::vector<TJet>*     GetJets ();
+    std::vector<TPhoton>*  GetPhotons ();
 
     void SortLeptons (std::vector<TLepton>::iterator, std::vector<TLepton>::iterator);
     void SortJets (std::vector<TJet>::iterator, std::vector<TJet>::iterator);

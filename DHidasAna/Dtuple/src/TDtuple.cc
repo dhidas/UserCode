@@ -1460,31 +1460,31 @@ int TDtuple::GetEventFlags ()
 
 
 
-std::vector<TLepton> TDtuple::GetLeptons ()
+std::vector<TLepton>* TDtuple::GetLeptons ()
 {
   // Get the vector of leptons
 
-  return Leptons;
+  return &Leptons;
 }
 
 
 
 
-std::vector<TJet> TDtuple::GetJets ()
+std::vector<TJet>* TDtuple::GetJets ()
 {
   // Get the vector of jets
 
-  return Jets;
+  return &Jets;
 }
 
 
 
 
-std::vector<TPhoton> TDtuple::GetPhotons ()
+std::vector<TPhoton>* TDtuple::GetPhotons ()
 {
   // Get the vector of photons
 
-  return Photons;
+  return &Photons;
 }
 
 
