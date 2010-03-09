@@ -127,9 +127,13 @@ void SimpleAna::PlotZllE ()
     return;
   }
 
-  std::vector<TLepton> Zll = ClosestZMatch(Leptons, false, false);
-  if (Zll.size() == 2) {
-    std::cout << (Zll[0] + Zll[1]).M() << std::endl;
+  std::vector<TLepton> Zll = ClosestZMatch(Leptons, true, true, true);
+  if (Zll.size() != 3) {
+    return;
+  }
+  if (Zll[0].IsFlavor(TLepton::kLeptonFlavor_Muon) && Zll[2].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+    Hist.FillTH1D("ZmmEConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
+    Hist.FillTH1D("ZmmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
   }
 
   return;
@@ -161,7 +165,7 @@ void SimpleAna::PlotDileptonMass ()
 
 
 
-std::vector<TLepton> SimpleAna::ClosestZMatch(std::vector<TLepton>& InLeptons, bool const RequireOS, bool const RequireSF)
+std::vector<TLepton> SimpleAna::ClosestZMatch(std::vector<TLepton>& InLeptons, bool const RequireOS, bool const RequireSF, bool const AddOtherLeptonsAtEnd)
 {
   std::vector<TLepton> Zll;
   if (Leptons.size() < 2) {
@@ -179,11 +183,23 @@ std::vector<TLepton> SimpleAna::ClosestZMatch(std::vector<TLepton>& InLeptons, b
       if (RequireSF && (InLeptons[i].GetFlavor() != InLeptons[j].GetFlavor())) {
         continue;
       }
-        std::cout << "MassDiff = " << TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0) << std::endl;
+      //std::cout << "MassDiff = " << TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0) << std::endl;
       if ( TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0) < BestDiffMass ) {
         BestDiffMass = TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0);
         BestZll[0] = i;
         BestZll[1] = j;
+      }
+    }
+  }
+
+  Zll.push_back( InLeptons[ BestZll[0] ] );
+  Zll.push_back( InLeptons[ BestZll[1] ] );
+
+  // If you want the other leptons tacked on the end add them here
+  if (AddOtherLeptonsAtEnd) {
+    for (size_t i = 0; i < InLeptons.size(); ++i) { 
+      if ((int) i != BestZll[0] && (int) i != BestZll[1]) {
+        Zll.push_back(InLeptons[i]);
       }
     }
   }
@@ -209,9 +225,17 @@ void SimpleAna::SelectionLepton ()
 
   for (std::vector<TLepton>::iterator lep = Leptons.begin(); lep != Leptons.end(); ++lep) {
     if (lep->IsFlavor(TLepton::kLeptonFlavor_Muon)) {
-      NewLeptons.push_back(*lep);
+      bool Keep = true;
+      if (!lep->PassesSelection(TLepton::kElectronSel_RobustHighEnergy)) Keep = false;
+      if (Keep) {
+        NewLeptons.push_back(*lep);
+      }
     } else if (lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
-      NewLeptons.push_back(*lep);
+      bool Keep = true;
+      if (!lep->PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Keep = false;
+      if (Keep) {
+        NewLeptons.push_back(*lep);
+      }
     }
   }
 

@@ -21,7 +21,7 @@ class SimpleAna : public TDtupleReader
     void SelectionPhoton ();
     void SelectionJet ();
 
-    std::vector<TLepton> ClosestZMatch (std::vector<TLepton>&, bool const RequireOS = true, bool const RequireSF = true);
+    std::vector<TLepton> ClosestZMatch (std::vector<TLepton>&, bool const RequireOS = true, bool const RequireSF = true, bool const AddOtherLeptonsAtEnd = false);
 
 
 

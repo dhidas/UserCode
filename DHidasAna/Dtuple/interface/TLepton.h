@@ -140,6 +140,7 @@ class TLepton : public TLorentzVector
     float GetConvdCotTheta ();
 
     TString GetFlavorString ();
+    bool PassesSelection(int const);
 
     void DefaultValues ();
 

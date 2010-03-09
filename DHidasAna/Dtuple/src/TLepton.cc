@@ -414,6 +414,17 @@ TString TLepton::GetFlavorString ()
 }
 
 
+bool TLepton::PassesSelection(int const Sel)
+{
+  if ( PassSelection & (0x1 << Sel) ) {
+    return true;
+  }
+
+  return false;
+}
+
+
+
 
 
 
