@@ -30,7 +30,8 @@ void SimpleAna::Analyze (long unsigned int const ientry)
   PlotPhotons();
   PlotJets();
 
-  PlotDileptonMass ();
+  PlotDileptonMass();
+  PlotTriLeptons();
   PlotZllE();
 
   return;
@@ -114,6 +115,35 @@ void SimpleAna::PlotJets ()
     sprintf(Name, "JetPhi%i_%s", (int) i, fProcName.Data());
     Hist.FillTH1D(Name, 50, -1.0*TMath::Pi(), TMath::Pi(), Jets[i].Phi());
   }
+  return;
+}
+
+
+
+void SimpleAna::PlotTriLeptons ()
+{
+  static TAnaHist Hist(fOutFile, "PlotTriLeptons");
+
+  if (Leptons.size() != 3) {
+    return;
+  }
+
+  if (GetLeptonFlavorsString(Leptons) != "emm") {
+    return;
+  }
+
+  std::vector<TLepton> Zll = ClosestZMatch(Leptons, false, false, true);
+  Hist.FillTH1D("ZMass_"+GetLeptonFlavorsString(Leptons)+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+
+  TString const FlavorOrder = Zll[0].GetFlavorString() + Zll[1].GetFlavorString() + Zll[2].GetFlavorString();
+  if (Zll[0].GetCharge() == Zll[1].GetCharge()) {
+    Hist.FillTH1D("ZMass_FlavorsSS_"+FlavorOrder+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  } else {
+    Hist.FillTH1D("ZMass_FlavorsOS_"+FlavorOrder+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  }
+
+
+
   return;
 }
 
@@ -226,13 +256,15 @@ void SimpleAna::SelectionLepton ()
   for (std::vector<TLepton>::iterator lep = Leptons.begin(); lep != Leptons.end(); ++lep) {
     if (lep->IsFlavor(TLepton::kLeptonFlavor_Muon)) {
       bool Keep = true;
-      if (!lep->PassesSelection(TLepton::kElectronSel_RobustHighEnergy)) Keep = false;
+      if (!lep->PassesSelection(TLepton::kElectronSel_RobustTight)) Keep = false;
+      if ( !(TMath::Abs(lep->Eta()) < 2.4) ) Keep = false;
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
     } else if (lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
       bool Keep = true;
       if (!lep->PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Keep = false;
+      if ( !(TMath::Abs(lep->Eta()) < 2.1) ) Keep = false;
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
