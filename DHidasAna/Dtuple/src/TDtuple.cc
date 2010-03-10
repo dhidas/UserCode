@@ -579,6 +579,8 @@ void TDtuple::AddLepton (TLepton inlep)
   // Set our new entry with all of the input lepton variables
   *newLepton = inlep;
 
+  Leptons.push_back(inlep);
+
   return;
 }
 
@@ -1460,31 +1462,37 @@ int TDtuple::GetEventFlags ()
 
 
 
-std::vector<TLepton>* TDtuple::GetLeptons ()
+void TDtuple::GetLeptons (std::vector<TLepton>* InVec)
+{
+  InVec = &Leptons;
+  return;
+}
+std::vector<TLepton>& TDtuple::GetLeptons ()
 {
   // Get the vector of leptons
 
-  return &Leptons;
+  std::cout << "In Lep: " << Leptons.size() << std::endl;
+  return Leptons;
 }
 
 
 
 
-std::vector<TJet>* TDtuple::GetJets ()
+std::vector<TJet>& TDtuple::GetJets ()
 {
   // Get the vector of jets
 
-  return &Jets;
+  return Jets;
 }
 
 
 
 
-std::vector<TPhoton>* TDtuple::GetPhotons ()
+std::vector<TPhoton>& TDtuple::GetPhotons ()
 {
   // Get the vector of photons
 
-  return &Photons;
+  return Photons;
 }
 
 
