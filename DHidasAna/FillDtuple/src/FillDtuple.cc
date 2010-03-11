@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.20 2010/03/08 13:15:12 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.21 2010/03/09 16:57:26 dhidas Exp $
 //
 //
 
@@ -518,15 +518,31 @@ void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
     if (Status != 3) {
       continue;
     }
-    int const PDGID = GenP.pdgId();
-    TLorentzVector Vec(GenP.px(), GenP.py(), GenP.pz(), GenP.p());
+    if (GenP.pt() == 0) {
+      continue;
+    }
+    int const Id = GenP.pdgId();
+    int const MotherId = GenP.mother()->pdgId();
+    TGenP ThisGenP;
+    ThisGenP.SetPxPyPzE(GenP.px(), GenP.py(), GenP.pz(), GenP.p());
+    ThisGenP.SetId(Id);
+    ThisGenP.SetMotherId(MotherId);
 
-    // Whhy are the leptons empty?
-    std::cout << "Leptons.size(): " << fDtuple->GetLeptons()->size() << std::endl;
-    for (std::vector<TLepton>::iterator Lep = fDtuple->GetLeptons()->begin(); Lep != fDtuple->GetLeptons()->end(); ++Lep) {
-      std::cout << "LeptonPt: " << Lep->Perp() << std::endl;
-      if ( TMath::Abs(Lep->DeltaR(Vec)) < 0.5 ) {
-        std::cout << "LeptonMatch: " << Lep->DeltaR(Vec) << std::endl;
+
+    // This needs to be worked on.  consider what you might match here...
+    for (std::vector<TLepton>::iterator Lep = fDtuple->GetLeptons().begin(); Lep != fDtuple->GetLeptons().end(); ++Lep) {
+      if ( TMath::Abs(Lep->DeltaR(ThisGenP)) < 0.4 ) {
+        printf("LeptonMatch ID DeltaR Pt GenPt: %7i %9.3f %9.3f %9.3f\n",
+            Id,
+            Lep->DeltaR(ThisGenP),
+            Lep->Perp(),
+            ThisGenP.Perp());
+
+        if (Lep->GenP.Perp() == 0) {
+          Lep->GenP = ThisGenP;
+        } else if (Lep->DeltaR(ThisGenP) < Lep->DeltaR(Lep->GenP)) {
+          Lep->GenP = ThisGenP;
+        }
       }
     }
 
@@ -542,7 +558,11 @@ void
 FillDtuple::EventSummary ()
 {
   // Print a very basic event summary
-  //printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n", Ev.NLeptons, Ev.NPhotons, Ev.NJets, Ev.MetMag);
+  printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n",
+      (int) fDtuple->GetLeptons().size(),
+      (int) fDtuple->GetPhotons().size(),
+      (int) fDtuple->GetJets().size(),
+      fDtuple->GetMet());
   return;
 }
 

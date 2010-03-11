@@ -79,7 +79,8 @@ class TLepton : public TLorentzVector
     float E2x5overE5x5;
     float ConvDist;
     float ConvdCotTheta;
-    //std::vector<TGenP> GenP;
+  public:
+    TGenP GenP;
 
 
 
