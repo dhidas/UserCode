@@ -9,8 +9,20 @@ class TGenP : public TLorentzVector
     TGenP ();
     ~TGenP ();
 
+  private:
     int Id;
     int MotherId;
+
+  public:
+    int GetId ();
+    int GetMotherId ();
+
+    void SetId (int const);
+    void SetMotherId (int const);
+
+    bool IsId (int const);
+    bool IsMotherId (int const);
+
 
   public:
     // Root Likes ClassDef and ClassImp.
