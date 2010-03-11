@@ -541,7 +541,7 @@ void TDtuple::AddLeptons (std::vector<TLepton>::iterator it, std::vector<TLepton
 //
 // Return: void
 //
-void TDtuple::AddLeptons (std::vector<TLepton> inleps)
+void TDtuple::AddLeptons (std::vector<TLepton> const& inleps)
 {
   // Add a whole vector of TLepton objects to the dtuple TClonesArray.
   // Note: This does not write them, you still need to call Write()
@@ -559,27 +559,46 @@ void TDtuple::AddLeptons (std::vector<TLepton> inleps)
 //
 // Function: AddLepton
 //
+// Purpose: To add one lepton object to the dtuple TLepton vector
+//
+// Arguments: TLepton - The TLepton you wish to add
+//
+// Return: void
+//
+void TDtuple::AddLepton (TLepton const& inlep)
+{
+  // Add a TLepton the the dtuple lepton 
+
+  Leptons.push_back(inlep);
+
+  AddLeptonToDtuple(inlep);
+
+  return;
+}
+
+
+
+
+
+//
+// Function: AddLeptonToDtuple
+//
 // Purpose: To add one lepton object to the dtuple TLepton TClonesArray
 //
 // Arguments: TLepton - The TLepton you wish to add
 //
 // Return: void
 //
-void TDtuple::AddLepton (TLepton inlep)
+void TDtuple::AddLeptonToDtuple (TLepton const& inlep)
 {
   // Add a TLepton the the dtuple lepton TClonesArray
   // Note: This does not write them, you still need to call Write()
 
-  // Pointer for out new TClonesArray object
-  TLepton *newLepton;
-
   // Create a new entry in the TCLonesArray
-  newLepton = new ((*fLepton)[fLepton->GetEntries()]) TLepton();
+  TLepton* newLepton = new ((*fLepton)[fLepton->GetEntries()]) TLepton();
 
   // Set our new entry with all of the input lepton variables
   *newLepton = inlep;
-
-  Leptons.push_back(inlep);
 
   return;
 }
@@ -1471,7 +1490,6 @@ std::vector<TLepton>& TDtuple::GetLeptons ()
 {
   // Get the vector of leptons
 
-  std::cout << "In Lep: " << Leptons.size() << std::endl;
   return Leptons;
 }
 

@@ -52,9 +52,10 @@ class TDtuple : public TDUtility
     float fLum;              // Instantaneous Luminosity
 
   public:
-    void  AddLepton (TLepton);
-    void  AddLeptons (std::vector<TLepton>);
+    void  AddLepton (TLepton const&);
+    void  AddLeptons (std::vector<TLepton> const&);
     void  AddLeptons (std::vector<TLepton>::iterator, std::vector<TLepton>::iterator);
+    void  AddLeptonToDtuple (TLepton const&);
     void  AddJet (TJet);
     void  AddJets (std::vector<TJet>);
     void  AddJets (std::vector<TJet>::iterator, std::vector<TJet>::iterator);
