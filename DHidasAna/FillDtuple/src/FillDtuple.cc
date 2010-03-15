@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.21 2010/03/09 16:57:26 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.22 2010/03/11 15:43:02 dhidas Exp $
 //
 //
 
@@ -239,12 +239,13 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     Lep.SetPy( electron.py() );
     Lep.SetPz( electron.pz() );
     Lep.SetE( electron.p() );
-    //Lep.SetPt( electron.et() );
     Lep.SetTrkPt( sqrt(electron.trackMomentumAtVtx().perp2()) );
-    //Lep.SetEta( electron.eta() );
-    //Lep.SetPhi( electron.phi() );
     Lep.Setdxy( electron.gsfTrack()->dxy(fBeamSpot->position()) );
     Lep.Setdz( electron.gsfTrack()->dz(fBeamSpot->position()) );
+
+    electron.gsfTrack()->chi2();
+    electron.gsfTrack()->ndof();
+    //Lep.SetNValidHits( electron.gsfTrack()->hitPattern().numberOfValidTrackerHits() );
     Lep.SetZ0( electron.vz() );
     Lep.SetCharge( electron.charge() );
     Lep.SetFlavor( TLepton::kLeptonFlavor_Electron );
@@ -363,18 +364,21 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     Lep.SetPz( muon.pz() );
     Lep.SetE( muon.p() );
     Lep.SetTrkPt( muon.pt() );
-    //Lep.SetEta( muon.eta() );
-    //Lep.SetPhi( muon.phi() );
     reco::TrackRef MyTrackRef = muon.innerTrack();
     if (MyTrackRef.isNonnull()) {
       Lep.Setdxy( MyTrackRef->dxy(fBeamSpot->position()) );
       Lep.Setdz( MyTrackRef->dz(fBeamSpot->position()) );
     }
+    MyTrackRef->chi2();
+    MyTrackRef->ndof();
+    //Lep.SetNValidHits( MyTrackRef->hitPattern().numberOfValidTrackerHits() );
     Lep.SetZ0( muon.vz() );
     Lep.SetCharge( muon.charge() );
     Lep.SetFlavor( TLepton::kLeptonFlavor_Muon );
     Lep.SetTrkIso( muon.trackIso() );
     Lep.SetCalIso( muon.caloIso() );
+    muon.ecalIsoDeposit()->candEnergy();
+    muon.hcalIsoDeposit()->candEnergy();
     Lep.SetECalIso( muon.ecalIso() );
     Lep.SetHCalIso( muon.hcalIso() );
     Lep.SetCalE( muon.calEnergy().em + muon.calEnergy().had );
@@ -530,18 +534,22 @@ void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
 
 
     // This needs to be worked on.  consider what you might match here...
-    for (std::vector<TLepton>::iterator Lep = fDtuple->GetLeptons().begin(); Lep != fDtuple->GetLeptons().end(); ++Lep) {
+    float MinDeltaR = 99999;
+    for (std::vector<TLepton>::iterator Lep = fDtuple->GetLeptons()->begin(); Lep != fDtuple->GetLeptons()->end(); ++Lep) {
       if ( TMath::Abs(Lep->DeltaR(ThisGenP)) < 0.4 ) {
-        printf("LeptonMatch ID DeltaR Pt GenPt: %7i %9.3f %9.3f %9.3f\n",
+        printf("LeptonMatch Id MotherId DeltaR Pt GenPt: %7i %7i %9.3f %9.3f %9.3f\n",
             Id,
+            MotherId,
             Lep->DeltaR(ThisGenP),
             Lep->Perp(),
             ThisGenP.Perp());
 
-        if (Lep->GenP.Perp() == 0) {
+        if (Lep->GenP.GetId() == 0) {
           Lep->GenP = ThisGenP;
-        } else if (Lep->DeltaR(ThisGenP) < Lep->DeltaR(Lep->GenP)) {
+          MinDeltaR = Lep->DeltaR(Lep->GenP);
+        } else if (Lep->DeltaR(ThisGenP) < MinDeltaR) {
           Lep->GenP = ThisGenP;
+          MinDeltaR = Lep->DeltaR(Lep->GenP);
         }
       }
     }
@@ -559,9 +567,9 @@ FillDtuple::EventSummary ()
 {
   // Print a very basic event summary
   printf("Leptons: %5i Photons: %5i Jets: %5i Met: %8.1f\n",
-      (int) fDtuple->GetLeptons().size(),
-      (int) fDtuple->GetPhotons().size(),
-      (int) fDtuple->GetJets().size(),
+      (int) fDtuple->GetLeptons()->size(),
+      (int) fDtuple->GetPhotons()->size(),
+      (int) fDtuple->GetJets()->size(),
       fDtuple->GetMet());
   return;
 }
