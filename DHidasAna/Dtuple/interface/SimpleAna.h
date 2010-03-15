@@ -16,6 +16,8 @@ class SimpleAna : public TDtupleReader
     void PlotTriLeptons ();
     void PlotZllE ();
     void PlotDileptonMass ();
+    void Plot6JetEvents ();
+    void PlotNLepSumEtJetsMet ();
 
     void Selection ();
     void SelectionLepton ();

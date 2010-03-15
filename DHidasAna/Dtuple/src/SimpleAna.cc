@@ -33,6 +33,8 @@ void SimpleAna::Analyze (long unsigned int const ientry)
   PlotDileptonMass();
   PlotTriLeptons();
   PlotZllE();
+  Plot6JetEvents();
+  PlotNLepSumEtJetsMet();
 
   return;
 }
@@ -164,6 +166,9 @@ void SimpleAna::PlotZllE ()
   if (Zll[0].IsFlavor(TLepton::kLeptonFlavor_Muon) && Zll[2].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
     Hist.FillTH1D("ZmmEConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
     Hist.FillTH1D("ZmmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+
+    float const DeltaRMin = std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) );
+    Hist.FillTH1D("DeltaRMinem_"+fProcName, 25, 0, 4, DeltaRMin);
   }
 
   return;
@@ -195,25 +200,88 @@ void SimpleAna::PlotDileptonMass ()
 
 
 
+void SimpleAna::Plot6JetEvents ()
+{
+  static TAnaHist Hist(fOutFile, "Plot6JetEvents");
+
+  if (Jets.size() < 6) {
+    return;
+  }
+
+  if (Jets[0].Perp() < 50) return;
+  if (Jets[1].Perp() < 40) return;
+  if (Jets[2].Perp() < 30) return;
+
+  for (size_t i = 0; i < Jets.size()-2; ++i) {
+    for (size_t j = i+1; j < Jets.size()-1; ++j) {
+      for (size_t k = j+1; k < Jets.size(); ++k) {
+        float const SumEt = Jets[i].Perp() + Jets[j].Perp() + Jets[k].Perp();
+        float const Mass = (Jets[i] + Jets[j] + Jets[k]).M();
+        Hist.FillTH2D("SumEtVsTripletMass", 1000, 0, 900, 1000, 0, 1000, SumEt, Mass);
+      }
+    }
+  }
+
+
+
+  return;
+}
+
+
+
+void SimpleAna::PlotNLepSumEtJetsMet ()
+{
+  static TAnaHist Hist(fOutFile, "PlotNLetSumEtJetsMet");
+
+  float SumEtJets = 0.0;
+  for (size_t i = 0; i != Jets.size(); ++i) {
+    SumEtJets += Jets[i].Perp();
+  }
+
+  Hist.FillTH3D("NLepSumEtJetsMet", 5, 0, 5, 20, 0, 500, 20, 0, 200, Leptons.size(), SumEtJets, GetMet());
+  Hist.FillTH3D("NLepNJetsMet", 5, 0, 5, 8, 0, 8, 20, 0, 200, Leptons.size(), Jets.size(), GetMet());
+
+  return;
+}
+
+
+
 std::vector<TLepton> SimpleAna::ClosestZMatch(std::vector<TLepton>& InLeptons, bool const RequireOS, bool const RequireSF, bool const AddOtherLeptonsAtEnd)
 {
+  // This function will return the closest Z match from the leptons given to it.
+  // This function will return a vector of leptons
+  // There are a few options here.  You can require opposite sign leptons, same flavor,
+  // and optionally you can tack the other leptons on the end.  The latch will always be
+  // indices 0 and 1.  If OS and SF are specified but no match can be found satisfying 
+  // all criterion, then an empty vector is returned
+
+  // The vector of leptons we will return
   std::vector<TLepton> Zll;
-  if (Leptons.size() < 2) {
+
+  // This isn't even worth doing if there isn't 2 leptons
+  if (InLeptons.size() < 2) {
     return Zll;
   }
 
-  int BestZll[2];
+  // 2 indices of best z match and best mass diff (wii find in alg below)
+  size_t BestZll[2];
   float BestDiffMass = 999999;
 
+  // Loop over all lepton pairs i-j
   for (size_t i = 0; i < InLeptons.size()-1; ++i) {
     for (size_t j = i+1; j < InLeptons.size(); ++j) {
+
+      // Check for Opposite sign requirement
       if (RequireOS && (InLeptons[i].GetCharge() + InLeptons[j].GetCharge() != 0)) {
         continue;
       }
+
+      // Check for same flavor requirement
       if (RequireSF && (InLeptons[i].GetFlavor() != InLeptons[j].GetFlavor())) {
         continue;
       }
-      //std::cout << "MassDiff = " << TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0) << std::endl;
+
+      // Get the mass difference and if it's the best save indices and diff
       if ( TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0) < BestDiffMass ) {
         BestDiffMass = TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0);
         BestZll[0] = i;
@@ -222,18 +290,25 @@ std::vector<TLepton> SimpleAna::ClosestZMatch(std::vector<TLepton>& InLeptons, b
     }
   }
 
+  // This means no match was found so return empty vector
+  if (BestDiffMass == 999999) {
+    return Zll;
+  }
+
+  // A match was found so add the two matching leptons to the vector
   Zll.push_back( InLeptons[ BestZll[0] ] );
   Zll.push_back( InLeptons[ BestZll[1] ] );
 
   // If you want the other leptons tacked on the end add them here
   if (AddOtherLeptonsAtEnd) {
     for (size_t i = 0; i < InLeptons.size(); ++i) { 
-      if ((int) i != BestZll[0] && (int) i != BestZll[1]) {
+      if (i != BestZll[0] && i != BestZll[1]) {
         Zll.push_back(InLeptons[i]);
       }
     }
   }
 
+  // Return vector of leptons
   return Zll;
 }
 
@@ -258,6 +333,7 @@ void SimpleAna::SelectionLepton ()
       bool Keep = true;
       if (!lep->PassesSelection(TLepton::kElectronSel_RobustTight)) Keep = false;
       if ( !(TMath::Abs(lep->Eta()) < 2.4) ) Keep = false;
+      if ( lep->GetCalIso() / lep->Perp() > 0.1) Keep = false;
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
@@ -265,6 +341,7 @@ void SimpleAna::SelectionLepton ()
       bool Keep = true;
       if (!lep->PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Keep = false;
       if ( !(TMath::Abs(lep->Eta()) < 2.1) ) Keep = false;
+      if ( lep->GetCalIso() / lep->Perp() > 0.1) Keep = false;
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
@@ -280,6 +357,20 @@ void SimpleAna::SelectionLepton ()
 
 void SimpleAna::SelectionPhoton ()
 {
+  std::vector<TPhoton> NewPhotons;
+
+  for (std::vector<TPhoton>::iterator photon = Photons.begin(); photon != Photons.end(); ++photon) {
+    bool Keep = true;
+    if ( TMath::Abs(photon->Eta()) > 2.5) Keep = false;
+    if (photon->Perp() < 15.0) Keep = false;
+    if (photon->GetCalIso() / photon->Perp() > 0.1) Keep = false;
+    if (Keep) {
+      NewPhotons.push_back(*photon);
+    }
+  }
+
+  Photons = NewPhotons;
+
   return;
 }
 
@@ -287,5 +378,23 @@ void SimpleAna::SelectionPhoton ()
 
 void SimpleAna::SelectionJet ()
 {
+  std::vector<TJet> NewJets;
+
+  for (std::vector<TJet>::iterator jet = Jets.begin(); jet != Jets.end(); ++jet) {
+    bool Keep = true;
+    if (jet->Perp() < 20) {
+      Keep = false;
+    }
+    if ( TMath::Abs(jet->Eta()) > 2.5) {
+      Keep = false;
+    }
+
+    if (Keep) {
+      NewJets.push_back(*jet);
+    }
+  }
+
+  Jets = NewJets;
+
   return;
 }

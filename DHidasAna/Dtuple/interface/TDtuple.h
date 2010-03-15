@@ -55,12 +55,11 @@ class TDtuple : public TDUtility
     void  AddLepton (TLepton const&);
     void  AddLeptons (std::vector<TLepton> const&);
     void  AddLeptons (std::vector<TLepton>::iterator, std::vector<TLepton>::iterator);
-    void  AddLeptonToDtuple (TLepton const&);
-    void  AddJet (TJet);
-    void  AddJets (std::vector<TJet>);
+    void  AddJet (TJet const&);
+    void  AddJets (std::vector<TJet> const&);
     void  AddJets (std::vector<TJet>::iterator, std::vector<TJet>::iterator);
-    void  AddPhoton (TPhoton);
-    void  AddPhotons (std::vector<TPhoton>);
+    void  AddPhoton (TPhoton const&);
+    void  AddPhotons (std::vector<TPhoton> const&);
     void  AddPhotons (std::vector<TPhoton>::iterator, std::vector<TPhoton>::iterator);
     void  Clear ();
     void  SetRun (int const);
@@ -95,10 +94,9 @@ class TDtuple : public TDUtility
     bool  GetEventFlag (std::string const);
     int   GetEventFlags ();
 
-    void GetLeptons (std::vector<TLepton>*);
-    std::vector<TLepton>&  GetLeptons ();
-    std::vector<TJet>&     GetJets ();
-    std::vector<TPhoton>&  GetPhotons ();
+    std::vector<TLepton>*  GetLeptons ();
+    std::vector<TJet>*     GetJets ();
+    std::vector<TPhoton>*  GetPhotons ();
 
     void SortLeptons (std::vector<TLepton>::iterator, std::vector<TLepton>::iterator);
     void SortJets (std::vector<TJet>::iterator, std::vector<TJet>::iterator);

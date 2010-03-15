@@ -15,6 +15,7 @@
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TH3D.h"
 #include "TString.h"
 
 
@@ -58,6 +59,12 @@ class TAnaHist
     void NewTH2D (TString name, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax) {
       fMapTH2D[name] = new TH2D(name, name, xbins, xmin, xmax, ybins, ymin, ymax);
       fMapTH2D[name]->SetDirectory(fHistDir);
+      return;
+    }
+
+    void NewTH3D (TString name, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, float zbins, float zmin, float zmax) {
+      fMapTH3D[name] = new TH3D(name, name, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
+      fMapTH3D[name]->SetDirectory(fHistDir);
       return;
     }
 
@@ -194,6 +201,37 @@ class TAnaHist
     }
 
 
+    int FillTH3D (TString name, float xvalue, float yvalue, float zvalue) {
+      return fMapTH3D[name]->Fill(xvalue, yvalue, zvalue);
+    }
+
+    int FillTH3D (TString name, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, int zbins, float zmin, float zmax, float xvalue, float yvalue, float zvalue, float weight=1) {
+      if (fMapTH3D.find(name) == fMapTH3D.end()) {
+        NewTH3D(name, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
+      }
+      return fMapTH3D[name]->Fill(xvalue, yvalue, zvalue, weight);
+    }
+    int FillTH3D (TString name, TString title, TString xtitle, TString ytitle, TString ztitle, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, float zbins, float zmin, float zmax, float xvalue, float yvalue, float zvalue, float weight=1) {
+      if (fMapTH3D.find(name) == fMapTH3D.end()) {
+        NewTH3D(name, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
+        fMapTH3D[name]->SetTitle(title);
+        fMapTH3D[name]->SetXTitle(xtitle);
+        fMapTH3D[name]->SetYTitle(ytitle);
+        fMapTH3D[name]->SetZTitle(ztitle);
+      }
+      return fMapTH3D[name]->Fill(xvalue, yvalue, zvalue, weight);
+    }
+
+
+    TH3D* GetTH3D(TString const name) {
+      if (fMapTH3D.find(name) == fMapTH3D.end()) {
+        NewTH3D(name, 100, -1000, 1000, 100, -1000, 1000, 100, -1000, 1000);
+        std::cerr << "WARNING: TAnaHist possible error in histogram name " << name << std::endl;
+      }
+      return fMapTH3D[name];
+    }
+
+
   private:
     TFile* fRootFile;
     TDirectory* fHistDir;
@@ -202,6 +240,7 @@ class TAnaHist
     std::map<TString, TH1F*> fMapTH1F;
     std::map<TString, TH1D*> fMapTH1D;
     std::map<TString, TH2D*> fMapTH2D;
+    std::map<TString, TH3D*> fMapTH3D;
 
     void Init () {
       if (fHistDirName == ".") {

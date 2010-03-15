@@ -11,7 +11,7 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 
-#include "DHidasAna/Dtuple/interface/TGenP.h"
+//#include "DHidasAna/Dtuple/interface/TGenP.h"
 
 
 
@@ -80,7 +80,7 @@ class TLepton : public TLorentzVector
     float ConvDist;
     float ConvdCotTheta;
   public:
-    TGenP GenP;
+    //TGenP GenP;
 
 
 

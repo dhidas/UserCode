@@ -42,7 +42,8 @@ int main (int argc, char* argv[])
 
 
     // Loop to fill a few TLepton objects
-    for (int j=0; j != 3; ++j) {
+    int const NLeptons = gRandom->Integer(3);
+    for (int j=0; j != NLeptons; ++j) {
 
       // Create a TLepton object
       TLepton lep;
@@ -61,13 +62,17 @@ int main (int argc, char* argv[])
       lep.SetZ0(gRandom->Gaus(0,20));
 
       // Add the new TLepton object to our vector of TLepton objects
+      if (lep.Perp() == 0) {
+        continue;
+      }
       Leptons.push_back(lep);
 
     }
 
 
     // Loop to fill a few TJet objects
-    for (int j=0; j != 5; ++j) {
+    int const NJets = gRandom->Integer(6);
+    for (int j=0; j != NJets; ++j) {
 
       // Create a TJet object
       TJet jet;
@@ -83,15 +88,26 @@ int main (int argc, char* argv[])
       jet.SetHadF(TMath::Abs((gRandom->Gaus(0,1))));
 
       // Add the new TJet object to our vector of TJet objects
+      if (jet.Perp() == 0) {
+        continue;
+      }
       Jets.push_back(jet);
     }
 
-    for (int j=0; j != 2; ++j) {
+    int const NPhotons = gRandom->Integer(3);
+    for (int j=0; j != NPhotons; ++j) {
 
       // Create a TJet object
       TPhoton photon;
+      photon.SetPx(gRandom->Gaus(0,50));
+      photon.SetPy(gRandom->Gaus(0,50));
+      photon.SetPz(gRandom->Gaus(0,50));
+      photon.SetE(photon.P());
 
       // Add the new TJet object to our vector of TJet objects
+      if (photon.Perp() == 0) {
+        continue;
+      }
       Photons.push_back(photon);
     }
 
@@ -119,6 +135,13 @@ int main (int argc, char* argv[])
     dtuple.SetEvent((int) (100000.0 * gRandom->Rndm(6)));
     dtuple.SetSumEt(100.0 * gRandom->Rndm(7));
     dtuple.SetLum(gRandom->Rndm(8));
+
+    if (i % 200 == 0) {
+      printf("Event Summary: %3i Leptons  %3i Photons  %3i Jets\n",
+          (int) dtuple.GetLeptons()->size(),
+          (int) dtuple.GetPhotons()->size(),
+          (int) dtuple.GetJets()->size());
+    }
 
     // Add this event to the Dtuple object tree.
     // If you don't call Fill this event won't be saved

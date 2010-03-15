@@ -569,30 +569,8 @@ void TDtuple::AddLepton (TLepton const& inlep)
 {
   // Add a TLepton the the dtuple lepton 
 
+  // Add the lepton to the vector as well.  This is actually useful.
   Leptons.push_back(inlep);
-
-  AddLeptonToDtuple(inlep);
-
-  return;
-}
-
-
-
-
-
-//
-// Function: AddLeptonToDtuple
-//
-// Purpose: To add one lepton object to the dtuple TLepton TClonesArray
-//
-// Arguments: TLepton - The TLepton you wish to add
-//
-// Return: void
-//
-void TDtuple::AddLeptonToDtuple (TLepton const& inlep)
-{
-  // Add a TLepton the the dtuple lepton TClonesArray
-  // Note: This does not write them, you still need to call Write()
 
   // Create a new entry in the TCLonesArray
   TLepton* newLepton = new ((*fLepton)[fLepton->GetEntries()]) TLepton();
@@ -641,7 +619,7 @@ void TDtuple::AddJets (std::vector<TJet>::iterator it, std::vector<TJet>::iterat
 //
 // Return: void
 //
-void TDtuple::AddJets (std::vector<TJet> injets)
+void TDtuple::AddJets (std::vector<TJet> const& injets)
 {
   // Add a whole vector of TJet objects to the dtuple TClonesArray.
   // Note: This does not write them, you still need to call Write()
@@ -665,16 +643,16 @@ void TDtuple::AddJets (std::vector<TJet> injets)
 //
 // Return: void
 //
-void TDtuple::AddJet (TJet injet)
+void TDtuple::AddJet (TJet const& injet)
 {
   // Add a TJet to the dtuple jet TClonesArray
   // Note: This does not write them, you still need to call Fill()
 
-  // Pointer for out new TJet TClonesArray object
-  TJet *newJet;
+  // Add the jet to the vector as well.  This is actually useful.
+  Jets.push_back(injet);
 
   // Create a new jet object in the TClonesArray
-  newJet = new ((*fJet)[fJet->GetEntries()]) TJet();
+  TJet* newJet = new ((*fJet)[fJet->GetEntries()]) TJet();
 
   // Set the new object variables with the input Jet
   *newJet = injet;
@@ -719,7 +697,7 @@ void TDtuple::AddPhotons (std::vector<TPhoton>::iterator it, std::vector<TPhoton
 //
 // Return: void
 //
-void TDtuple::AddPhotons (std::vector<TPhoton> inphotons)
+void TDtuple::AddPhotons (std::vector<TPhoton> const& inphotons)
 {
   // Add a whole vector of Photon objects to the dtuple TClonesArray.
   // Note: This does not write them, you still need to call Write()
@@ -743,16 +721,16 @@ void TDtuple::AddPhotons (std::vector<TPhoton> inphotons)
 //
 // Return: void
 //
-void TDtuple::AddPhoton (TPhoton inphoton)
+void TDtuple::AddPhoton (TPhoton const& inphoton)
 {
   // Add a Photon to the dtuple jet TClonesArray
   // Note: This does not write them, you still need to call Fill()
 
-  // Pointer for out new Photon TClonesArray object
-  TPhoton* newPhoton;
+  // Add the jet to the vector as well.  This is actually useful.
+  Photons.push_back(inphoton);
 
   // Create a new jet object in the TClonesArray
-  newPhoton = new ((*fPhoton)[fPhoton->GetEntries()]) TPhoton();
+  TPhoton* newPhoton = new ((*fPhoton)[fPhoton->GetEntries()]) TPhoton();
 
   // Set the new object variables with the input Photon
   *newPhoton = inphoton;
@@ -1481,36 +1459,31 @@ int TDtuple::GetEventFlags ()
 
 
 
-void TDtuple::GetLeptons (std::vector<TLepton>* InVec)
-{
-  InVec = &Leptons;
-  return;
-}
-std::vector<TLepton>& TDtuple::GetLeptons ()
+std::vector<TLepton>* TDtuple::GetLeptons ()
 {
   // Get the vector of leptons
 
-  return Leptons;
+  return &Leptons;
 }
 
 
 
 
-std::vector<TJet>& TDtuple::GetJets ()
+std::vector<TJet>* TDtuple::GetJets ()
 {
   // Get the vector of jets
 
-  return Jets;
+  return &Jets;
 }
 
 
 
 
-std::vector<TPhoton>& TDtuple::GetPhotons ()
+std::vector<TPhoton>* TDtuple::GetPhotons ()
 {
   // Get the vector of photons
 
-  return Photons;
+  return &Photons;
 }
 
 
