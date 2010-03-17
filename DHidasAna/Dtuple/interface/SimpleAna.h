@@ -19,6 +19,8 @@ class SimpleAna : public TDtupleReader
     void Plot6JetEvents ();
     void PlotNLepSumEtJetsMet ();
 
+    TGenP* FindClosestGenP (TLepton&, int const Type = 0);
+
     void Selection ();
     void SelectionLepton ();
     void SelectionPhoton ();

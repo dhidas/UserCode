@@ -56,9 +56,6 @@ int main (int argc, char* argv[])
       lep.SetPz(gRandom->Gaus(0,50));
       lep.SetE(lep.P()+0.1);
       lep.SetTrkPt(gRandom->Gaus(0,50));
-      lep.SetEmE((lep.Perp()+0.0001)*2/3);
-      lep.SetHadE((lep.Perp()+0.0001)/3);
-      lep.SetDetEta(gRandom->Gaus(0,2));
       lep.SetZ0(gRandom->Gaus(0,20));
 
       // Add the new TLepton object to our vector of TLepton objects

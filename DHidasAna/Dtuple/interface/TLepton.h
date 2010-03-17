@@ -11,7 +11,7 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 
-//#include "DHidasAna/Dtuple/interface/TGenP.h"
+#include "DHidasAna/Dtuple/interface/TGenP.h"
 
 
 
@@ -28,18 +28,6 @@
 //          be filled are listed below.  They are private so as to be nondestructive.
 //          In other words, it's harder to mess them up...
 //
-//          Of you are compiling this internal to root you may want to uncomment the line
-//          in this .h file with the ClassDef (no, do not put a semicolon(;) after it,
-//          it's a root macro, not a function.
-//
-//          To otherwise compile this class with gcc I would reccomend the following
-//          (on cdf machines):
-//
-//          source ~cdfsoft/cdf2.cshrc
-//          setup gcc v3_4_3
-//          setup root v4_02_00a -q GCC_3_4_3
-//          g++ `root-config --cflags` -c TLepton.cc -o TLepton.o
-//          
 class TLepton : public TLorentzVector
 {
   // Constructors and destructor.
@@ -52,9 +40,6 @@ class TLepton : public TLorentzVector
   // The private variables which need to be
   // set by the various methods
   private:
-    float DetEta;       // Detector Eta
-    float EmE;          // EM Calorimeter energy
-    float HadE;         // Hadronic Calorimeter energy
     float TrkPt;
     float dxy;
     float dz;
@@ -79,17 +64,21 @@ class TLepton : public TLorentzVector
     float E2x5overE5x5;
     float ConvDist;
     float ConvdCotTheta;
+    int   NValidTrackerHits;
+    float TrackChi2;
+    float TrackNDoF;
+    float ECalIsoDep;
+    float HCalIsoDep;
+
   public:
     //TGenP GenP;
+    std::vector<TGenP> GenP;
 
 
 
   // Public methods for accessing the variables in
   // this class
   public:
-    void SetDetEta (float const);
-    void SetEmE (float const);
-    void SetHadE (float const);
     void SetTrkPt (float const);
     void Setdxy (float const);
     void Setdz (float const);
@@ -114,10 +103,13 @@ class TLepton : public TLorentzVector
     void SetE2x5overE5x5 (float const);
     void SetConvDist (float const);
     void SetConvdCotTheta (float const);
+    void SetNValidTrackerHits (int const);
+    void SetTrackChi2 (float const);
+    void SetTrackNDoF (float const);
+    void SetECalIsoDep (float const);
+    void SetHCalIsoDep (float const);
 
-    float GetDetEta ();
-    float GetEmE ();
-    float GetHadE ();
+
     float GetTrkPt ();
     float Getdxy ();
     float Getdz ();
@@ -142,6 +134,13 @@ class TLepton : public TLorentzVector
     float GetE2x5overE5x5 ();
     float GetConvDist ();
     float GetConvdCotTheta ();
+    int GetNValidTrackerHits ();
+    float GetTrackChi2 ();
+    float GetTrackNDoF ();
+    float GetECalIsoDep ();
+    float GetHCalIsoDep ();
+    TGenP* GetGenP (size_t const);
+    std::vector<TGenP>* GetGenPVector ();
 
     TString GetFlavorString ();
     bool PassesSelection(int const);

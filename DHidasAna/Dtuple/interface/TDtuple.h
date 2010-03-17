@@ -110,6 +110,8 @@ class TDtuple : public TDUtility
     void  SetRootFile (std::string const);
     void  SetRootFile (TFile*);
 
+    void AddLeptonsToArray ();
+
 
     TFile *fRootFile;  // root file for output
     TTree *fDtupleTree;    // dtuple tree

@@ -399,6 +399,7 @@ void TDtuple::Fill()
   // Save an event to the Dtuple TTree.  This must be called once per event
   // you wish to save
 
+  AddLeptonsToArray();
   // Fill the Dtuple
   fDtupleTree->Fill();
 
@@ -573,10 +574,10 @@ void TDtuple::AddLepton (TLepton const& inlep)
   Leptons.push_back(inlep);
 
   // Create a new entry in the TCLonesArray
-  TLepton* newLepton = new ((*fLepton)[fLepton->GetEntries()]) TLepton();
+  //TLepton* newLepton = new ((*fLepton)[fLepton->GetEntries()]) TLepton();
 
   // Set our new entry with all of the input lepton variables
-  *newLepton = inlep;
+  //*newLepton = inlep;
 
   return;
 }
@@ -584,7 +585,18 @@ void TDtuple::AddLepton (TLepton const& inlep)
 
 
 
+void TDtuple::AddLeptonsToArray ()
+{
+  for (size_t i = 0; i != Leptons.size(); ++i) {
+  // Create a new entry in the TCLonesArray
+  TLepton* newLepton = new ((*fLepton)[fLepton->GetEntries()]) TLepton();
 
+  // Set our new entry with all of the input lepton variables
+  *newLepton = Leptons[i];
+  }
+
+  return;
+}
 //
 // Function: AddJets
 //

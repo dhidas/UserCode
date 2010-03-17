@@ -62,7 +62,7 @@ class TAnaHist
       return;
     }
 
-    void NewTH3D (TString name, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, float zbins, float zmin, float zmax) {
+    void NewTH3D (TString name, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, int zbins, float zmin, float zmax) {
       fMapTH3D[name] = new TH3D(name, name, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
       fMapTH3D[name]->SetDirectory(fHistDir);
       return;
@@ -211,7 +211,7 @@ class TAnaHist
       }
       return fMapTH3D[name]->Fill(xvalue, yvalue, zvalue, weight);
     }
-    int FillTH3D (TString name, TString title, TString xtitle, TString ytitle, TString ztitle, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, float zbins, float zmin, float zmax, float xvalue, float yvalue, float zvalue, float weight=1) {
+    int FillTH3D (TString name, TString title, TString xtitle, TString ytitle, TString ztitle, int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, int zbins, float zmin, float zmax, float xvalue, float yvalue, float zvalue, float weight=1) {
       if (fMapTH3D.find(name) == fMapTH3D.end()) {
         NewTH3D(name, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
         fMapTH3D[name]->SetTitle(title);

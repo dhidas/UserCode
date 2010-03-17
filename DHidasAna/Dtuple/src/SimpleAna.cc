@@ -50,6 +50,7 @@ void SimpleAna::PlotLeptons ()
   for (size_t i = 0; i != Leptons.size(); ++i) {
     char Name[100];
 
+
     Hist.FillTH1D("LeptonPt_"+fProcName, 100, 0, 200, Leptons[i].Perp());
     sprintf(Name, "LeptonPt%i_%s", (int) i, fProcName.Data());
     Hist.FillTH1D(Name, 100, 0, 200, Leptons[i].Perp());
@@ -171,6 +172,11 @@ void SimpleAna::PlotZllE ()
     Hist.FillTH1D("DeltaRMinem_"+fProcName, 25, 0, 4, DeltaRMin);
   }
 
+  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 0);
+  if (MatchedPhoton != 0) {
+    printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n", MatchedPhoton->DeltaR(Zll[2]), MatchedPhoton->GetId(), MatchedPhoton->GetMotherId(), Zll[2].Perp(), MatchedPhoton->Perp());
+  }
+
   return;
 }
 
@@ -183,6 +189,7 @@ void SimpleAna::PlotDileptonMass ()
   if (Leptons.size() != 2) {
     return;
   }
+
 
   TString Charges;
   if (Leptons[0].GetCharge() != Leptons[1].GetCharge()) {
@@ -243,6 +250,36 @@ void SimpleAna::PlotNLepSumEtJetsMet ()
 
   return;
 }
+
+
+
+
+TGenP* SimpleAna::FindClosestGenP (TLepton& Lep, int const Type)
+{
+  float MinDeltaR = 999999;
+  int MinIndex = -1;
+  for (size_t i = 0; i != Lep.GetGenPVector()->size(); ++i) {
+    TGenP* ThisGenP = Lep.GetGenP(i);
+    if (Type != 0 && !ThisGenP->IsId(Type)) {
+      continue;
+    }
+
+    if (TMath::Abs(Lep.DeltaR(*ThisGenP)) < MinDeltaR) {
+      MinDeltaR = Lep.DeltaR(*ThisGenP);
+      MinIndex = (int) i;
+    }
+    
+  }
+
+  if (MinIndex < 0) {
+    return (TGenP*) 0x0;
+  }
+
+  return Lep.GetGenP(MinIndex);
+
+}
+
+
 
 
 

@@ -47,45 +47,6 @@ TLepton::~TLepton ()
 
 
 
-float TLepton::GetDetEta ()
-{
-  return DetEta;
-}
-
-
-void TLepton::SetDetEta (float const in)
-{
-  DetEta = in;
-  return;
-}
-
-
-float TLepton::GetEmE ()
-{
-  return EmE;
-}
-
-
-void TLepton::SetEmE (float const in)
-{
-  EmE = in;
-  return;
-}
-
-
-float TLepton::GetHadE ()
-{
-  return HadE;
-}
-
-
-void TLepton::SetHadE (float const in)
-{
-  HadE = in;
-  return;
-}
-
-
 float TLepton::GetTrkPt ()
 {
   return TrkPt;
@@ -395,6 +356,86 @@ void TLepton::SetConvdCotTheta (float const in)
 {
   ConvdCotTheta = in;
   return;
+}
+
+
+int TLepton::GetNValidTrackerHits ()
+{
+  return NValidTrackerHits;
+}
+
+
+void TLepton::SetNValidTrackerHits (int const in)
+{
+  NValidTrackerHits = in;
+  return;
+}
+
+
+float TLepton::GetTrackChi2 ()
+{
+  return TrackChi2;
+}
+
+
+void TLepton::SetTrackChi2 (float const in)
+{
+  TrackChi2 = in;
+  return;
+}
+
+
+float TLepton::GetTrackNDoF ()
+{
+  return TrackNDoF;
+}
+
+
+void TLepton::SetTrackNDoF (float const in)
+{
+  TrackNDoF = in;
+  return;
+}
+
+
+float TLepton::GetECalIsoDep ()
+{
+  return ECalIsoDep;
+}
+
+
+void TLepton::SetECalIsoDep (float const in)
+{
+  ECalIsoDep = in;
+  return;
+}
+
+
+float TLepton::GetHCalIsoDep ()
+{
+  return HCalIsoDep;
+}
+
+
+void TLepton::SetHCalIsoDep (float const in)
+{
+  HCalIsoDep = in;
+  return;
+}
+
+
+
+TGenP* TLepton::GetGenP (size_t const i)
+{
+  return &GenP[i];
+}
+
+
+
+
+std::vector<TGenP>* TLepton::GetGenPVector ()
+{
+  return &GenP;
 }
 
 

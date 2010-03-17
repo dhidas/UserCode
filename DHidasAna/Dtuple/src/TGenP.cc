@@ -4,6 +4,8 @@ ClassImp(TGenP)
 
 TGenP::TGenP ()
 {
+  Id = 0;
+  MotherId = 0;
 }
 
 
