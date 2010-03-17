@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.22 2010/03/11 15:43:02 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.23 2010/03/15 14:48:42 dhidas Exp $
 //
 //
 
@@ -243,9 +243,9 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     Lep.Setdxy( electron.gsfTrack()->dxy(fBeamSpot->position()) );
     Lep.Setdz( electron.gsfTrack()->dz(fBeamSpot->position()) );
 
-    electron.gsfTrack()->chi2();
-    electron.gsfTrack()->ndof();
-    //Lep.SetNValidHits( electron.gsfTrack()->hitPattern().numberOfValidTrackerHits() );
+    Lep.SetTrackChi2( electron.gsfTrack()->chi2() );
+    Lep.SetTrackNDoF( electron.gsfTrack()->ndof() );
+    Lep.SetNValidTrackerHits( electron.gsfTrack()->hitPattern().numberOfValidTrackerHits() );
     Lep.SetZ0( electron.vz() );
     Lep.SetCharge( electron.charge() );
     Lep.SetFlavor( TLepton::kLeptonFlavor_Electron );
@@ -256,6 +256,8 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     Lep.SetECalIso( electron.dr03EcalRecHitSumEt() );
     //Lep.SetHCalIso( electron.hcalIso() );
     Lep.SetHCalIso( electron.dr03HcalTowerSumEt() );
+    Lep.SetECalIsoDep( electron.ecalIsoDeposit()->candEnergy() );
+    Lep.SetHCalIsoDep( electron.hcalIsoDeposit()->candEnergy() );
     Lep.SetCalE( electron.caloEnergy() );
     Lep.SetHCalOverECal( electron.hadronicOverEm() );
     Lep.SetEoverPin( electron.eSuperClusterOverP() );
@@ -368,17 +370,17 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     if (MyTrackRef.isNonnull()) {
       Lep.Setdxy( MyTrackRef->dxy(fBeamSpot->position()) );
       Lep.Setdz( MyTrackRef->dz(fBeamSpot->position()) );
+      Lep.SetTrackChi2( MyTrackRef->chi2() );
+      Lep.SetTrackNDoF( MyTrackRef->ndof() );
     }
-    MyTrackRef->chi2();
-    MyTrackRef->ndof();
-    //Lep.SetNValidHits( MyTrackRef->hitPattern().numberOfValidTrackerHits() );
+    //Lep.SetNValidTrackerHits( MyTrackRef->hitPattern().numberOfValidTrackerHits() );
     Lep.SetZ0( muon.vz() );
     Lep.SetCharge( muon.charge() );
     Lep.SetFlavor( TLepton::kLeptonFlavor_Muon );
     Lep.SetTrkIso( muon.trackIso() );
     Lep.SetCalIso( muon.caloIso() );
-    muon.ecalIsoDeposit()->candEnergy();
-    muon.hcalIsoDeposit()->candEnergy();
+    Lep.SetECalIsoDep( muon.ecalIsoDeposit()->candEnergy() );
+    Lep.SetHCalIsoDep( muon.hcalIsoDeposit()->candEnergy() );
     Lep.SetECalIso( muon.ecalIso() );
     Lep.SetHCalIso( muon.hcalIso() );
     Lep.SetCalE( muon.calEnergy().em + muon.calEnergy().had );
@@ -494,9 +496,6 @@ FillDtuple::FillPhotons (const edm::Event& iEvent)
     MyPhoton.SetPy( photon.py() );
     MyPhoton.SetPz( photon.pz() );
     MyPhoton.SetE(  photon.p() );
-    //MyPhoton.SetPt( photon.pt() );
-    //MyPhoton.SetEta( photon.eta() );
-    //MyPhoton.SetPhi( photon.phi() );
     MyPhoton.SetTrkIso( photon.trackIso() );
     MyPhoton.SetCalIso( photon.caloIso() );
     MyPhoton.SetHCalOverECal( photon.hadronicOverEm() );
@@ -519,38 +518,47 @@ void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
   for(size_t iGen = 0; iGen < fGenParticleCollection->size(); ++iGen) {
     reco::GenParticle const GenP = fGenParticleCollection->at(iGen);
     int const Status = GenP.status();
-    if (Status != 3) {
+    if (Status == 2) {
       continue;
     }
     if (GenP.pt() == 0) {
       continue;
     }
     int const Id = GenP.pdgId();
-    int const MotherId = GenP.mother()->pdgId();
+    //int const MotherId = GenP.mother() != 0x0 ? GenP.mother()->pdgId() : 0;
     TGenP ThisGenP;
     ThisGenP.SetPxPyPzE(GenP.px(), GenP.py(), GenP.pz(), GenP.p());
     ThisGenP.SetId(Id);
-    ThisGenP.SetMotherId(MotherId);
 
+    reco::GenParticle* AMother = (reco::GenParticle*) GenP.mother();
+    //while (AMother && AMother->pdgId() == GenP.pdgId()) {
+    //  AMother = (reco::GenParticle*) AMother->mother();
+    //}
+    if (Id == AMother->pdgId()) {
+      continue;
+    }
+    //if (AMother == 0x0) {
+    //  continue;
+    //}
+    int const MotherId = AMother != 0x0 ? AMother->pdgId() : 0;
+    ThisGenP.SetMotherId(MotherId);
+    //std::cout << "GenPid Motherid  " << Id << "  " << AMother->pdgId() << std::endl;
 
     // This needs to be worked on.  consider what you might match here...
     float MinDeltaR = 99999;
     for (std::vector<TLepton>::iterator Lep = fDtuple->GetLeptons()->begin(); Lep != fDtuple->GetLeptons()->end(); ++Lep) {
       if ( TMath::Abs(Lep->DeltaR(ThisGenP)) < 0.4 ) {
-        printf("LeptonMatch Id MotherId DeltaR Pt GenPt: %7i %7i %9.3f %9.3f %9.3f\n",
-            Id,
-            MotherId,
-            Lep->DeltaR(ThisGenP),
-            Lep->Perp(),
-            ThisGenP.Perp());
 
-        if (Lep->GenP.GetId() == 0) {
-          Lep->GenP = ThisGenP;
-          MinDeltaR = Lep->DeltaR(Lep->GenP);
-        } else if (Lep->DeltaR(ThisGenP) < MinDeltaR) {
-          Lep->GenP = ThisGenP;
-          MinDeltaR = Lep->DeltaR(Lep->GenP);
-        }
+        Lep->GenP.push_back(ThisGenP);
+        //printf("LeptonMatch Id MotherId Status DeltaR Pt GenPt MoGenPt: %7i %7i %7i %9.3f %9.3f %9.3f %9.3f\n",
+        //    Id,
+        //    MotherId,
+        //    Status,
+        //    Lep->DeltaR(ThisGenP),
+        //    Lep->Perp(),
+        //    ThisGenP.Perp(),
+        //    AMother->pt());
+
       }
     }
 
