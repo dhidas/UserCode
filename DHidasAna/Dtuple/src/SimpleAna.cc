@@ -186,7 +186,7 @@ void SimpleAna::PlotZllE ()
   }
 
   // Match to the closest photon in DeltaR
-  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 22);
+  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 0);
   if (MatchedPhoton != 0) {
     printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n",
         MatchedPhoton->DeltaR(Zll[2]),
