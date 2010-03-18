@@ -172,9 +172,28 @@ void SimpleAna::PlotZllE ()
     Hist.FillTH1D("DeltaRMinem_"+fProcName, 25, 0, 4, DeltaRMin);
   }
 
-  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 0);
+  // Plot for tagged conversion and non-tagged
+  if (Zll[2].GetIsConvertedPhoton()) {
+    Hist.FillTH1D("ZmmMass_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  } else {
+    Hist.FillTH1D("ZmmMass_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  }
+
+  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 22);
   if (MatchedPhoton != 0) {
-    printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n", MatchedPhoton->DeltaR(Zll[2]), MatchedPhoton->GetId(), MatchedPhoton->GetMotherId(), Zll[2].Perp(), MatchedPhoton->Perp());
+    printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n",
+        MatchedPhoton->DeltaR(Zll[2]),
+        MatchedPhoton->GetId(),
+        MatchedPhoton->GetMotherId(),
+        Zll[2].Perp(),
+        MatchedPhoton->Perp());
+
+    // Plot for tagged conversion and non-tagged
+    if (Zll[2].GetIsConvertedPhoton()) {
+      Hist.FillTH1D("ZmmMass_PhoMatch_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+    } else {
+      Hist.FillTH1D("ZmmMass_PhoMatch_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+    }
   }
 
   return;
