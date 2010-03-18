@@ -179,6 +179,7 @@ void SimpleAna::PlotZllE ()
     Hist.FillTH1D("ZmmMass_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
   }
 
+  // Match to the closest photon in DeltaR
   TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 22);
   if (MatchedPhoton != 0) {
     printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n",
@@ -188,11 +189,19 @@ void SimpleAna::PlotZllE ()
         Zll[2].Perp(),
         MatchedPhoton->Perp());
 
-    // Plot for tagged conversion and non-tagged
+    Hist.FillTH1D("Pt_PhoMatch_"+fProcName, 100, 0, 200, Zll[2].Perp());
+
+    // Plot for tagged conversion and non-tagged where we've matched a photon genp
     if (Zll[2].GetIsConvertedPhoton()) {
       Hist.FillTH1D("ZmmMass_PhoMatch_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
     } else {
       Hist.FillTH1D("ZmmMass_PhoMatch_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+    }
+  } else {
+    if (Zll[2].GetIsConvertedPhoton()) {
+      Hist.FillTH1D("ZmmMass_NotPhoMatch_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+    } else {
+      Hist.FillTH1D("ZmmMass_NotPhoMatch_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
     }
   }
 
