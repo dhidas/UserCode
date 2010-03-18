@@ -154,23 +154,29 @@ void SimpleAna::PlotTriLeptons ()
 
 void SimpleAna::PlotZllE ()
 {
+  // For histograms
   static TAnaHist Hist(fOutFile, "PlotZllE");
 
+  // THis is only for trileptons
   if (Leptons.size() != 3) {
     return;
   }
 
+  // Get the closest Zmatch and add the 3dr lepton on at the end as [2]
   std::vector<TLepton> Zll = ClosestZMatch(Leptons, true, true, true);
   if (Zll.size() != 3) {
     return;
   }
-  if (Zll[0].IsFlavor(TLepton::kLeptonFlavor_Muon) && Zll[2].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
-    Hist.FillTH1D("ZmmEConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
-    Hist.FillTH1D("ZmmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
 
-    float const DeltaRMin = std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) );
-    Hist.FillTH1D("DeltaRMinem_"+fProcName, 25, 0, 4, DeltaRMin);
+  // Check that the muons were the match and the electron is in [2]
+  if ( !( Zll[0].IsFlavor(TLepton::kLeptonFlavor_Muon) && Zll[2].IsFlavor(TLepton::kLeptonFlavor_Electron) ) ) {
+    return;
   }
+
+  // Plot some basic quantities for this trilepton candidate
+  Hist.FillTH1D("ZmmEConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
+  Hist.FillTH1D("ZmmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("DeltaRMinem_"+fProcName, 25, 0, 4, std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) ) );
 
   // Plot for tagged conversion and non-tagged
   if (Zll[2].GetIsConvertedPhoton()) {
