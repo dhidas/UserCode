@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.23 2010/03/15 14:48:42 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.24 2010/03/17 16:50:40 dhidas Exp $
 //
 //
 
@@ -81,6 +81,8 @@ class FillDtuple : public edm::EDAnalyzer {
     void FillPhotons (const edm::Event&);
     void FillJets (const edm::Event&);
     void DoMCParticleMatching (const edm::Event&);
+
+    void PrintGenP (const edm::Event&, size_t const NMax = 999999999);
 
     void EventSummary ();
     bool KeepEvent ();
@@ -161,9 +163,10 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   FillJets(iEvent);
 
   DoMCParticleMatching(iEvent);
+  //PrintGenP(iEvent);
 
   // Print the even summary
-  EventSummary();
+  //EventSummary();
 
   // Actually save this event!!
   if (KeepEvent()) {
@@ -514,11 +517,11 @@ FillDtuple::FillPhotons (const edm::Event& iEvent)
 
 void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
 {
-  std::cout << "Number of GenParticles: " << fGenParticleCollection->size() << std::endl;
+  //std::cout << "Number of GenParticles: " << fGenParticleCollection->size() << std::endl;
   for(size_t iGen = 0; iGen < fGenParticleCollection->size(); ++iGen) {
     reco::GenParticle const GenP = fGenParticleCollection->at(iGen);
     int const Status = GenP.status();
-    if (Status == 2) {
+    if (Status != 1) {
       continue;
     }
     if (GenP.pt() == 0) {
@@ -531,12 +534,14 @@ void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
     ThisGenP.SetId(Id);
 
     reco::GenParticle* AMother = (reco::GenParticle*) GenP.mother();
-    //while (AMother && AMother->pdgId() == GenP.pdgId()) {
-    //  AMother = (reco::GenParticle*) AMother->mother();
-    //}
-    if (Id == AMother->pdgId()) {
-      continue;
+    while (AMother && AMother->pdgId() == GenP.pdgId()) {
+      AMother = (reco::GenParticle*) AMother->mother();
     }
+    //if (Id == AMother->pdgId()) {
+    //  std::cout << "Me - Mother.Pt():  " << GenP.pt() - AMother->pt() << std::endl;
+    //  std::cout << "Status MoStatus:   " << GenP.status() << "   " <<  AMother->status() << std::endl;
+    //  continue;
+    //}
     //if (AMother == 0x0) {
     //  continue;
     //}
@@ -562,6 +567,32 @@ void FillDtuple::DoMCParticleMatching(const edm::Event& iEvent)
       }
     }
 
+  }
+
+  return;
+}
+
+
+
+
+
+void FillDtuple::PrintGenP(const edm::Event& iEvent, size_t const NMax)
+{
+  std::cout << "Number of GenParticles: " << fGenParticleCollection->size() << std::endl;
+  for(size_t iGen = 0; iGen < fGenParticleCollection->size() && iGen < NMax; ++iGen) {
+    reco::GenParticle const GenP = fGenParticleCollection->at(iGen);
+
+    reco::GenParticle* Mother = (reco::GenParticle*) GenP.mother();
+    if (Mother) {
+      printf("%6i %6i %3i %8.2f %6i %3i %8.2f\n",
+          iGen,
+          GenP.pdgId(),
+          GenP.status(),
+          GenP.pt(),
+          Mother->pdgId(),
+          Mother->status(),
+          Mother->pt());
+    }
   }
 
   return;
