@@ -32,6 +32,7 @@ void SimpleAna::Analyze (long unsigned int const ientry)
 
   PlotDileptonMass();
   PlotTriLeptons();
+  PlotlGamma();
   PlotZllE();
   Plot6JetEvents();
   PlotNLepSumEtJetsMet();
@@ -131,21 +132,81 @@ void SimpleAna::PlotTriLeptons ()
     return;
   }
 
-  if (GetLeptonFlavorsString(Leptons) != "emm") {
+  TString const Flavors = GetLeptonFlavorsString(Leptons);
+
+  char ChargeStr[2];
+  sprintf(ChargeStr, "%1i", abs(Leptons[0].GetCharge() + Leptons[1].GetCharge() + Leptons[2].GetCharge()));
+
+
+  std::vector<TLepton> Zll = ClosestZMatch(Leptons, true, true, true);
+  if (Zll.size() != 3) {
     return;
   }
 
-  std::vector<TLepton> Zll = ClosestZMatch(Leptons, false, false, true);
-  Hist.FillTH1D("ZMass_"+GetLeptonFlavorsString(Leptons)+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
-
   TString const FlavorOrder = Zll[0].GetFlavorString() + Zll[1].GetFlavorString() + Zll[2].GetFlavorString();
-  if (Zll[0].GetCharge() == Zll[1].GetCharge()) {
-    Hist.FillTH1D("ZMass_FlavorsSS_"+FlavorOrder+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
-  } else {
-    Hist.FillTH1D("ZMass_FlavorsOS_"+FlavorOrder+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  TString const FlavorZll = Zll[0].GetFlavorString() + Zll[1].GetFlavorString();
+
+  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_Q"+ChargeStr+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+
+  return;
+}
+
+
+
+
+void SimpleAna::PlotlGamma ()
+{
+  // For histograms
+  static TAnaHist Hist(fOutFile, "PlotlGamma");
+
+  if (Leptons.size() != 2) {
+    return;
   }
 
+  TGenP* MatchedPhotonA = FindClosestGenP(Leptons[0], 22);
+  TGenP* MatchedPhotonB = FindClosestGenP(Leptons[1], 22);
 
+  int i = 1;
+  if (!MatchedPhotonA) {
+    MatchedPhotonA = MatchedPhotonB;
+    i = 0;
+  }
+  if (!MatchedPhotonA) {
+    return;
+  }
+
+  if (MatchedPhotonA && MatchedPhotonB) {
+    if (   TMath::Abs(MatchedPhotonA->Perp() - Leptons[0].Perp())/Leptons[0].Perp()
+         > TMath::Abs(MatchedPhotonB->Perp() - Leptons[1].Perp())/Leptons[1].Perp() ) {
+      MatchedPhotonA = MatchedPhotonB;
+      i = 0;
+    }
+    //if (MatchedPhotonA->DeltaR(Leptons[0]) > MatchedPhotonB->DeltaR(Leptons[1])) {
+    //  MatchedPhotonA = MatchedPhotonB;
+    //  i = 0;
+    //}
+  }
+
+  if (false) {
+    printf("Converted photon RecoPt: %9.3f  GenPt: %9.3f  DeltaR: %7.5f\n",
+      Leptons[1-i].Perp(), MatchedPhotonA->Perp(), MatchedPhotonA->DeltaR(Leptons[1-i]));
+  }
+
+  if (!Leptons[1-i].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+    return;
+  }
+
+  if (!Leptons[i].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+    return;
+  }
+
+  Hist.FillTH1D("le_eIsConversion_"+fProcName, "Is Conversion", "IsConversion bit", "", 2, 0, 2, Leptons[1-i].GetIsConvertedPhoton());
+  Hist.FillTH1D("le_eDZ_"+fProcName, "Conversion DZ", "DZ", "", 50, -10, 10,  Leptons[1-i].Getdz());
+  Hist.FillTH1D("le_eDXY_"+fProcName, "Conversion DXY", "DXY", "", 50, -0.5, 0.5,  Leptons[1-i].Getdxy());
+  Hist.FillTH1D("le_lDZ_"+fProcName, "Electron DZ", "DZ", "", 50, -10, 10,  Leptons[i].Getdz());
+  Hist.FillTH1D("le_lDXY_"+fProcName, "Electron DXY", "DXY", "", 50, -0.5, 0.5,  Leptons[i].Getdxy());
+  Hist.FillTH1D("le_leDiffDZ_"+fProcName, "Electron-Conversion DZ Diff", "DZ(|e-Conv|)", "", 50, 0, 10,  TMath::Abs(Leptons[i].Getdz() - Leptons[1-i].Getdz()) );
 
   return;
 }
@@ -174,40 +235,50 @@ void SimpleAna::PlotZllE ()
   }
 
   // Plot some basic quantities for this trilepton candidate
-  Hist.FillTH1D("ZmmEConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
-  Hist.FillTH1D("ZmmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
-  Hist.FillTH1D("DeltaRMinem_"+fProcName, 25, 0, 4, std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) ) );
+  Hist.FillTH1D("mme_eIsConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
+  Hist.FillTH1D("mme_mmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("mme_DeltaRMin_em_"+fProcName, 25, 0, 4, std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) ) );
+  Hist.FillTH1D("mme_mmAvgDZ_"+fProcName, 50, -10, 10,  (Zll[0].Getdz() + Zll[1].Getdz())/2.0);
+  Hist.FillTH1D("mme_eDZ_"+fProcName, "", "mm Mass", "Events", 50, -10, 10,  Zll[2].Getdz());
+  Hist.FillTH1D("mme_eDXY_"+fProcName, "", "Electron DXY", "Events", 50, -0.5, 0.5,  Zll[2].Getdxy());
+  Hist.FillTH1D("mme_mDXY_"+fProcName, "", "Muon DXY", "Events", 50, -0.5, 0.5,  Zll[0].Getdxy(), 0.5);
+  Hist.FillTH1D("mme_mDXY_"+fProcName, "", "Muon DXY", "Events", 50, -0.5, 0.5,  Zll[1].Getdxy(), 0.5);
 
   // Plot for tagged conversion and non-tagged
   if (Zll[2].GetIsConvertedPhoton()) {
-    Hist.FillTH1D("ZmmMass_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+    Hist.FillTH1D("mme_mmMass_eTaggedAsConv"+fProcName, "Electron tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
+    Hist.FillTH1D("mme_eTaggedAsConv_DZ_"+fProcName, 50, -10, 10,  Zll[2].Getdz());
   } else {
-    Hist.FillTH1D("ZmmMass_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+    Hist.FillTH1D("mme_mmMass_eNotTaggedAsConv"+fProcName, "Electron not tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
+    Hist.FillTH1D("mme_eNotTaggedAsConv_DZ_"+fProcName, 50, 10, 10,  Zll[2].Getdz());
   }
 
   // Match to the closest photon in DeltaR
-  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 0);
+  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 22);
   if (MatchedPhoton != 0) {
-    printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n",
+    
+    if (false) printf("MatchedPhoton DeltaR Id MotherId LepPt PhoPt: %8.5f %5i %5i %12.2f %12.2f\n",
         MatchedPhoton->DeltaR(Zll[2]),
         MatchedPhoton->GetId(),
         MatchedPhoton->GetMotherId(),
         Zll[2].Perp(),
         MatchedPhoton->Perp());
 
-    Hist.FillTH1D("Pt_PhoMatch_"+fProcName, 100, 0, 200, Zll[2].Perp());
+    Hist.FillTH1D("mme_ePt_PhoMatched_"+fProcName, 100, 0, 200, Zll[2].Perp());
+    Hist.FillTH1D("mme_eGammaMatch_DeltaR_"+fProcName, 100, 0, 0.4, Zll[2].DeltaR(*MatchedPhoton));
+    Hist.FillTH1D("mme_eGammaMatch_MotherId_"+fProcName, 40, 0, 40, abs(MatchedPhoton->GetMotherId()) );
 
     // Plot for tagged conversion and non-tagged where we've matched a photon genp
     if (Zll[2].GetIsConvertedPhoton()) {
-      Hist.FillTH1D("ZmmMass_PhoMatch_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_ePhoMatch_TaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
     } else {
-      Hist.FillTH1D("ZmmMass_PhoMatch_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_ePhoMatch_NotTaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
     }
   } else {
     if (Zll[2].GetIsConvertedPhoton()) {
-      Hist.FillTH1D("ZmmMass_NotPhoMatch_TaggedConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_eNotPhoMatch_TaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
     } else {
-      Hist.FillTH1D("ZmmMass_NotPhoMatch_NoTagConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_eNotPhoMatch_NotTaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
     }
   }
 
@@ -235,6 +306,7 @@ void SimpleAna::PlotDileptonMass ()
   TString const Flavors = GetLeptonFlavorsString(Leptons);
 
   Hist.FillTH1D("DileptonMass"+Charges+"_"+Flavors+"_"+fProcName, 100, 0, 200, (Leptons[0]+Leptons[1]).M());
+  Hist.FillTH1D("le_leDiffDZ_"+Charges+"_"+Flavors+"_"+fProcName, "Conversion DZ Diff for dilepton", "DZ(|l1-l2|)", "", 50, 0, 10,  TMath::Abs(Leptons[0].Getdz() - Leptons[1].Getdz()) );
 
   return;
 }
