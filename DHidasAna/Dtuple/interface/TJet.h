@@ -53,6 +53,8 @@ class TJet: public TLorentzVector
     float HadF;         // Em Fraction
     float SysPos;       // Positive Systematic uncertainty
     float SysNeg;       // Negative Systematic uncertainty
+    float Z0;           // Z0 of the jet
+    float dxy;          // Signed displacement of vertex
 
 
 
@@ -67,6 +69,8 @@ class TJet: public TLorentzVector
     float GetEScaleFactor ();
     float GetSysPos ();
     float GetSysNeg ();
+    float GetZ0 ();
+    float Getdxy ();
 
 
     // Set quantaties
@@ -76,6 +80,8 @@ class TJet: public TLorentzVector
     void  SetHadF (float const);
     void  SetSysPos (float const);
     void  SetSysNeg (float const);
+    void  SetZ0 (float const);
+    void  Setdxy (float const);
 
     void  ReScale (float const);
 
@@ -91,7 +97,7 @@ class TJet: public TLorentzVector
     // Comment them out if you don't need them.
     // There should NOT be a ; since this is a root macro and not a function
     // ClassDef must be the last line of the class before the };
-    ClassDef(TJet,2) // TJet class
+    ClassDef(TJet,3) // TJet class
 };
 
 

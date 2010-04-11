@@ -214,6 +214,58 @@ void TJet::SetSysNeg (float const in)
 
 
 
+float TJet::GetZ0 ()
+{
+  // Get the vertex Z0
+
+  return Z0;
+}
+
+
+
+
+
+
+void TJet::SetZ0 (float const in)
+{
+  // Set the vertex Z0
+
+  Z0 = in;
+
+  return;
+}
+
+
+
+
+
+
+float TJet::Getdxy ()
+{
+  // Get the vertex dxy
+
+  return dxy;
+}
+
+
+
+
+
+
+void TJet::Setdxy (float const in)
+{
+  // Set the vertex dxy
+
+  dxy = in;
+
+  return;
+}
+
+
+
+
+
+
 void TJet::DefaultValues()
 {
   // Set dummy values to all of the TJet variables.
@@ -227,6 +279,8 @@ void TJet::DefaultValues()
   HadF          = -999999;
   SysPos        = -999999;
   SysNeg        = -999999;
+  Z0            = -999999;
+  dxy           = -999999;
 }
 
 
