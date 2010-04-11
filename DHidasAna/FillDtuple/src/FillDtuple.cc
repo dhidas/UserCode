@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.24 2010/03/17 16:50:40 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.25 2010/03/21 12:49:25 dhidas Exp $
 //
 //
 
@@ -45,7 +45,7 @@
 #include "PhysicsTools/PatUtils/interface/TriggerHelper.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "PhysicsTools/UtilAlgos/interface/TFileService.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
 
 
@@ -162,11 +162,13 @@ FillDtuple::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   FillPhotons(iEvent);
   FillJets(iEvent);
 
-  DoMCParticleMatching(iEvent);
+  if (!iEvent.isRealData()) {
+    DoMCParticleMatching(iEvent);
+  }
   //PrintGenP(iEvent);
 
   // Print the even summary
-  //EventSummary();
+  EventSummary();
 
   // Actually save this event!!
   if (KeepEvent()) {
@@ -185,14 +187,16 @@ void
 FillDtuple::GetHandles(const edm::Event& iEvent)
 {
   // This function gets the physics objects of interest
-  iEvent.getByLabel("selectedLayer1Electrons", fElectrons);
-  iEvent.getByLabel("selectedLayer1Muons", fMuons);
-  iEvent.getByLabel("selectedLayer1Jets", fJets);
-  iEvent.getByLabel("selectedLayer1Photons", fPhotons);
-  iEvent.getByLabel("layer1METs", fMETs);
+  iEvent.getByLabel("selectedPatElectrons", fElectrons);
+  iEvent.getByLabel("selectedPatMuons", fMuons);
+  iEvent.getByLabel("selectedPatJets", fJets);
+  iEvent.getByLabel("selectedPatPhotons", fPhotons);
+  iEvent.getByLabel("patMETs", fMETs);
   iEvent.getByLabel("offlineBeamSpot", fBeamSpot);
   iEvent.getByLabel("generalTracks", fTrackCollection);
-  iEvent.getByLabel("genParticles", fGenParticleCollection);
+  if (!iEvent.isRealData()) {
+    iEvent.getByLabel("genParticles", fGenParticleCollection);
+  }
   //iEvent.getByLabel("patTrigger", fTriggerEvent );
   //iEvent.getByLabel( "patTrigger", fTriggerPaths );
   //iEvent.getByLabel( "patTrigger", fTriggerFilters );
@@ -259,8 +263,10 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     Lep.SetECalIso( electron.dr03EcalRecHitSumEt() );
     //Lep.SetHCalIso( electron.hcalIso() );
     Lep.SetHCalIso( electron.dr03HcalTowerSumEt() );
+    if (electron.ecalIsoDeposit()) {
     Lep.SetECalIsoDep( electron.ecalIsoDeposit()->candEnergy() );
     Lep.SetHCalIsoDep( electron.hcalIsoDeposit()->candEnergy() );
+    }
     Lep.SetCalE( electron.caloEnergy() );
     Lep.SetHCalOverECal( electron.hadronicOverEm() );
     Lep.SetEoverPin( electron.eSuperClusterOverP() );
@@ -309,7 +315,7 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
       case reco::GsfElectron::BIGBREM:
         Lep.SetClassification( TLepton::kElectronClass_BigBrem );
         break;
-      case reco::GsfElectron::NARROW:
+      case reco::GsfElectron::OLDNARROW:
         Lep.SetClassification( TLepton::kElectronClass_Narrow );
         break;
       case reco::GsfElectron::SHOWERING:
@@ -382,8 +388,10 @@ FillDtuple::FillLeptons(const edm::Event& iEvent)
     Lep.SetFlavor( TLepton::kLeptonFlavor_Muon );
     Lep.SetTrkIso( muon.trackIso() );
     Lep.SetCalIso( muon.caloIso() );
+    if (muon.ecalIsoDeposit()) {
     Lep.SetECalIsoDep( muon.ecalIsoDeposit()->candEnergy() );
     Lep.SetHCalIsoDep( muon.hcalIsoDeposit()->candEnergy() );
+    }
     Lep.SetECalIso( muon.ecalIso() );
     Lep.SetHCalIso( muon.hcalIso() );
     Lep.SetCalE( muon.calEnergy().em + muon.calEnergy().had );
@@ -465,11 +473,10 @@ FillDtuple::FillJets(const edm::Event& iEvent)
     MyJet.SetPy( jet.py() );
     MyJet.SetPz( jet.pz() );
     MyJet.SetE( jet.p() );
-    //MyJet.SetPt( jet.pt() );
-    //MyJet.SetEta( jet.eta() );
-    //MyJet.SetPhi( jet.phi() );
     MyJet.SetEmF( jet.emEnergyFraction() );
     MyJet.SetHadF( jet.energyFractionHadronic() );
+    MyJet.SetZ0( jet.vz() );
+    //MyJet.Setdxy( jet.dxy() );
 
     Jets.push_back(MyJet);
 
