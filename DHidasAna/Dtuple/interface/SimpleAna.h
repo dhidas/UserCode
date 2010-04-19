@@ -10,11 +10,13 @@ class SimpleAna : public TDtupleReader
     ~SimpleAna ();
 
     void Analyze (long unsigned int const);
+    void PlotEventQuantities ();
     void PlotLeptons ();
     void PlotPhotons ();
     void PlotJets ();
     void PlotTriLeptons ();
     void PlotlGamma ();
+    void PlotllGamma ();
     void PlotZllE ();
     void PlotDileptonMass ();
     void Plot6JetEvents ();

@@ -1221,6 +1221,26 @@ float TDtuple::GetMet ()
 
 
 
+//
+// Function: GetMetPhi
+//
+// Purpose: Get the phi of the Met
+//
+// Arguments: none
+//
+// Return: float - Missing Et phi direction
+//
+float TDtuple::GetMetPhi ()
+{
+  // Get the magnitude of the missing Et.  MetX and MetY
+  // must already be set
+
+  return TVector2(fMetX, fMetY).Phi();
+}
+
+
+
+
 
 //
 // Function: GetRawMet

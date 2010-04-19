@@ -14,16 +14,17 @@ TDtupleReader::~TDtupleReader ()
 void TDtupleReader::Loop (long unsigned int Max)
 {
 
+  unsigned int const ReportEvery = 10000;
   if (Max == 0) {
     for (long unsigned int ientry = 0; GetEntry(ientry); ++ientry) {
-      if (ientry % 1000 == 0) {
+      if (ientry % ReportEvery == 0) {
         std::cout << "Events Processed: " << ientry << std::endl;
       }
       Analyze(ientry);
     }
   } else {
     for (long unsigned int ientry = 0; GetEntry(ientry) && (ientry < Max); ++ientry) {
-      if (ientry % 1000 == 0) {
+      if (ientry % ReportEvery == 0) {
         std::cout << "Events Processed: " << ientry << std::endl;
       }
       Analyze(ientry);

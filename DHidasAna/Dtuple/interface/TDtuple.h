@@ -84,6 +84,7 @@ class TDtuple : public TDUtility
     float GetMetX ();
     float GetMetY ();
     float GetMet ();
+    float GetMetPhi ();
     float GetRawMetX ();
     float GetRawMetY ();
     float GetRawMet ();

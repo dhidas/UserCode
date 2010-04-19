@@ -26,6 +26,7 @@ void SimpleAna::Analyze (long unsigned int const ientry)
   Selection();
   ObjectCleaning();
 
+  PlotEventQuantities();
   PlotLeptons();
   PlotPhotons();
   PlotJets();
@@ -33,6 +34,7 @@ void SimpleAna::Analyze (long unsigned int const ientry)
   PlotDileptonMass();
   PlotTriLeptons();
   PlotlGamma();
+  PlotllGamma();
   PlotZllE();
   Plot6JetEvents();
   PlotNLepSumEtJetsMet();
@@ -42,26 +44,47 @@ void SimpleAna::Analyze (long unsigned int const ientry)
 
 
 
+void SimpleAna::PlotEventQuantities ()
+{
+  static TAnaHist Hist(fOutFile, "PlotEventQuantities");
+
+  Hist.FillTH1D("SumEt", 50, 0, 200, GetSumEt());
+  Hist.FillTH1D("Met", 50, 0, 200, GetMet());
+  Hist.FillTH1D("MetPhi", 50, 0, 2*TMath::Pi(), GetMetPhi());
+
+
+
+  return;
+}
+
+
+
+
 void SimpleAna::PlotLeptons ()
 {
   static TAnaHist Hist(fOutFile, "PlotLeptons");
 
-  Hist.FillTH1D("NLeptons_"+fProcName, 10, 0, 10, Leptons.size());
+  Hist.FillTH1D("NLeptons", 10, 0, 10, Leptons.size());
 
   for (size_t i = 0; i != Leptons.size(); ++i) {
+
+    TString const Flavors = GetLeptonFlavorsString(Leptons);
+    Hist.FillTH1D("LeptonTrkIso_"+Leptons[i].GetFlavorString(), 100, -0.1, 0.5, Leptons[i].GetTrkIso() / Leptons[i].Perp());
+    Hist.FillTH1D("LeptonCalIso_"+Leptons[i].GetFlavorString(), 100, -0.1, 0.5, Leptons[i].GetCalIso() / Leptons[i].Perp());
+    Hist.FillTH1D("LeptonECalIsoDep_"+Leptons[i].GetFlavorString(), 100, -0.1, 8.5, Leptons[i].GetECalIsoDep() / Leptons[i].Perp());
+    Hist.FillTH1D("LeptonHCalIsoDep_"+Leptons[i].GetFlavorString(), 100, -0.1, 8.5, Leptons[i].GetHCalIsoDep() / Leptons[i].Perp());
+
     char Name[100];
-
-
-    Hist.FillTH1D("LeptonPt_"+fProcName, 100, 0, 200, Leptons[i].Perp());
-    sprintf(Name, "LeptonPt%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("LeptonPt", 100, 0, 200, Leptons[i].Perp());
+    sprintf(Name, "LeptonPt%i", (int) i);
     Hist.FillTH1D(Name, 100, 0, 200, Leptons[i].Perp());
 
-    Hist.FillTH1D("LeptonEta_"+fProcName, 50, -3, 3, Leptons[i].Eta());
-    sprintf(Name, "LeptonEta%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("LeptonEta", 50, -3, 3, Leptons[i].Eta());
+    sprintf(Name, "LeptonEta%i", (int) i);
     Hist.FillTH1D(Name, 50, -3, 3, Leptons[i].Eta());
 
-    Hist.FillTH1D("LeptonPhi_"+fProcName, 50, -1.0*TMath::Pi(), TMath::Pi(), Leptons[i].Phi());
-    sprintf(Name, "LeptonPhi%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("LeptonPhi", 50, -1.0*TMath::Pi(), TMath::Pi(), Leptons[i].Phi());
+    sprintf(Name, "LeptonPhi%i", (int) i);
     Hist.FillTH1D(Name, 50, -1.0*TMath::Pi(), TMath::Pi(), Leptons[i].Phi());
   }
   return;
@@ -74,21 +97,21 @@ void SimpleAna::PlotPhotons ()
 {
   static TAnaHist Hist(fOutFile, "PlotPhotons");
 
-  Hist.FillTH1D("NPhotons_"+fProcName, 10, 0, 10, Photons.size());
+  Hist.FillTH1D("NPhotons", 10, 0, 10, Photons.size());
 
   for (size_t i = 0; i != Photons.size(); ++i) {
     char Name[100];
 
-    Hist.FillTH1D("PhotonPt_"+fProcName, 100, 0, 200, Photons[i].Perp());
-    sprintf(Name, "PhotonPt%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("PhotonPt", 100, 0, 200, Photons[i].Perp());
+    sprintf(Name, "PhotonPt%i", (int) i);
     Hist.FillTH1D(Name, 100, 0, 200, Photons[i].Perp());
 
-    Hist.FillTH1D("PhotonEta_"+fProcName, 50, -3, 3, Photons[i].Eta());
-    sprintf(Name, "PhotonEta%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("PhotonEta", 50, -3, 3, Photons[i].Eta());
+    sprintf(Name, "PhotonEta%i", (int) i);
     Hist.FillTH1D(Name, 50, -3, 3, Photons[i].Eta());
 
-    Hist.FillTH1D("PhotonPhi_"+fProcName, 50, -1.0*TMath::Pi(), TMath::Pi(), Photons[i].Phi());
-    sprintf(Name, "PhotonPhi%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("PhotonPhi", 50, -1.0*TMath::Pi(), TMath::Pi(), Photons[i].Phi());
+    sprintf(Name, "PhotonPhi%i", (int) i);
     Hist.FillTH1D(Name, 50, -1.0*TMath::Pi(), TMath::Pi(), Photons[i].Phi());
   }
   return;
@@ -102,23 +125,46 @@ void SimpleAna::PlotJets ()
 {
   static TAnaHist Hist(fOutFile, "PlotJets");
 
-  Hist.FillTH1D("NJets_"+fProcName, 20, 0, 20, Jets.size());
+  Hist.FillTH1D("NJets", 20, 0, 20, Jets.size());
 
   for (size_t i = 0; i != Jets.size(); ++i) {
-    Hist.FillTH1D("JetPt_"+fProcName, 100, 0, 200, Jets[i].Perp());
+    Hist.FillTH1D("JetPt", 100, 0, 200, Jets[i].Perp());
 
     char Name[100];
-    sprintf(Name, "JetPt%i_%s", (int) i, fProcName.Data());
+    sprintf(Name, "JetPt%i", (int) i);
     Hist.FillTH1D(Name, 100, 0, 200, Jets[i].Perp());
 
-    Hist.FillTH1D("JetEta_"+fProcName, 50, -3, 3, Jets[i].Eta());
-    sprintf(Name, "JetEta%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("JetEta", 50, -3, 3, Jets[i].Eta());
+    sprintf(Name, "JetEta%i", (int) i);
     Hist.FillTH1D(Name, 50, -3, 3, Jets[i].Eta());
 
-    Hist.FillTH1D("JetPhi_"+fProcName, 50, -1.0*TMath::Pi(), TMath::Pi(), Jets[i].Phi());
-    sprintf(Name, "JetPhi%i_%s", (int) i, fProcName.Data());
+    Hist.FillTH1D("JetPhi", 50, -1.0*TMath::Pi(), TMath::Pi(), Jets[i].Phi());
+    sprintf(Name, "JetPhi%i", (int) i);
     Hist.FillTH1D(Name, 50, -1.0*TMath::Pi(), TMath::Pi(), Jets[i].Phi());
   }
+
+  if (Jets.size() >= 2) {
+    Hist.FillTH1D("JetDeltaR01", 100, 0, 8, Jets[0].DeltaR(Jets[1]));
+    Hist.FillTH1D("JetDeltaEta01", 100, 0, 8, TMath::Abs(Jets[0].Eta() - Jets[1].Eta()));
+    Hist.FillTH1D("JetDeltaPhi01", 100, -TMath::Pi(), TMath::Pi(), Jets[0].DeltaPhi(Jets[1]));
+  }
+
+  if (Jets.size() == 2) {
+    Hist.FillTH1D("DiJetMass", 100, 0, 300, (Jets[0] + Jets[1]).M());
+    Hist.FillTH1D("DiJetSumPt", 100, 0, 400, Jets[0].Perp() + Jets[1].Perp());
+    Hist.FillTH1D("DiJetDeltaR01", 100, 0, 8, Jets[0].DeltaR(Jets[1]));
+    Hist.FillTH1D("DiJetDeltaEta01", 100, 0, 8, TMath::Abs(Jets[0].Eta() - Jets[1].Eta()));
+    Hist.FillTH1D("DiJetDeltaPhi01", 100, -TMath::Pi(), TMath::Pi(), Jets[0].DeltaPhi(Jets[1]));
+  }
+
+  if (Jets.size() == 3) {
+    Hist.FillTH1D("TriJetMass", 100, 0, 300, (Jets[0] + Jets[1] + Jets[2]).M());
+    Hist.FillTH1D("DiJetSumPt", 100, 0, 400, Jets[0].Perp() + Jets[1].Perp() + Jets[1].Perp());
+    Hist.FillTH1D("TriJetDeltaR01", 100, 0, 8, Jets[0].DeltaR(Jets[1]));
+    Hist.FillTH1D("TriJetDeltaEta01", 100, 0, 8, TMath::Abs(Jets[0].Eta() - Jets[1].Eta()));
+    Hist.FillTH1D("TriJetDeltaPhi01", 100, -TMath::Pi(), TMath::Pi(), Jets[0].DeltaPhi(Jets[1]));
+  }
+
   return;
 }
 
@@ -146,8 +192,8 @@ void SimpleAna::PlotTriLeptons ()
   TString const FlavorOrder = Zll[0].GetFlavorString() + Zll[1].GetFlavorString() + Zll[2].GetFlavorString();
   TString const FlavorZll = Zll[0].GetFlavorString() + Zll[1].GetFlavorString();
 
-  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
-  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_Q"+ChargeStr+"_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_Q"+ChargeStr, 100, 0, 200, (Zll[0] + Zll[1]).M());
 
   return;
 }
@@ -201,15 +247,70 @@ void SimpleAna::PlotlGamma ()
     return;
   }
 
-  Hist.FillTH1D("le_eIsConversion_"+fProcName, "Is Conversion", "IsConversion bit", "", 2, 0, 2, Leptons[1-i].GetIsConvertedPhoton());
-  Hist.FillTH1D("le_eDZ_"+fProcName, "Conversion DZ", "DZ", "", 50, -10, 10,  Leptons[1-i].Getdz());
-  Hist.FillTH1D("le_eDXY_"+fProcName, "Conversion DXY", "DXY", "", 50, -0.5, 0.5,  Leptons[1-i].Getdxy());
-  Hist.FillTH1D("le_lDZ_"+fProcName, "Electron DZ", "DZ", "", 50, -10, 10,  Leptons[i].Getdz());
-  Hist.FillTH1D("le_lDXY_"+fProcName, "Electron DXY", "DXY", "", 50, -0.5, 0.5,  Leptons[i].Getdxy());
-  Hist.FillTH1D("le_leDiffDZ_"+fProcName, "Electron-Conversion DZ Diff", "DZ(|e-Conv|)", "", 50, 0, 10,  TMath::Abs(Leptons[i].Getdz() - Leptons[1-i].Getdz()) );
+  Hist.FillTH1D("lg_gIsConversion", "Is Conversion", "IsConversion bit", "", 2, 0, 2, Leptons[1-i].GetIsConvertedPhoton());
+  Hist.FillTH1D("lg_lIsConversion", "Is Conversion", "IsConversion bit", "", 2, 0, 2, Leptons[i].GetIsConvertedPhoton());
+  Hist.FillTH1D("lg_gDZ", "Conversion DZ", "DZ", "", 50, -10, 10,  Leptons[1-i].Getdz());
+  Hist.FillTH1D("lg_gDXY", "Conversion DXY", "DXY", "", 50, -0.5, 0.5,  Leptons[1-i].Getdxy());
+  Hist.FillTH1D("lg_lDZ", "Electron DZ", "DZ", "", 50, -10, 10,  Leptons[i].Getdz());
+  Hist.FillTH1D("lg_lDXY", "Electron DXY", "DXY", "", 50, -0.5, 0.5,  Leptons[i].Getdxy());
+  Hist.FillTH1D("lg_lgDiffDZ", "Electron-Conversion DZ Diff", "DZ(|e-Conv|)", "", 50, 0, 10,  TMath::Abs(Leptons[i].Getdz() - Leptons[1-i].Getdz()) );
 
   return;
 }
+
+
+
+void SimpleAna::PlotllGamma ()
+{
+  // For histograms
+  static TAnaHist Hist(fOutFile, "PlotllGamma");
+
+  if (Leptons.size() != 3) {
+    return;
+  }
+
+
+  // Get the closest Z-match, require they are opposiute sign and same flavor
+  std::vector<TLepton> Zll = ClosestZMatch(Leptons, true, true, true);
+  if (Zll.size() != 3) {
+    return;
+  }
+
+  // Make sure the third one is an electron
+  if (!Zll[2].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+    return;
+  }
+
+  // Match the electron to a genp photon?
+  TGenP* MatchedPhoton = FindClosestGenP(Zll[2], 22);
+  if (!MatchedPhoton) {
+    return;
+  }
+
+
+  TString const Flavors = GetLeptonFlavorsString(Zll);
+  Hist.FillTH1D(Flavors+"_gIsConversion", "Is Conversion", "IsConversion bit", "", 2, 0, 2, Zll[2].GetIsConvertedPhoton());
+  Hist.FillTH1D(Flavors+"_lIsConversion", "Is Conversion", "IsConversion bit", "", 2, 0, 2, Zll[0].GetIsConvertedPhoton(), 0.5);
+  Hist.FillTH1D(Flavors+"_lIsConversion", "Is Conversion", "IsConversion bit", "", 2, 0, 2, Zll[1].GetIsConvertedPhoton(), 0.5);
+
+  Hist.FillTH1D(Flavors+"_gDXY", "DXY", "DXY", "", 200, -0.3, 0.3, Zll[2].Getdxy());
+  Hist.FillTH1D(Flavors+"_lDXY", "DXY", "DXY", "", 200, -0.3, 0.3, Zll[0].Getdxy(), 0.5);
+  Hist.FillTH1D(Flavors+"_lDXY", "DXY", "DXY", "", 200, -0.3, 0.3, Zll[1].Getdxy(), 0.5);
+
+  if (Zll[2].GetIsConvertedPhoton()) {
+    Hist.FillTH1D(Flavors+"_gDXYTagged", "DXYTagged", "DXY", "", 200, -0.3, 0.3, Zll[2].Getdxy());
+  } else {
+    Hist.FillTH1D(Flavors+"_gDXYNotTagged", "DXYTagged", "DXY", "", 200, -0.3, 0.3, Zll[2].Getdxy());
+  }
+
+  Hist.FillTH1D(Flavors+"_gDZ", "DZ", "DZ", "", 50, -10, 10, Zll[2].Getdz());
+  Hist.FillTH1D(Flavors+"_lDZ", "DZ", "DZ", "", 50, -10, 10, Zll[0].Getdz(), 0.5);
+  Hist.FillTH1D(Flavors+"_lDZ", "DZ", "DZ", "", 50, -10, 10, Zll[1].Getdz(), 0.5);
+
+
+  return;
+}
+
 
 
 
@@ -235,22 +336,22 @@ void SimpleAna::PlotZllE ()
   }
 
   // Plot some basic quantities for this trilepton candidate
-  Hist.FillTH1D("mme_eIsConversion_"+fProcName, 2, 0, 2, Zll[2].GetIsConvertedPhoton());
-  Hist.FillTH1D("mme_mmMass_"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
-  Hist.FillTH1D("mme_DeltaRMin_em_"+fProcName, 25, 0, 4, std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) ) );
-  Hist.FillTH1D("mme_mmAvgDZ_"+fProcName, 50, -10, 10,  (Zll[0].Getdz() + Zll[1].Getdz())/2.0);
-  Hist.FillTH1D("mme_eDZ_"+fProcName, "", "mm Mass", "Events", 50, -10, 10,  Zll[2].Getdz());
-  Hist.FillTH1D("mme_eDXY_"+fProcName, "", "Electron DXY", "Events", 50, -0.5, 0.5,  Zll[2].Getdxy());
-  Hist.FillTH1D("mme_mDXY_"+fProcName, "", "Muon DXY", "Events", 50, -0.5, 0.5,  Zll[0].Getdxy(), 0.5);
-  Hist.FillTH1D("mme_mDXY_"+fProcName, "", "Muon DXY", "Events", 50, -0.5, 0.5,  Zll[1].Getdxy(), 0.5);
+  Hist.FillTH1D("mme_eIsConversion", 2, 0, 2, Zll[2].GetIsConvertedPhoton());
+  Hist.FillTH1D("mme_mmMass", 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("mme_DeltaRMin_em", 25, 0, 4, std::min( Zll[2].DeltaR(Zll[0]), Zll[2].DeltaR(Zll[1]) ) );
+  Hist.FillTH1D("mme_mmAvgDZ", 50, -10, 10,  (Zll[0].Getdz() + Zll[1].Getdz())/2.0);
+  Hist.FillTH1D("mme_eDZ", "", "mm Mass", "Events", 50, -10, 10,  Zll[2].Getdz());
+  Hist.FillTH1D("mme_eDXY", "", "Electron DXY", "Events", 50, -0.5, 0.5,  Zll[2].Getdxy());
+  Hist.FillTH1D("mme_mDXY", "", "Muon DXY", "Events", 50, -0.5, 0.5,  Zll[0].Getdxy(), 0.5);
+  Hist.FillTH1D("mme_mDXY", "", "Muon DXY", "Events", 50, -0.5, 0.5,  Zll[1].Getdxy(), 0.5);
 
   // Plot for tagged conversion and non-tagged
   if (Zll[2].GetIsConvertedPhoton()) {
-    Hist.FillTH1D("mme_mmMass_eTaggedAsConv"+fProcName, "Electron tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
-    Hist.FillTH1D("mme_eTaggedAsConv_DZ_"+fProcName, 50, -10, 10,  Zll[2].Getdz());
+    Hist.FillTH1D("mme_mmMass_eTaggedAsConv", "Electron tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
+    Hist.FillTH1D("mme_eTaggedAsConv_DZ", 50, -10, 10,  Zll[2].Getdz());
   } else {
-    Hist.FillTH1D("mme_mmMass_eNotTaggedAsConv"+fProcName, "Electron not tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
-    Hist.FillTH1D("mme_eNotTaggedAsConv_DZ_"+fProcName, 50, 10, 10,  Zll[2].Getdz());
+    Hist.FillTH1D("mme_mmMass_eNotTaggedAsConv", "Electron not tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
+    Hist.FillTH1D("mme_eNotTaggedAsConv_DZ", 50, 10, 10,  Zll[2].Getdz());
   }
 
   // Match to the closest photon in DeltaR
@@ -264,21 +365,21 @@ void SimpleAna::PlotZllE ()
         Zll[2].Perp(),
         MatchedPhoton->Perp());
 
-    Hist.FillTH1D("mme_ePt_PhoMatched_"+fProcName, 100, 0, 200, Zll[2].Perp());
-    Hist.FillTH1D("mme_eGammaMatch_DeltaR_"+fProcName, 100, 0, 0.4, Zll[2].DeltaR(*MatchedPhoton));
-    Hist.FillTH1D("mme_eGammaMatch_MotherId_"+fProcName, 40, 0, 40, abs(MatchedPhoton->GetMotherId()) );
+    Hist.FillTH1D("mme_ePt_PhoMatched", 100, 0, 200, Zll[2].Perp());
+    Hist.FillTH1D("mme_eGammaMatch_DeltaR", 100, 0, 0.4, Zll[2].DeltaR(*MatchedPhoton));
+    Hist.FillTH1D("mme_eGammaMatch_MotherId", 40, 0, 40, abs(MatchedPhoton->GetMotherId()) );
 
     // Plot for tagged conversion and non-tagged where we've matched a photon genp
     if (Zll[2].GetIsConvertedPhoton()) {
-      Hist.FillTH1D("mme_mmMass_ePhoMatch_TaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_ePhoMatch_TaggedAsConv", 100, 0, 200, (Zll[0] + Zll[1]).M());
     } else {
-      Hist.FillTH1D("mme_mmMass_ePhoMatch_NotTaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_ePhoMatch_NotTaggedAsConv", 100, 0, 200, (Zll[0] + Zll[1]).M());
     }
   } else {
     if (Zll[2].GetIsConvertedPhoton()) {
-      Hist.FillTH1D("mme_mmMass_eNotPhoMatch_TaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_eNotPhoMatch_TaggedAsConv", 100, 0, 200, (Zll[0] + Zll[1]).M());
     } else {
-      Hist.FillTH1D("mme_mmMass_eNotPhoMatch_NotTaggedAsConv"+fProcName, 100, 0, 200, (Zll[0] + Zll[1]).M());
+      Hist.FillTH1D("mme_mmMass_eNotPhoMatch_NotTaggedAsConv", 100, 0, 200, (Zll[0] + Zll[1]).M());
     }
   }
 
@@ -305,8 +406,8 @@ void SimpleAna::PlotDileptonMass ()
 
   TString const Flavors = GetLeptonFlavorsString(Leptons);
 
-  Hist.FillTH1D("DileptonMass"+Charges+"_"+Flavors+"_"+fProcName, 100, 0, 200, (Leptons[0]+Leptons[1]).M());
-  Hist.FillTH1D("le_leDiffDZ_"+Charges+"_"+Flavors+"_"+fProcName, "Conversion DZ Diff for dilepton", "DZ(|l1-l2|)", "", 50, 0, 10,  TMath::Abs(Leptons[0].Getdz() - Leptons[1].Getdz()) );
+  Hist.FillTH1D("DileptonMass"+Charges+"_"+Flavors+"", 100, 0, 200, (Leptons[0]+Leptons[1]).M());
+  Hist.FillTH1D("le_leDiffDZ_"+Charges+"_"+Flavors+"", "Conversion DZ Diff for dilepton", "DZ(|l1-l2|)", "", 50, 0, 10,  TMath::Abs(Leptons[0].Getdz() - Leptons[1].Getdz()) );
 
   return;
 }
@@ -485,6 +586,7 @@ void SimpleAna::SelectionLepton ()
       if (!lep->PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Keep = false;
       if ( !(TMath::Abs(lep->Eta()) < 2.1) ) Keep = false;
       if ( lep->GetCalIso() / lep->Perp() > 0.1) Keep = false;
+      //if ( TMath::Abs(lep->Getdxy()) > 0.02) Keep = false;
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
