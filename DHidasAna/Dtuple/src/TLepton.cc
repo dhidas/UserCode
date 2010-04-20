@@ -359,6 +359,32 @@ void TLepton::SetConvdCotTheta (float const in)
 }
 
 
+float TLepton::GetConvR ()
+{
+  return ConvR;
+}
+
+
+void TLepton::SetConvR (float const in)
+{
+  ConvR = in;
+  return;
+}
+
+
+float TLepton::GetConvPhi ()
+{
+  return ConvPhi;
+}
+
+
+void TLepton::SetConvPhi (float const in)
+{
+  ConvPhi = in;
+  return;
+}
+
+
 int TLepton::GetNValidTrackerHits ()
 {
   return NValidTrackerHits;
@@ -441,6 +467,28 @@ std::vector<TGenP>* TLepton::GetGenPVector ()
 
 
 
+TGenP* TLepton::GetClosestGenP ()
+{
+  float MinR = 999;
+  int Index = -1;
+  for (size_t i = 0; i != GenP.size(); ++i) {
+    float const DeltaR = this->DeltaR(GenP[i]);
+    if (DeltaR < MinR) {
+      Index = (int) i;
+      MinR = DeltaR;
+    }
+  }
+
+  if (Index >= 0) {
+    return &GenP[Index];
+  }
+  return (TGenP*) 0x0;
+
+}
+
+
+
+
 TString TLepton::GetFlavorString ()
 {
   if (Flavor == kLeptonFlavor_Electron) {
@@ -505,7 +553,15 @@ void TLepton::DefaultValues ()
   E2x5overE5x5      = -999999;
   ConvDist          = -999999;
   ConvdCotTheta     = -999999;
+  ConvR             = -999999;
+  ConvPhi           = -999999;
+  NValidTrackerHits = -999999;
+  TrackChi2         = -999999;
+  TrackNDoF         = -999999;
+  ECalIsoDep        = -999999;
+  HCalIsoDep        = -999999;
 
+  return;
 }
 
 

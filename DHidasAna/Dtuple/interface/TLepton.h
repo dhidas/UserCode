@@ -64,6 +64,8 @@ class TLepton : public TLorentzVector
     float E2x5overE5x5;
     float ConvDist;
     float ConvdCotTheta;
+    float ConvR;
+    float ConvPhi;
     int   NValidTrackerHits;
     float TrackChi2;
     float TrackNDoF;
@@ -103,6 +105,8 @@ class TLepton : public TLorentzVector
     void SetE2x5overE5x5 (float const);
     void SetConvDist (float const);
     void SetConvdCotTheta (float const);
+    void SetConvR (float const);
+    void SetConvPhi (float const);
     void SetNValidTrackerHits (int const);
     void SetTrackChi2 (float const);
     void SetTrackNDoF (float const);
@@ -134,6 +138,8 @@ class TLepton : public TLorentzVector
     float GetE2x5overE5x5 ();
     float GetConvDist ();
     float GetConvdCotTheta ();
+    float GetConvR ();
+    float GetConvPhi ();
     int GetNValidTrackerHits ();
     float GetTrackChi2 ();
     float GetTrackNDoF ();
@@ -141,6 +147,7 @@ class TLepton : public TLorentzVector
     float GetHCalIsoDep ();
     TGenP* GetGenP (size_t const);
     std::vector<TGenP>* GetGenPVector ();
+    TGenP* GetClosestGenP ();
 
     TString GetFlavorString ();
     bool PassesSelection(int const);

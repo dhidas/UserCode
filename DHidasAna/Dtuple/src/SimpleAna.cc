@@ -174,19 +174,36 @@ void SimpleAna::PlotTriLeptons ()
 {
   static TAnaHist Hist(fOutFile, "PlotTriLeptons");
 
+  // Require three leptons
   if (Leptons.size() != 3) {
     return;
   }
 
+  // Get flavor string
   TString const Flavors = GetLeptonFlavorsString(Leptons);
 
+  // Get total charge string
   char ChargeStr[2];
   sprintf(ChargeStr, "%1i", abs(Leptons[0].GetCharge() + Leptons[1].GetCharge() + Leptons[2].GetCharge()));
 
-
+  // Get the closest Z match
   std::vector<TLepton> Zll = ClosestZMatch(Leptons, true, true, true);
   if (Zll.size() != 3) {
     return;
+  }
+
+  // Loop over the leptons, look for electron, and see what it's from.
+  for (size_t i = 0; i != Zll.size(); ++i) {
+    if (Zll[i].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+      TGenP* MyGenP = Zll[i].GetClosestGenP();
+      if (MyGenP) {
+        if (TMath::Abs(MyGenP->GetId()) != 11) {
+          Hist.FillTH1D("EMother_"+Flavors, 1000, 0, 1000, TMath::Abs(MyGenP->GetId()) );
+        }
+      } else {
+        Hist.FillTH1D("EMother_"+Flavors, 1000, 0, 1000, 0 );
+      }
+    }
   }
 
   TString const FlavorOrder = Zll[0].GetFlavorString() + Zll[1].GetFlavorString() + Zll[2].GetFlavorString();
