@@ -10,6 +10,8 @@ class SimpleAna : public TDtupleReader
     ~SimpleAna ();
 
     void Analyze (long unsigned int const);
+    void BeginJob ();
+    void EndJob ();
     void PlotEventQuantities ();
     void PlotLeptons ();
     void PlotPhotons ();
@@ -36,6 +38,7 @@ class SimpleAna : public TDtupleReader
   private:
     TString fProcName;
     TFile* fOutFile;
+    std::map<int, int> fPlotTriLeptons_ElectronGenPMap;
 
 };
 

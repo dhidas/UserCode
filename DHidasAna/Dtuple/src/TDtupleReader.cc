@@ -13,6 +13,7 @@ TDtupleReader::~TDtupleReader ()
 
 void TDtupleReader::Loop (long unsigned int Max)
 {
+  BeginJob();
 
   unsigned int const ReportEvery = 10000;
   if (Max == 0) {
@@ -30,6 +31,8 @@ void TDtupleReader::Loop (long unsigned int Max)
       Analyze(ientry);
     }
   }
+
+  EndJob();
 
   return;
 }

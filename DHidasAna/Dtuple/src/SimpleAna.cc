@@ -21,6 +21,14 @@ SimpleAna::~SimpleAna ()
 }
 
 
+void SimpleAna::BeginJob ()
+{
+  // Do things you want to do here at the end..
+  std::cout << "SimpleAna::BeginJob() called" << std::endl;
+  return;
+}
+
+
 void SimpleAna::Analyze (long unsigned int const ientry)
 {
   Selection();
@@ -66,26 +74,34 @@ void SimpleAna::PlotLeptons ()
 
   Hist.FillTH1D("NLeptons", 10, 0, 10, Leptons.size());
 
-  for (size_t i = 0; i != Leptons.size(); ++i) {
+  int i = 0;
+  for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
 
     TString const Flavors = GetLeptonFlavorsString(Leptons);
-    Hist.FillTH1D("LeptonTrkIso_"+Leptons[i].GetFlavorString(), 100, -0.1, 0.5, Leptons[i].GetTrkIso() / Leptons[i].Perp());
-    Hist.FillTH1D("LeptonCalIso_"+Leptons[i].GetFlavorString(), 100, -0.1, 0.5, Leptons[i].GetCalIso() / Leptons[i].Perp());
-    Hist.FillTH1D("LeptonECalIsoDep_"+Leptons[i].GetFlavorString(), 100, -0.1, 8.5, Leptons[i].GetECalIsoDep() / Leptons[i].Perp());
-    Hist.FillTH1D("LeptonHCalIsoDep_"+Leptons[i].GetFlavorString(), 100, -0.1, 8.5, Leptons[i].GetHCalIsoDep() / Leptons[i].Perp());
+    Hist.FillTH1D("LeptonTrkIso_"+Lep->GetFlavorString(), 100, -0.1, 0.5, Lep->GetTrkIso() / Lep->Perp());
+    Hist.FillTH1D("LeptonCalIso_"+Lep->GetFlavorString(), 100, -0.1, 0.5, Lep->GetCalIso() / Lep->Perp());
+    Hist.FillTH1D("LeptonECalIsoDep_"+Lep->GetFlavorString(), 100, -0.1, 8.5, Lep->GetECalIsoDep() / Lep->Perp());
+    Hist.FillTH1D("LeptonHCalIsoDep_"+Lep->GetFlavorString(), 100, -0.1, 8.5, Lep->GetHCalIsoDep() / Lep->Perp());
 
     char Name[100];
-    Hist.FillTH1D("LeptonPt", 100, 0, 200, Leptons[i].Perp());
+    Hist.FillTH1D("LeptonPt", 100, 0, 200, Lep->Perp());
     sprintf(Name, "LeptonPt%i", (int) i);
-    Hist.FillTH1D(Name, 100, 0, 200, Leptons[i].Perp());
+    Hist.FillTH1D(Name, 100, 0, 200, Lep->Perp());
 
-    Hist.FillTH1D("LeptonEta", 50, -3, 3, Leptons[i].Eta());
+    Hist.FillTH1D("LeptonEta", 50, -3, 3, Lep->Eta());
     sprintf(Name, "LeptonEta%i", (int) i);
-    Hist.FillTH1D(Name, 50, -3, 3, Leptons[i].Eta());
+    Hist.FillTH1D(Name, 50, -3, 3, Lep->Eta());
 
-    Hist.FillTH1D("LeptonPhi", 50, -1.0*TMath::Pi(), TMath::Pi(), Leptons[i].Phi());
+    Hist.FillTH1D("LeptonPhi", 50, -1.0*TMath::Pi(), TMath::Pi(), Lep->Phi());
     sprintf(Name, "LeptonPhi%i", (int) i);
-    Hist.FillTH1D(Name, 50, -1.0*TMath::Pi(), TMath::Pi(), Leptons[i].Phi());
+    Hist.FillTH1D(Name, 50, -1.0*TMath::Pi(), TMath::Pi(), Lep->Phi());
+
+    // Plot conversions..
+    if (Lep->GetIsConvertedPhoton() == 1) {
+      Hist.FillTH1D("LeptonConvPhi", 50, 0, 2*TMath::Pi(), Lep->GetConvPhi());
+      Hist.FillTH1D("LeptonConvR", 50, 0, 20, Lep->GetConvR());
+      Hist.FillTH2D("LeptonConvPhiR", 1000, 0, 2*TMath::Pi(), 1000, 0, 20, Lep->GetConvPhi(), Lep->GetConvR());
+    }
   }
   return;
 }
@@ -195,13 +211,22 @@ void SimpleAna::PlotTriLeptons ()
   // Loop over the leptons, look for electron, and see what it's from.
   for (size_t i = 0; i != Zll.size(); ++i) {
     if (Zll[i].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+
+      // if it roughly matches to a generator electron then skip it
+      if (Zll[i].GenPMatchesTo(11, 0.2, 0.15, false)) {
+        continue;
+      }
+
+      // Get the closest GenP, or 0 for no match
       TGenP* MyGenP = Zll[i].GetClosestGenP();
       if (MyGenP) {
-        if (TMath::Abs(MyGenP->GetId()) != 11) {
-          Hist.FillTH1D("EMother_"+Flavors, 1000, 0, 1000, TMath::Abs(MyGenP->GetId()) );
-        }
+        printf("Electron Pt: %7.2f\n", Zll[i].Perp());
+        Zll[i].PrintGenP();
+        Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, TMath::Abs(MyGenP->GetId()) );
+        fPlotTriLeptons_ElectronGenPMap[TMath::Abs(MyGenP->GetId())]++;
       } else {
-        Hist.FillTH1D("EMother_"+Flavors, 1000, 0, 1000, 0 );
+        Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, 0 );
+        fPlotTriLeptons_ElectronGenPMap[0]++;
       }
     }
   }
@@ -658,5 +683,17 @@ void SimpleAna::SelectionJet ()
 
   Jets = NewJets;
 
+  return;
+}
+
+
+
+
+
+void SimpleAna::EndJob ()
+{
+  // Do things you want to do here at the end..
+  std::cout << "SimpleAna::EndJob() called" << std::endl;
+  TDUtility::PrintMapIntInt(fPlotTriLeptons_ElectronGenPMap, "ElectronGenP");
   return;
 }

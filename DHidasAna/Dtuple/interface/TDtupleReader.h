@@ -12,7 +12,9 @@ class TDtupleReader : public TDtuple
     void Loop (long unsigned int Max = 0);
     void ObjectCleaning ();
 
+    virtual void BeginJob () = 0;
     virtual void Analyze (long unsigned int const) = 0;
+    virtual void EndJob () = 0;
 
 
 };

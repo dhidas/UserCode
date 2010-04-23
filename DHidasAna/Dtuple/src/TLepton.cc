@@ -489,6 +489,46 @@ TGenP* TLepton::GetClosestGenP ()
 
 
 
+bool TLepton::GenPMatchesTo(int const Id, float const DeltaRMax, float const PRelMax, bool const MatchCharge)
+{
+  for (size_t i = 0; i != GenP.size(); ++i) {
+    if ( TMath::Abs(GenP[i].GetId()) == TMath::Abs(Id) ) {
+      if (this->DeltaR(GenP[i]) < DeltaRMax) {
+        if ( TMath::Abs(1.0 - GenP[i].Perp() / this->Perp()) < PRelMax) {
+          if (MatchCharge) {
+            if (GenP[i].GetId() == Id) {
+              return true;
+            }
+          } else {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+
+}
+
+
+
+
+void TLepton::PrintGenP (float const MaxDeltaR, float const MinPt)
+{
+  for (std::vector<TGenP>::iterator It = GenP.begin(); It != GenP.end(); ++It) {
+    if (this->DeltaR(*It) < MaxDeltaR && It->Perp() > MinPt) {
+      printf("  GenP %6i %7.4f %7.3f\n", It->GetId(), this->DeltaR(*It), It->Perp());
+    }
+  }
+
+  return;
+
+}
+
+
+
+
 TString TLepton::GetFlavorString ()
 {
   if (Flavor == kLeptonFlavor_Electron) {

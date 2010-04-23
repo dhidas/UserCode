@@ -14,6 +14,7 @@
 
 #include "DHidasAna/Dtuple/interface/TDUtility.h"
 
+
 // Root Likes ClassDef and ClassImp.
 // Comment them out if you don't need them.
 // There should NOT be a ; since this is a root macro and not a function
@@ -126,3 +127,10 @@ std::pair<float, float> TDUtility::GetConversionXY(
 }
 
 
+void TDUtility::PrintMapIntInt (std::map<int, int>& MyMap, TString const Name)
+{
+  for (std::map<int, int>::iterator It = MyMap.begin(); It != MyMap.end(); ++It) {
+    printf("%s  %15i %15i\n", Name.Data(), It->first, It->second);
+  }
+  return;
+}

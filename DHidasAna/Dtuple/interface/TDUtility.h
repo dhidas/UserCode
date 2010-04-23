@@ -2,6 +2,7 @@
 #define GUARD_TDUtility_h
 
 #include <set>
+#include <map>
 
 #include "DHidasAna/Dtuple/interface/TLepton.h"
 
@@ -17,6 +18,8 @@ class TDUtility : public TObject
     TString GetLeptonFlavorsString (std::vector<TLepton>&);
     static float GetConversionR(TLorentzVector&, int, float, TLorentzVector&, int, float, float);
     static std::pair<float, float> GetConversionXY(TLorentzVector&, int, float, TLorentzVector&, int, float, float);
+    static void PrintMapIntInt (std::map<int, int>& MyMap, TString const Name);
+    void MyFun () {};
 
   public:
     ClassDef(TDUtility,1) // TDUtility class
