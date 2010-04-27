@@ -31,6 +31,7 @@ void SimpleAna::BeginJob ()
 
 void SimpleAna::Analyze (long unsigned int const ientry)
 {
+  ElectronJetTest();
   Selection();
   ObjectCleaning();
 
@@ -686,6 +687,32 @@ void SimpleAna::SelectionJet ()
   return;
 }
 
+
+
+
+void SimpleAna::ElectronJetTest ()
+{
+  // A test looking at jet and electron overlap
+
+  static TAnaHist Hist(fOutFile, "ElectronJetTest");
+
+  for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
+    if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron) && Lep->Perp() > 30) {
+      bool FoundJetMatch = false;
+      for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
+        if (Lep->DeltaR(*Jet) < 0.2) {
+          FoundJetMatch = true;
+          Hist.FillTH2D("ElectronPtVsJetPt", 1000, 0, 200, 1000, 0, 200, Lep->Perp(), Jet->Perp());
+        }
+      }
+      if (!FoundJetMatch) {
+        std::cout << "Did not find a jet match for this electron Pt: " << Lep->Perp() << "  " << Lep->Eta() << std::endl;
+      }
+    }
+  }
+
+  return;
+}
 
 
 

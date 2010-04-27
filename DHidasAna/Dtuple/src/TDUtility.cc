@@ -101,12 +101,12 @@ std::pair<float, float> TDUtility::GetConversionXY(
   
   
   double tk1Curvature = -0.3*bFieldAtOrigin*(trk1_q/trk1_p4.Perp())/100.;
-  double rTk1 = fabs(1./tk1Curvature);
+  double rTk1 = TMath::Abs(1./tk1Curvature);
   double xTk1 = (1./tk1Curvature - trk1_d0)*cos(trk1_p4.Phi());
   double yTk1 = (1./tk1Curvature - trk1_d0)*sin(trk1_p4.Phi());
 
   double tk2Curvature = -0.3*bFieldAtOrigin*(trk2_q/trk2_p4.Perp())/100.;
-  double rTk2 = fabs(1./tk2Curvature);
+  double rTk2 = TMath::Abs(1./tk2Curvature);
   double xTk2 = (1./tk2Curvature - trk2_d0)*cos(trk2_p4.Phi());
   double yTk2 = (1./tk2Curvature - trk2_d0)*sin(trk2_p4.Phi());
 

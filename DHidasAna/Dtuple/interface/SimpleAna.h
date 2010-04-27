@@ -12,6 +12,7 @@ class SimpleAna : public TDtupleReader
     void Analyze (long unsigned int const);
     void BeginJob ();
     void EndJob ();
+
     void PlotEventQuantities ();
     void PlotLeptons ();
     void PlotPhotons ();
@@ -30,6 +31,8 @@ class SimpleAna : public TDtupleReader
     void SelectionLepton ();
     void SelectionPhoton ();
     void SelectionJet ();
+
+    void ElectronJetTest ();
 
     std::vector<TLepton> ClosestZMatch (std::vector<TLepton>&, bool const RequireOS = true, bool const RequireSF = true, bool const AddOtherLeptonsAtEnd = false);
 
