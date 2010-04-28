@@ -518,7 +518,7 @@ void TLepton::PrintGenP (float const MaxDeltaR, float const MinPt)
 {
   for (std::vector<TGenP>::iterator It = GenP.begin(); It != GenP.end(); ++It) {
     if (this->DeltaR(*It) < MaxDeltaR && It->Perp() > MinPt) {
-      printf("  GenP %6i %7.4f %7.3f\n", It->GetId(), this->DeltaR(*It), It->Perp());
+      printf("  GenP %6i %6i %7.4f %7.3f\n", It->GetId(), It->GetMotherId(), this->DeltaR(*It), It->Perp());
     }
   }
 

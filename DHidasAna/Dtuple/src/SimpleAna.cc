@@ -29,9 +29,20 @@ void SimpleAna::BeginJob ()
 }
 
 
+
+void SimpleAna::SetFakeRateFile (TString const FileName)
+{
+  fFakeRate = new TFakeRate(FileName);
+  return;
+}
+
+
 void SimpleAna::Analyze (long unsigned int const ientry)
 {
-  ElectronJetTest();
+  //ElectronJetTest();
+  PlotFakes();
+  PlotElectronId();
+
   Selection();
   ObjectCleaning();
 
@@ -225,9 +236,11 @@ void SimpleAna::PlotTriLeptons ()
         Zll[i].PrintGenP();
         Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, TMath::Abs(MyGenP->GetId()) );
         fPlotTriLeptons_ElectronGenPMap[TMath::Abs(MyGenP->GetId())]++;
+        fPlotTriLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>(TMath::Abs(MyGenP->GetId()), TMath::Abs(MyGenP->GetMotherId()))]++;
       } else {
         Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, 0 );
         fPlotTriLeptons_ElectronGenPMap[0]++;
+        fPlotTriLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>(0, 0)]++;
       }
     }
   }
@@ -617,19 +630,12 @@ void SimpleAna::SelectionLepton ()
 
   for (std::vector<TLepton>::iterator lep = Leptons.begin(); lep != Leptons.end(); ++lep) {
     if (lep->IsFlavor(TLepton::kLeptonFlavor_Muon)) {
-      bool Keep = true;
-      if (!lep->PassesSelection(TLepton::kElectronSel_RobustTight)) Keep = false;
-      if ( !(TMath::Abs(lep->Eta()) < 2.4) ) Keep = false;
-      if ( lep->GetCalIso() / lep->Perp() > 0.1) Keep = false;
+      bool Keep = PassSelectionMuon(*lep);
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
     } else if (lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
-      bool Keep = true;
-      if (!lep->PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Keep = false;
-      if ( !(TMath::Abs(lep->Eta()) < 2.1) ) Keep = false;
-      if ( lep->GetCalIso() / lep->Perp() > 0.1) Keep = false;
-      //if ( TMath::Abs(lep->Getdxy()) > 0.02) Keep = false;
+      bool Keep = PassSelectionElectron(*lep);
       if (Keep) {
         NewLeptons.push_back(*lep);
       }
@@ -649,7 +655,7 @@ void SimpleAna::SelectionPhoton ()
 
   for (std::vector<TPhoton>::iterator photon = Photons.begin(); photon != Photons.end(); ++photon) {
     bool Keep = true;
-    if ( TMath::Abs(photon->Eta()) > 2.5) Keep = false;
+    if (TMath::Abs(photon->Eta()) > 2.5) Keep = false;
     if (photon->Perp() < 15.0) Keep = false;
     if (photon->GetCalIso() / photon->Perp() > 0.1) Keep = false;
     if (Keep) {
@@ -658,6 +664,41 @@ void SimpleAna::SelectionPhoton ()
   }
 
   Photons = NewPhotons;
+
+  return;
+}
+
+
+bool SimpleAna::PassSelectionElectron (TLepton& Lep)
+{
+  bool Pass = true;
+  if (!Lep.PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Pass = false;
+  if ( (TMath::Abs(Lep.Eta()) > 2.4) ) Pass = false;
+  if ( Lep.GetCalIso() / Lep.Perp() > 0.1) Pass = false;
+  //if ( TMath::Abs(Lep.Getdxy()) > 0.02) Pass = false;
+  return Pass;
+}
+
+
+bool SimpleAna::PassSelectionMuon (TLepton& Lep)
+{
+  bool Pass = true;
+  if ( !Lep.PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Pass = false;
+  if ( (TMath::Abs(Lep.Eta()) > 2.1) ) Pass = false;
+  if ( Lep.GetCalIso() / Lep.Perp() > 0.1) Pass = false;
+  return Pass;
+}
+
+
+void SimpleAna::PlotElectronId ()
+{
+  static TAnaHist Hist(fOutFile, "PlotElectronId");
+
+  for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
+    if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+      Hist.FillTH1D("ElectronPt", 50, 0, 200, Lep->Perp());
+    }
+  }
 
   return;
 }
@@ -717,10 +758,49 @@ void SimpleAna::ElectronJetTest ()
 
 
 
+void SimpleAna::PlotFakes ()
+{
+  // A test looking at jet and electron overlap
+
+  static TAnaHist Hist(fOutFile, "PlotFakes");
+
+  for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
+    if (Jet->GetHadF() / Jet->GetEmF() > 0.05) {
+      Hist.FillTH2D("EleFakeDenomJetEtaPt", "EleFakeDenomJetEtaPt", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Jet->Eta(), Jet->Perp());
+    }
+  }
+
+  for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
+    if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+      if (PassSelectionElectron(*Lep)) {
+        Hist.FillTH2D("EleFakeNumeratorEtaPhi", "EleFakeNumeratorEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+      } else if (Lep->GetHCalOverECal() > 0.05) {
+        Hist.FillTH2D("EleFakeDenomEleEtaPhi", "EleFakeDenomEleEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+      }
+    }
+    else if (Lep->IsFlavor(TLepton::kLeptonFlavor_Muon)) {
+      if (PassSelectionMuon(*Lep)) {
+        Hist.FillTH2D("MuonFakeNumeratorEtaPhi", "MuonFakeNumeratorEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+      } else if (false) {
+        Hist.FillTH2D("MuonFakeDenomMuonEtaPhi", "MuonFakeDenomMuonEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+      }
+    }
+  }
+
+  return;
+}
+
+
+
+
 void SimpleAna::EndJob ()
 {
   // Do things you want to do here at the end..
   std::cout << "SimpleAna::EndJob() called" << std::endl;
+
+  std::cout << "Summary:" <<std::endl;
   TDUtility::PrintMapIntInt(fPlotTriLeptons_ElectronGenPMap, "ElectronGenP");
+  std::cout << "Detailed:" <<std::endl;
+  TDUtility::PrintMapIntPairInt(fPlotTriLeptons_ElectronGenPMotherMap, "ElectronGenP");
   return;
 }

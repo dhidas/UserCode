@@ -134,3 +134,13 @@ void TDUtility::PrintMapIntInt (std::map<int, int>& MyMap, TString const Name)
   }
   return;
 }
+
+
+
+void TDUtility::PrintMapIntPairInt (std::map< std::pair<int, int>, int>& MyMap, TString const Name)
+{
+  for (std::map< std::pair<int, int>, int>::iterator It = MyMap.begin(); It != MyMap.end(); ++It) {
+    printf("%s  %15i %15i %15i\n", Name.Data(), It->first.first, It->first.second, It->second);
+  }
+  return;
+}

@@ -22,6 +22,7 @@ int RunSimpleAna (TString const ProcName, std::vector<TString> const& FileNames)
   }
 
   SimpleAna Ana(ProcName, &Chain);
+  Ana.SetFakeRateFile("FakeRates.root");
   Ana.Loop();
   return 0;
 }

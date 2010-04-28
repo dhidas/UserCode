@@ -5,6 +5,7 @@
 
 TFakeRate::TFakeRate (TString const FileName)
 {
+  std::cout << "TFakeRate: Reading fake file: " << FileName << std::endl;
   fFakeFile = new TFile(FileName, "read");
   if (!fFakeFile) {
     std::cerr << "ERROR: TFakeRate::TFakeRate() cannot open fake file." << std::endl;

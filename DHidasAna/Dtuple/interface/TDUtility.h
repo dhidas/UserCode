@@ -19,6 +19,7 @@ class TDUtility : public TObject
     static float GetConversionR(TLorentzVector&, int, float, TLorentzVector&, int, float, float);
     static std::pair<float, float> GetConversionXY(TLorentzVector&, int, float, TLorentzVector&, int, float, float);
     static void PrintMapIntInt (std::map<int, int>& MyMap, TString const Name);
+    static void PrintMapIntPairInt (std::map< std::pair<int, int>, int>& MyMap, TString const Name);
     void MyFun () {};
 
   public:
