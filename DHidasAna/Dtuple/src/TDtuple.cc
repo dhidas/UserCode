@@ -151,6 +151,19 @@ TTree* TDtuple::GetTree ()
 
 
 
+void TDtuple::SetTree (TTree* inTree)
+{
+  // Get a pointer to the dtuple tree object
+
+  fDtupleTree = inTree;
+  return;
+}
+
+
+
+
+
+
 //
 // Function: SetRootFile
 //

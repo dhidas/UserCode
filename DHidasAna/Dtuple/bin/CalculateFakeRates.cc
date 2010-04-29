@@ -33,29 +33,33 @@ int CalculateFakeRates ()
   }
 
   // Hist Names to use
-  TString const NumerHistName = "PlotFakes/EleFakeNumeratorEtaPhi";
-  TString const DenomHistName = "PlotFakes/EleFakeDenomJetEtaPt";
+  TString const NumerHistName = "PlotFakes/EleFakeNumeratorPt";
+  TString const DenomHistName = "PlotFakes/EleFakeDenomJetPt";
 
   // Histograms from qcd samples
-  TH2D* hNumer = (TH2D*) QCDFileA.Get(NumerHistName);
-  TH2D* hDenom = (TH2D*) QCDFileA.Get(DenomHistName);
+  TH1D* hNumer = (TH1D*) QCDFileA.Get(NumerHistName);
+  TH1D* hDenom = (TH1D*) QCDFileA.Get(DenomHistName);
+  if (! (hNumer && hDenom) ) {
+    std::cerr << "ERROR: QCD hist missing" << std::endl;
+    return 1;
+  }
 
   // Histograms from EWK contributions
-  TH2D* hNumerW = (TH2D*) EWKWFile.Get(NumerHistName);
-  TH2D* hDenomW = (TH2D*) EWKWFile.Get(DenomHistName);
+  TH1D* hNumerW = (TH1D*) EWKWFile.Get(NumerHistName);
+  TH1D* hDenomW = (TH1D*) EWKWFile.Get(DenomHistName);
 
   // Subtract the EWK contribtions from numerator and denom
   //hNumer->Add(hNumerW, -1);
   //hDenom->Add(hDenomW, -1);
 
   // The rate hist
-  TH2D* hRate = (TH2D*) hNumer->Clone(0);
+  TH1D* hRate = (TH1D*) hNumer->Clone(0);
   //hRate->Clear();
   hRate->Divide(hDenom);
 
   OutFile.cd();
-  hRate->SetTitle("FakeRate");
-  hRate->SetName("FakeRate");
+  hRate->SetTitle("FakeRateJ2E");
+  hRate->SetName("FakeRateJ2E");
   hRate->SetDirectory(&OutFile);
 
   OutFile.Write();

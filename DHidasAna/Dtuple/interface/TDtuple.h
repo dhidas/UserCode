@@ -104,6 +104,7 @@ class TDtuple : public TDUtility
     void SortPhotons (std::vector<TPhoton>::iterator, std::vector<TPhoton>::iterator);
 
     TTree* GetTree ();
+    void SetTree (TTree*);
     void  DefaultValues ();
 
 

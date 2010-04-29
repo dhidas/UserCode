@@ -1,6 +1,10 @@
 <bin name="MyTest" file="MyTest.cc">
 </bin>
 
+<bin name="CalculateFakeRates" file="CalculateFakeRates.cc">
+  <use name="root">
+</bin>
+
 <bin name="ExampleDtuple" file="ExampleDtuple.cc">
   <use name="DHidasAna/Dtuple">
   <use name="root">

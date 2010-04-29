@@ -9,6 +9,11 @@ SimpleAna::SimpleAna (TString const ProcName, TChain* Chain) : TDtupleReader(Cha
     std::cerr << "ERROR: cannot open output file" << std::endl;
     exit(1);
   }
+
+  fFakeDtuple = new TDtuple( new TFile("Fakes.root", "recreate") );
+  fFakeDtuple->GetTree()->Delete();
+  fFakeDtuple->SetTree( Chain->CloneTree(0) );
+
 }
 
 
@@ -18,6 +23,9 @@ SimpleAna::~SimpleAna ()
   fOutFile->Write();
   fOutFile->Close();
   delete fOutFile;
+
+  fFakeDtuple->Write();
+  delete fFakeDtuple;
 }
 
 
@@ -45,6 +53,7 @@ void SimpleAna::Analyze (long unsigned int const ientry)
 
   Selection();
   ObjectCleaning();
+  AddFakesToEvent();
 
   PlotEventQuantities();
   PlotLeptons();
@@ -675,6 +684,7 @@ bool SimpleAna::PassSelectionElectron (TLepton& Lep)
   if (!Lep.PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Pass = false;
   if ( (TMath::Abs(Lep.Eta()) > 2.4) ) Pass = false;
   if ( Lep.GetCalIso() / Lep.Perp() > 0.1) Pass = false;
+  if ( Lep.Perp() < 15.0) Pass = false;
   //if ( TMath::Abs(Lep.Getdxy()) > 0.02) Pass = false;
   return Pass;
 }
@@ -731,6 +741,24 @@ void SimpleAna::SelectionJet ()
 
 
 
+void SimpleAna::GetElectronFromJet (TJet const& Jet, TLepton& Lepton)
+{
+  return;
+}
+
+
+
+
+void SimpleAna::AddFakesToEvent (int const NFakesToAdd)
+{
+  fFakeDtuple->Fill();
+  
+  return;
+}
+
+
+
+
 void SimpleAna::ElectronJetTest ()
 {
   // A test looking at jet and electron overlap
@@ -763,26 +791,39 @@ void SimpleAna::PlotFakes ()
   // A test looking at jet and electron overlap
 
   static TAnaHist Hist(fOutFile, "PlotFakes");
+  static int const NBinsPt = 2;
+  static float const PtMin = 0;
+  static float const PtMax = 100;
+  //static float const PtBins[NBinsPt] = {1,2,3,4,5,6};
+  static int const NBinsEta = 4;
+  static float const EtaMin = -3;
+  static float const EtaMax = 3;
+  //static float const EtaBins[NBinsPt] = {1,2,3,4,5,6};
 
   for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
-    if (Jet->GetHadF() / Jet->GetEmF() > 0.05) {
-      Hist.FillTH2D("EleFakeDenomJetEtaPt", "EleFakeDenomJetEtaPt", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Jet->Eta(), Jet->Perp());
+    if (TMath::Abs(Jet->Eta()) < 2.1 && Jet->GetHadF() / Jet->GetEmF() > 0.05) {
+      Hist.FillTH1D("EleFakeDenomJetPt", "EleFakeDenomJetPt", "P_{T}", "", NBinsPt, PtMin, PtMax, Jet->Perp());
+      Hist.FillTH2D("EleFakeDenomJetEtaPt", "EleFakeDenomJetEtaPt", "#eta", "P_{T}", NBinsEta, EtaMin, EtaMax, NBinsPt, PtMin, PtMax, Jet->Eta(), Jet->Perp());
     }
   }
 
   for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
     if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
       if (PassSelectionElectron(*Lep)) {
-        Hist.FillTH2D("EleFakeNumeratorEtaPhi", "EleFakeNumeratorEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+        Hist.FillTH1D("EleFakeNumeratorPt", "EleFakeNumeratorPt", "P_{T}", "", NBinsPt, PtMin, PtMax, Lep->Perp());
+        Hist.FillTH2D("EleFakeNumeratorEtaPt", "EleFakeNumeratorEtaPt", "#eta", "P_{T}", NBinsEta, EtaMin, EtaMax, NBinsPt, PtMin, PtMax, Lep->Eta(), Lep->Perp());
       } else if (Lep->GetHCalOverECal() > 0.05) {
-        Hist.FillTH2D("EleFakeDenomEleEtaPhi", "EleFakeDenomEleEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+        Hist.FillTH1D("EleFakeDenomElePt", "EleFakeDenomElePt", "P_{T}", "", NBinsPt, PtMin, PtMax, Lep->Perp());
+        Hist.FillTH2D("EleFakeDenomEleEtaPt", "EleFakeDenomEleEtaPt", "#eta", "P_{T}", NBinsEta, EtaMin, EtaMax, NBinsPt, PtMin, PtMax, Lep->Eta(), Lep->Perp());
       }
     }
     else if (Lep->IsFlavor(TLepton::kLeptonFlavor_Muon)) {
       if (PassSelectionMuon(*Lep)) {
-        Hist.FillTH2D("MuonFakeNumeratorEtaPhi", "MuonFakeNumeratorEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+        Hist.FillTH1D("MuonFakeNumeratorPt", "MuonFakeNumeratorPt", "P_{T}", "", NBinsPt, PtMin, PtMax, Lep->Perp());
+        Hist.FillTH2D("MuonFakeNumeratorEtaPt", "MuonFakeNumeratorEtaPt", "#eta", "P_{T}", NBinsEta, EtaMin, EtaMax, NBinsPt, PtMin, PtMax, Lep->Eta(), Lep->Perp());
       } else if (false) {
-        Hist.FillTH2D("MuonFakeDenomMuonEtaPhi", "MuonFakeDenomMuonEtaPhi", "#eta", "P_{T}", 10, -3, 3, 10, 0, 200, Lep->Eta(), Lep->Perp());
+        Hist.FillTH1D("MuonFakeDenomMuonPt", "MuonFakeDenomMuonPt", "P_{T}", "", NBinsEta, PtMin, PtMax, Lep->Perp());
+        Hist.FillTH2D("MuonFakeDenomMuonEtaPt", "MuonFakeDenomMuonEtaPt", "#eta", "P_{T}", NBinsEta, EtaMin, EtaMax, NBinsPt, PtMin, PtMax, Lep->Eta(), Lep->Perp());
       }
     }
   }
