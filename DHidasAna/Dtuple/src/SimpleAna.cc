@@ -10,10 +10,6 @@ SimpleAna::SimpleAna (TString const ProcName, TChain* Chain) : TDtupleReader(Cha
     exit(1);
   }
 
-  fFakeDtuple = new TDtuple( new TFile("Fakes.root", "recreate") );
-  fFakeDtuple->GetTree()->Delete();
-  fFakeDtuple->SetTree( Chain->CloneTree(0) );
-
 }
 
 
@@ -24,8 +20,11 @@ SimpleAna::~SimpleAna ()
   fOutFile->Close();
   delete fOutFile;
 
-  fFakeDtuple->Write();
-  delete fFakeDtuple;
+  if (fRunFakes) {
+    fFakeDtuple->Write();
+    delete fFakeDtuple;
+  }
+
 }
 
 
@@ -33,6 +32,12 @@ void SimpleAna::BeginJob ()
 {
   // Do things you want to do here at the end..
   std::cout << "SimpleAna::BeginJob() called" << std::endl;
+
+  if (fRunFakes) {
+    std::cout << "Running fakes!" << std::endl;
+    fFakeDtuple = new TDtuple( new TFile("Fakes_"+fProcName+".root", "recreate") );
+  }
+
   return;
 }
 
@@ -53,7 +58,10 @@ void SimpleAna::Analyze (long unsigned int const ientry)
 
   Selection();
   ObjectCleaning();
-  AddFakesToEvent();
+
+  if (RunFakes()) {
+    AddFakesToEvent(ientry);
+  }
 
   PlotEventQuantities();
   PlotLeptons();
@@ -721,7 +729,7 @@ void SimpleAna::SelectionJet ()
 
   for (std::vector<TJet>::iterator jet = Jets.begin(); jet != Jets.end(); ++jet) {
     bool Keep = true;
-    if (jet->Perp() < 20) {
+    if (jet->Perp() < 15) {
       Keep = false;
     }
     if ( TMath::Abs(jet->Eta()) > 2.5) {
@@ -741,17 +749,40 @@ void SimpleAna::SelectionJet ()
 
 
 
-void SimpleAna::GetElectronFromJet (TJet const& Jet, TLepton& Lepton)
+void SimpleAna::GetElectronFromJet (TJet& Jet, TLepton& Lepton)
 {
+
+  Lepton.SetPxPyPzE(Jet.Px(), Jet.Py(), Jet.Pz(), Jet.E());
+  Lepton.SetCharge(Jet.GetCharge());
+  Lepton.SetFlavor(TLepton::kLeptonFlavor_Electron);
+  Lepton.SetZ0(Jet.GetZ0());
   return;
 }
 
 
 
 
-void SimpleAna::AddFakesToEvent (int const NFakesToAdd)
+void SimpleAna::AddFakesToEvent (int const ientry, int const NFakesToAdd)
 {
-  fFakeDtuple->Fill();
+  // Loop over each fake denom object and apply the rate
+  // adding a new entry for each "fake event"
+
+  TLepton FakeLep;
+  for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
+    if (TMath::Abs(Jet->Eta()) < 2.1 && Jet->GetHadF() / Jet->GetEmF() > 0.05) {
+      FakeLep.DefaultValues();
+      fFakeDtuple->Clear();
+      CopyEventVarsTo(fFakeDtuple);
+
+      GetElectronFromJet(*Jet, FakeLep);
+      fFakeDtuple->AddLeptons(Leptons);
+      fFakeDtuple->AddLepton(FakeLep);
+      fFakeDtuple->AddJets(Jets);
+      fFakeDtuple->AddPhotons(Photons);
+
+      fFakeDtuple->Fill();
+    }
+  }
   
   return;
 }
@@ -830,6 +861,23 @@ void SimpleAna::PlotFakes ()
 
   return;
 }
+
+
+
+
+void SimpleAna::RunFakes (bool const in)
+{
+  fRunFakes = in;
+  return;
+}
+
+
+bool SimpleAna::RunFakes ()
+{
+  return fRunFakes;
+}
+
+
 
 
 

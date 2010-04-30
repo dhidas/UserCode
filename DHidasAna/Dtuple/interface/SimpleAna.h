@@ -15,6 +15,8 @@ class SimpleAna : public TDtupleReader
     void EndJob ();
 
     void SetFakeRateFile(TString const);
+    void RunFakes (bool const);
+    bool RunFakes ();
 
     void PlotEventQuantities ();
     void PlotLeptons ();
@@ -39,8 +41,8 @@ class SimpleAna : public TDtupleReader
     void SelectionJet ();
 
     void PlotFakes ();
-    void GetElectronFromJet (TJet const&, TLepton&);
-    void AddFakesToEvent (int const NFakesToAdd = 1);
+    void GetElectronFromJet (TJet&, TLepton&);
+    void AddFakesToEvent (int const, int const NFakesToAdd = 1);
     void ElectronJetTest ();
 
     std::vector<TLepton> ClosestZMatch (std::vector<TLepton>&, bool const RequireOS = true, bool const RequireSF = true, bool const AddOtherLeptonsAtEnd = false);
@@ -52,6 +54,7 @@ class SimpleAna : public TDtupleReader
     TFile* fOutFile;
     std::map<int, int> fPlotTriLeptons_ElectronGenPMap;
     std::map< std::pair<int, int>, int> fPlotTriLeptons_ElectronGenPMotherMap;
+    bool fRunFakes;
     TFakeRate* fFakeRate;
     TDtuple* fFakeDtuple;
 

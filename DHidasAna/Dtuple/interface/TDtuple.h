@@ -37,7 +37,9 @@ class TDtuple : public TDUtility
     void Write ();
     int  GetEntry (int const);
 
+    void CopyEventVarsTo (TDtuple*);
   private:
+    // Event variables
     int   fRun;              // Run number
     int   fEvent;            // Event number
     int   fRunSection;       // Run section
@@ -75,7 +77,9 @@ class TDtuple : public TDUtility
     void  SetRawSumEt (float const);
     void  SetLum (float const);
     void  SetTriggerBit (std::string const);
+    void  SetTriggerBits (int const);
     void  SetEventFlag (std::string const);
+    void  SetEventFlags (int const);
 
 
     int   GetRun ();
@@ -92,6 +96,7 @@ class TDtuple : public TDUtility
     float GetRawSumEt ();
     float GetLum ();
     bool  GetTriggerBit (std::string const);
+    int   GetTriggerBits ();
     bool  GetEventFlag (std::string const);
     int   GetEventFlags ();
 

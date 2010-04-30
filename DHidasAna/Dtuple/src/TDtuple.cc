@@ -399,6 +399,41 @@ int TDtuple::GetEntry(int const ientry)
 
 
 //
+// Function: CopyEventVarsFrom
+//
+// Purpose: to copy the event variables from the input dtuple
+//          to this one
+//
+// Arguments: TDtuple&
+//
+// Return: void
+// 
+void TDtuple::CopyEventVarsTo (TDtuple* To)
+{
+  // This function is used to copy values for the event variables from
+  // the input dtuple to this one.  You need to copy the others yourself
+  // ie leptons, jets, photons, and so on must be done elsewhere
+
+  To->SetRun(fRun);
+  To->SetEvent(fEvent);
+  To->SetRunSection(fRunSection);
+  To->SetEventFlags(fEventFlags);
+  To->SetTriggerBits(fTriggerBits);
+  To->SetMetX(fMetX);
+  To->SetMetY(fMetY);
+  To->SetRawMetX(fRawMetX);
+  To->SetRawMetY(fRawMetY);
+  To->SetSumEt(fSumEt);
+  To->SetRawSumEt(fRawSumEt);
+  To->SetLum(fLum);
+
+  return;
+}
+
+
+
+
+//
 // Function: Fill
 //
 // Purpose: to save an event to the dtuple TTree
@@ -1425,6 +1460,16 @@ void TDtuple::SetTriggerBit (std::string const trigger)
 
 
 
+void TDtuple::SetTriggerBits (int const triggers)
+{
+  fTriggerBits = triggers;
+  return;
+}
+
+
+
+
+
 //
 // Function: GetTriggerBitMap
 //
@@ -1451,6 +1496,17 @@ void TDtuple::SetEventFlag (std::string const flag)
   //static std::map<std::string, int> FlagMap = GetEventFlagMap();
   //fEventFlags |= FlagMap[flag];
 
+  return;
+}
+
+
+
+
+
+
+void TDtuple::SetEventFlags (int const flags)
+{
+  fEventFlags = flags;
   return;
 }
 
@@ -1498,6 +1554,26 @@ int TDtuple::GetEventFlags ()
   // Return the value of the internal variable used to store event flags
 
   return (fEventFlags);
+}
+
+
+
+
+
+//
+// Function: GetTriggerBits
+//
+// Purpose: To get the trigger bit int
+//
+// Arguments:
+//
+// Return: int - the trigger bit int
+//
+int TDtuple::GetTriggerBits ()
+{
+  // Return the value of the internal variable used to store trigger bits
+
+  return (fTriggerBits);
 }
 
 

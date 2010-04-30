@@ -71,6 +71,7 @@ class TJet: public TLorentzVector
     float GetSysNeg ();
     float GetZ0 ();
     float Getdxy ();
+    int GetCharge() {return 0;};
 
 
     // Set quantaties
@@ -82,6 +83,7 @@ class TJet: public TLorentzVector
     void  SetSysNeg (float const);
     void  SetZ0 (float const);
     void  Setdxy (float const);
+    void  SetCharge (float const) { return; };
 
     void  ReScale (float const);
 
