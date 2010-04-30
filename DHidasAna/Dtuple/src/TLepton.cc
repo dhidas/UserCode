@@ -451,6 +451,21 @@ void TLepton::SetHCalIsoDep (float const in)
 
 
 
+bool TLepton::GetIsFake ()
+{
+  return IsFake;
+}
+
+
+
+void TLepton::SetIsFake (bool const in)
+{
+  IsFake = in;
+  return;
+}
+
+
+
 TGenP* TLepton::GetGenP (size_t const i)
 {
   return &GenP[i];
@@ -600,6 +615,7 @@ void TLepton::DefaultValues ()
   TrackNDoF         = -999999;
   ECalIsoDep        = -999999;
   HCalIsoDep        = -999999;
+  IsFake            = false;
 
   return;
 }

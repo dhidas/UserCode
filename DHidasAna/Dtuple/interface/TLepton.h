@@ -71,6 +71,7 @@ class TLepton : public TLorentzVector
     float TrackNDoF;
     float ECalIsoDep;
     float HCalIsoDep;
+    bool  IsFake;
 
   public:
     //TGenP GenP;
@@ -112,6 +113,7 @@ class TLepton : public TLorentzVector
     void SetTrackNDoF (float const);
     void SetECalIsoDep (float const);
     void SetHCalIsoDep (float const);
+    void SetIsFake (bool const);
 
 
     float GetTrkPt ();
@@ -145,6 +147,8 @@ class TLepton : public TLorentzVector
     float GetTrackNDoF ();
     float GetECalIsoDep ();
     float GetHCalIsoDep ();
+    bool  GetIsFake ();
+
     TGenP* GetGenP (size_t const);
     std::vector<TGenP>* GetGenPVector ();
     TGenP* GetClosestGenP ();

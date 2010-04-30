@@ -267,7 +267,7 @@ void TDtuple::SetBranches ()
   // Set branches for event variables
   fDtupleTree->Branch("Run", &fRun, "Run/I");
   fDtupleTree->Branch("Event", &fEvent, "Event/I");
-  fDtupleTree->Branch("RunSection", &fRunSection, "RunSection/I");
+  fDtupleTree->Branch("LumiSection", &fLumiSection, "LumiSection/I");
   fDtupleTree->Branch("EventFlags", &fEventFlags, "EventFlags/I");
   fDtupleTree->Branch("TriggerBits", &fTriggerBits, "TriggerBits/I");
   fDtupleTree->Branch("MetX", &fMetX, "MetX/F");
@@ -312,7 +312,7 @@ void TDtuple::SetBranchAddresses ()
   // Set branches for event variables
   fDtupleTree->SetBranchAddress("Run", &fRun);
   fDtupleTree->SetBranchAddress("Event", &fEvent);
-  fDtupleTree->SetBranchAddress("RunSection", &fRunSection);
+  fDtupleTree->SetBranchAddress("LumiSection", &fLumiSection);
   fDtupleTree->SetBranchAddress("EventFlags", &fEventFlags);
   fDtupleTree->SetBranchAddress("TriggerBits", &fTriggerBits);
   fDtupleTree->SetBranchAddress("MetX", &fMetX);
@@ -416,7 +416,7 @@ void TDtuple::CopyEventVarsTo (TDtuple* To)
 
   To->SetRun(fRun);
   To->SetEvent(fEvent);
-  To->SetRunSection(fRunSection);
+  To->SetLumiSection(fLumiSection);
   To->SetEventFlags(fEventFlags);
   To->SetTriggerBits(fTriggerBits);
   To->SetMetX(fMetX);
@@ -538,11 +538,13 @@ void TDtuple::DefaultValues()
 
   fRun             = -9999;
   fEvent           = -9999;
-  fRunSection      = -9999;
+  fLumiSection     = -9999;
   fMetX            = -9999;
   fMetY            = -9999;
   fRawMetX         = -9999;
   fRawMetY         = -9999;
+  fSumEt           = -9999;
+  fRawSumEt        = -9999;
   fLum             = -9999;
   fTriggerBits     =  0x0;
   fEventFlags      =  0x0;
@@ -932,7 +934,7 @@ void  TDtuple::SetEvent (int const in)
 
 
 //
-// Function: SetRunSection
+// Function: SetLumiSection
 //
 // Purpose: To set the internal variable for run section
 //
@@ -940,11 +942,11 @@ void  TDtuple::SetEvent (int const in)
 //
 // Return: void
 //
-void  TDtuple::SetRunSection (int const in)
+void  TDtuple::SetLumiSection (int const in)
 {
   // To set the dtuple variable for run section
 
-  fRunSection = in;
+  fLumiSection = in;
   return;
 }
 
@@ -1189,7 +1191,7 @@ int TDtuple::GetEvent ()
 
 
 //
-// Function: GetRunSection
+// Function: GetLumiSection
 //
 // Purpose: Get the run section
 //
@@ -1197,11 +1199,11 @@ int TDtuple::GetEvent ()
 //
 // Return: int - Run section
 //
-int TDtuple::GetRunSection ()
+int TDtuple::GetLumiSection ()
 {
   // Get the run section
 
-  return fRunSection;
+  return fLumiSection;
 }
 
 

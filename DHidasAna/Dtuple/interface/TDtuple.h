@@ -42,7 +42,7 @@ class TDtuple : public TDUtility
     // Event variables
     int   fRun;              // Run number
     int   fEvent;            // Event number
-    int   fRunSection;       // Run section
+    int   fLumiSection;      // Lumi section
     int   fEventFlags;       // Bits for different event flags
     int   fTriggerBits;      // Bits for triggers that passed
     float fMetX;             // X-component of Missing Et
@@ -66,7 +66,7 @@ class TDtuple : public TDUtility
     void  Clear ();
     void  SetRun (int const);
     void  SetEvent (int const);
-    void  SetRunSection (int const);
+    void  SetLumiSection (int const);
     void  SetMetXY (float const, float const);
     void  SetMetX (float const);
     void  SetMetY (float const);
@@ -84,7 +84,7 @@ class TDtuple : public TDUtility
 
     int   GetRun ();
     int   GetEvent ();
-    int   GetRunSection ();
+    int   GetLumiSection ();
     float GetMetX ();
     float GetMetY ();
     float GetMet ();
