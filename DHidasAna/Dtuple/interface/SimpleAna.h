@@ -22,6 +22,7 @@ class SimpleAna : public TDtupleReader
     void PlotLeptons ();
     void PlotPhotons ();
     void PlotJets ();
+    void PlotMonoLeptons ();
     void PlotTriLeptons ();
     void PlotlGamma ();
     void PlotllGamma ();
@@ -36,6 +37,8 @@ class SimpleAna : public TDtupleReader
     void SelectionLepton ();
     bool PassSelectionElectron (TLepton&);
     bool PassSelectionMuon (TLepton&);
+    bool IsDenominatorObject (TLepton&);
+    bool IsDenominatorObject (TJet&);
     void PlotElectronId ();
     void SelectionPhoton ();
     void SelectionJet ();
@@ -52,8 +55,9 @@ class SimpleAna : public TDtupleReader
   private:
     TString fProcName;
     TFile* fOutFile;
-    std::map<int, int> fPlotTriLeptons_ElectronGenPMap;
+    std::map<int, std::pair<int, int> > fPlotTriLeptons_ElectronGenPMap;
     std::map< std::pair<int, int>, int> fPlotTriLeptons_ElectronGenPMotherMap;
+    std::map<TString, int> fPlotTriLeptons_Counter;
     bool fRunFakes;
     TFakeRate* fFakeRate;
     TDtuple* fFakeDtuple;

@@ -266,6 +266,32 @@ void TJet::Setdxy (float const in)
 
 
 
+int TJet::GetCharge ()
+{
+  // Get the vertex Charge
+
+  return Charge;
+}
+
+
+
+
+
+
+void TJet::SetCharge (int const in)
+{
+  // Set the vertex Charge
+
+  Charge = in;
+
+  return;
+}
+
+
+
+
+
+
 void TJet::DefaultValues()
 {
   // Set dummy values to all of the TJet variables.
@@ -281,6 +307,7 @@ void TJet::DefaultValues()
   SysNeg        = -999999;
   Z0            = -999999;
   dxy           = -999999;
+  Charge        = -999999;
 }
 
 

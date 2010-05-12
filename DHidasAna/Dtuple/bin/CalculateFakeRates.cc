@@ -34,7 +34,7 @@ int CalculateFakeRates ()
 
   // Hist Names to use
   TString const NumerHistName = "PlotFakes/EleFakeNumeratorPt";
-  TString const DenomHistName = "PlotFakes/EleFakeDenomJetPt";
+  TString const DenomHistName = "PlotFakes/EleFakeDenomElePt";
 
   // Histograms from qcd samples
   TH1D* hNumer = (TH1D*) QCDFileA.Get(NumerHistName);
@@ -43,6 +43,8 @@ int CalculateFakeRates ()
     std::cerr << "ERROR: QCD hist missing" << std::endl;
     return 1;
   }
+  hNumer->Rebin();
+  hDenom->Rebin();
 
   // Histograms from EWK contributions
   TH1D* hNumerW = (TH1D*) EWKWFile.Get(NumerHistName);
@@ -58,8 +60,8 @@ int CalculateFakeRates ()
   hRate->Divide(hDenom);
 
   OutFile.cd();
-  hRate->SetTitle("FakeRateJ2E");
-  hRate->SetName("FakeRateJ2E");
+  hRate->SetTitle("FakeRateE");
+  hRate->SetName("FakeRateE");
   hRate->SetDirectory(&OutFile);
 
   OutFile.Write();

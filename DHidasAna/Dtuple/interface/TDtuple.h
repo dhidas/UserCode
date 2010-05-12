@@ -52,6 +52,7 @@ class TDtuple : public TDUtility
     float fSumEt;            // Sum Et
     float fRawSumEt;         // Raw Sum Et
     float fLum;              // Instantaneous Luminosity
+    float fEventWeight;      // A weight for this event
 
   public:
     void  AddLepton (TLepton const&);
@@ -76,6 +77,7 @@ class TDtuple : public TDUtility
     void  SetSumEt (float const);
     void  SetRawSumEt (float const);
     void  SetLum (float const);
+    void  SetEventWeight (float const);
     void  SetTriggerBit (std::string const);
     void  SetTriggerBits (int const);
     void  SetEventFlag (std::string const);
@@ -95,10 +97,14 @@ class TDtuple : public TDUtility
     float GetSumEt ();
     float GetRawSumEt ();
     float GetLum ();
+    float GetEventWeight ();
+    float EW (); // shorthand for event weight
     bool  GetTriggerBit (std::string const);
     int   GetTriggerBits ();
     bool  GetEventFlag (std::string const);
     int   GetEventFlags ();
+
+    void  MultiplyEventWeight (float const);
 
     std::vector<TLepton>*  GetLeptons ();
     std::vector<TJet>*     GetJets ();

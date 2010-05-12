@@ -127,7 +127,7 @@ std::pair<float, float> TDUtility::GetConversionXY(
 }
 
 
-void TDUtility::PrintMapIntInt (std::map<int, int>& MyMap, TString const Name)
+void TDUtility::PrintMap (std::map<int, int>& MyMap, TString const Name)
 {
   for (std::map<int, int>::iterator It = MyMap.begin(); It != MyMap.end(); ++It) {
     printf("%s  %15i %15i\n", Name.Data(), It->first, It->second);
@@ -137,7 +137,27 @@ void TDUtility::PrintMapIntInt (std::map<int, int>& MyMap, TString const Name)
 
 
 
-void TDUtility::PrintMapIntPairInt (std::map< std::pair<int, int>, int>& MyMap, TString const Name)
+void TDUtility::PrintMap (std::map<int, std::pair<int, int> >& MyMap, TString const Name)
+{
+  for (std::map<int, std::pair<int, int> >::iterator It = MyMap.begin(); It != MyMap.end(); ++It) {
+    printf("%s  %15i %15i %15i\n", Name.Data(), It->first, It->second.first, It->second.second);
+  }
+  return;
+}
+
+
+
+void TDUtility::PrintMap (std::map<TString, int>& MyMap, TString const Name)
+{
+  for (std::map<TString, int>::iterator It = MyMap.begin(); It != MyMap.end(); ++It) {
+    printf("%s  %50s %15i\n", Name.Data(), It->first.Data(), It->second);
+  }
+  return;
+}
+
+
+
+void TDUtility::PrintMap (std::map< std::pair<int, int>, int>& MyMap, TString const Name)
 {
   for (std::map< std::pair<int, int>, int>::iterator It = MyMap.begin(); It != MyMap.end(); ++It) {
     printf("%s  %15i %15i %15i\n", Name.Data(), It->first.first, It->first.second, It->second);

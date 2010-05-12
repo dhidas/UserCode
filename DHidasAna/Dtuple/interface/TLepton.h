@@ -152,8 +152,9 @@ class TLepton : public TLorentzVector
     TGenP* GetGenP (size_t const);
     std::vector<TGenP>* GetGenPVector ();
     TGenP* GetClosestGenP ();
-    bool GenPMatchesTo (int const, float const, float const, bool const);
+    TGenP* GenPMatchesTo (int const, float const, float const, bool const);
     void PrintGenP (float const MaxDeltaR = 999999, float const MinPt = -1);
+
 
     TString GetFlavorString ();
     bool PassesSelection(int const);
@@ -226,6 +227,7 @@ class TLepton : public TLorentzVector
 
 
     bool IsFlavor (LeptonFlavor const);
+    bool IsElectronDet (ElectronDet const);
 
 
   public:

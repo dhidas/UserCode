@@ -14,7 +14,7 @@
 #include "TChain.h"
 #include "TString.h"
 
-int RunSimpleAna (TString const ProcName, std::vector<TString> const& FileNames)
+int RunSimpleAna (TString const ProcName, std::vector<TString> const& FileNames, bool const RunFakes)
 {
   TChain Chain("dtuple");
   for (size_t i = 0; i != FileNames.size(); ++i) {
@@ -23,7 +23,8 @@ int RunSimpleAna (TString const ProcName, std::vector<TString> const& FileNames)
 
   SimpleAna Ana(ProcName, &Chain);
   Ana.SetFakeRateFile("FakeRates.root");
-  Ana.RunFakes(true);
+  //Ana.SetFakeRateFile("FakeRatesEtoE.root");
+  Ana.RunFakes(RunFakes);
   Ana.Loop();
   return 0;
 }
@@ -31,19 +32,20 @@ int RunSimpleAna (TString const ProcName, std::vector<TString> const& FileNames)
 
 int main (int argc, char* argv[])
 {
-  if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " [ProcName] [InFile]s" << std::endl;
+  if (argc < 4) {
+    std::cerr << "Usage: " << argv[0] << " [RunFakes] [ProcName] [InFile]s" << std::endl;
     return 1;
   }
 
-  TString const ProcName = argv[1];
+  bool const RunFakes = atoi( argv[1] ) == 0 ? false : true;
+  TString const ProcName = argv[2];
 
   std::vector<TString> FileNames;
-  for (int i = 2; i < argc; ++i) {
+  for (int i = 3; i < argc; ++i) {
     FileNames.push_back(argv[i]);
   }
 
-  RunSimpleAna(ProcName, FileNames);
+  RunSimpleAna(ProcName, FileNames, RunFakes);
 
   return 0;
 }

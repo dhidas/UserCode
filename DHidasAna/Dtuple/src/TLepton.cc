@@ -504,7 +504,7 @@ TGenP* TLepton::GetClosestGenP ()
 
 
 
-bool TLepton::GenPMatchesTo(int const Id, float const DeltaRMax, float const PRelMax, bool const MatchCharge)
+TGenP* TLepton::GenPMatchesTo(int const Id, float const DeltaRMax, float const PRelMax, bool const MatchCharge)
 {
   for (size_t i = 0; i != GenP.size(); ++i) {
     if ( TMath::Abs(GenP[i].GetId()) == TMath::Abs(Id) ) {
@@ -512,17 +512,17 @@ bool TLepton::GenPMatchesTo(int const Id, float const DeltaRMax, float const PRe
         if ( TMath::Abs(1.0 - GenP[i].Perp() / this->Perp()) < PRelMax) {
           if (MatchCharge) {
             if (GenP[i].GetId() == Id) {
-              return true;
+              return &GenP[i];
             }
           } else {
-            return true;
+            return &GenP[i];
           }
         }
       }
     }
   }
 
-  return false;
+  return (TGenP*) 0x0;
 
 }
 
@@ -627,6 +627,17 @@ bool TLepton::IsFlavor (LeptonFlavor const i)
   if (i == GetFlavor()) {
     return true;
   }
+  return false;
+}
+
+
+
+bool TLepton::IsElectronDet (ElectronDet const i)
+{
+  if ( Detector & (0x1 << i) ) {
+    return true;
+  }
+
   return false;
 }
 

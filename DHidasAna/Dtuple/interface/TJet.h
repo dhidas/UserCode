@@ -55,6 +55,7 @@ class TJet: public TLorentzVector
     float SysNeg;       // Negative Systematic uncertainty
     float Z0;           // Z0 of the jet
     float dxy;          // Signed displacement of vertex
+    float Charge;       // The "charge" of the jet, whatever that is
 
 
 
@@ -71,7 +72,7 @@ class TJet: public TLorentzVector
     float GetSysNeg ();
     float GetZ0 ();
     float Getdxy ();
-    int GetCharge() {return 0;};
+    int   GetCharge();
 
 
     // Set quantaties
@@ -83,7 +84,7 @@ class TJet: public TLorentzVector
     void  SetSysNeg (float const);
     void  SetZ0 (float const);
     void  Setdxy (float const);
-    void  SetCharge (float const) { return; };
+    void  SetCharge (int const);
 
     void  ReScale (float const);
 

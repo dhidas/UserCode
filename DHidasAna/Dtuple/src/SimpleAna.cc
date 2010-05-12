@@ -52,16 +52,18 @@ void SimpleAna::SetFakeRateFile (TString const FileName)
 
 void SimpleAna::Analyze (long unsigned int const ientry)
 {
-  //ElectronJetTest();
+  //SetEventWeight(1);
+
+  ElectronJetTest();
   PlotFakes();
   PlotElectronId();
-
-  Selection();
-  ObjectCleaning();
 
   if (RunFakes()) {
     AddFakesToEvent(ientry);
   }
+  Selection();
+  ObjectCleaning();
+
 
   PlotEventQuantities();
   PlotLeptons();
@@ -69,6 +71,7 @@ void SimpleAna::Analyze (long unsigned int const ientry)
   PlotJets();
 
   PlotDileptonMass();
+  PlotMonoLeptons();
   PlotTriLeptons();
   PlotlGamma();
   PlotllGamma();
@@ -215,6 +218,43 @@ void SimpleAna::PlotJets ()
 
 
 
+void SimpleAna::PlotMonoLeptons ()
+{
+  static TAnaHist Hist(fOutFile, "PlotMonoLeptons");
+
+  // Require three leptons
+  if (Leptons.size() != 1) {
+    return;
+  }
+
+  // Get flavor string
+  TString const Flavors = GetLeptonFlavorsString(Leptons);
+
+  //SetEventWeight(1);
+  Hist.FillTH1D("Pt_"+Flavors, 100, 0, 200, Leptons[0].Perp(), EW());
+  //std::cout << EW() << std::endl;
+
+  if (Leptons[0].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+    TGenP* MatchedGenP = Leptons[0].GenPMatchesTo(11, 0.2, 0.15, false);
+    if (MatchedGenP) {
+      //std::cout << "GenPMatchesTo(11, 0.2, 0.15, false): " << Flavors 
+      //          << "  Mo: " << MatchedGenP->GetMotherId() << std::endl;
+      Hist.FillTH1D("Pt_MatchedtoE_"+Flavors, 100, 0, 200, Leptons[0].Perp(), EW());
+    } else {
+      TGenP* ClosestGenP = Leptons[0].GetClosestGenP();
+      if (ClosestGenP) {
+        //std::cout << "PlotMonoLeptons: Lepton matches: "
+        //          << ClosestGenP->GetId() << "   Mo: " << ClosestGenP->GetMotherId() << std::endl;
+      }
+    }
+  }
+
+  return;
+}
+
+
+
+
 void SimpleAna::PlotTriLeptons ()
 {
   static TAnaHist Hist(fOutFile, "PlotTriLeptons");
@@ -232,11 +272,53 @@ void SimpleAna::PlotTriLeptons ()
   sprintf(ChargeStr, "%1i", abs(Leptons[0].GetCharge() + Leptons[1].GetCharge() + Leptons[2].GetCharge()));
 
   // Get the closest Z match
-  std::vector<TLepton> Zll = ClosestZMatch(Leptons, true, true, true);
+  std::vector<TLepton> Zll = ClosestZMatch(Leptons, false, true, true);
   if (Zll.size() != 3) {
     return;
   }
 
+  // Check that this is a mme event
+  if ( !(Zll[0].IsFlavor(TLepton::kLeptonFlavor_Muon) &&
+         Zll[1].IsFlavor(TLepton::kLeptonFlavor_Muon) &&
+         Zll[2].IsFlavor(TLepton::kLeptonFlavor_Electron)) ) {
+    return;
+  }
+
+  ++fPlotTriLeptons_Counter["Total Events"];
+
+  // if it roughly matches to a generator electron then skip it
+  if (!Zll[2].GenPMatchesTo(11, 0.2, 0.15, false)) {
+
+    // Get the closest GenP, or 0 for no match
+    TGenP* MyGenP = Zll[2].GetClosestGenP();
+    if (MyGenP) {
+      //std::cout << "Electron Pt: " << Zll[2].Perp() << std::endl;
+      Zll[2].PrintGenP();
+      Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, TMath::Abs(MyGenP->GetId()), EW());
+      fPlotTriLeptons_ElectronGenPMap[TMath::Abs(MyGenP->GetId())].first++;
+      if (!Zll[2].GetIsConvertedPhoton()) {
+        fPlotTriLeptons_ElectronGenPMap[TMath::Abs(MyGenP->GetId())].second++;
+      }
+      fPlotTriLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>(TMath::Abs(MyGenP->GetId()), TMath::Abs(MyGenP->GetMotherId()))]++;
+    } else {
+      Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, 0, EW());
+      if (!Zll[2].GetIsConvertedPhoton()) {
+        fPlotTriLeptons_ElectronGenPMap[0].second++;
+      }
+      fPlotTriLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>(0, 0)]++;
+    }
+
+    ++fPlotTriLeptons_Counter["From Fakes"];
+    if (!Zll[2].GetIsConvertedPhoton()) {
+      ++fPlotTriLeptons_Counter["From Fakes After Conversion Veto"];
+    }
+  } else {
+    ++fPlotTriLeptons_Counter["Matched Electron Events"];
+    if (Zll[2].GetIsConvertedPhoton()) {
+      ++fPlotTriLeptons_Counter["Matched Electron Events Conversion Vetoed"];
+    }
+  }
+  /*
   // Loop over the leptons, look for electron, and see what it's from.
   for (size_t i = 0; i != Zll.size(); ++i) {
     if (Zll[i].IsFlavor(TLepton::kLeptonFlavor_Electron)) {
@@ -249,24 +331,29 @@ void SimpleAna::PlotTriLeptons ()
       // Get the closest GenP, or 0 for no match
       TGenP* MyGenP = Zll[i].GetClosestGenP();
       if (MyGenP) {
-        printf("Electron Pt: %7.2f\n", Zll[i].Perp());
         Zll[i].PrintGenP();
-        Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, TMath::Abs(MyGenP->GetId()) );
+        Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, TMath::Abs(MyGenP->GetId()), EW());
         fPlotTriLeptons_ElectronGenPMap[TMath::Abs(MyGenP->GetId())]++;
         fPlotTriLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>(TMath::Abs(MyGenP->GetId()), TMath::Abs(MyGenP->GetMotherId()))]++;
       } else {
-        Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, 0 );
+        Hist.FillTH1D("EMother_"+Flavors, 10000, 0, 10000, 0, EW());
         fPlotTriLeptons_ElectronGenPMap[0]++;
         fPlotTriLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>(0, 0)]++;
       }
     }
   }
+  */
 
   TString const FlavorOrder = Zll[0].GetFlavorString() + Zll[1].GetFlavorString() + Zll[2].GetFlavorString();
   TString const FlavorZll = Zll[0].GetFlavorString() + Zll[1].GetFlavorString();
 
-  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors, 100, 0, 200, (Zll[0] + Zll[1]).M());
-  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_Q"+ChargeStr, 100, 0, 200, (Zll[0] + Zll[1]).M());
+  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors, 100, 0, 200, (Zll[0] + Zll[1]).M(), EW());
+  Hist.FillTH1D("ZMass_"+FlavorZll+"_"+Flavors+"_Q"+ChargeStr, 100, 0, 200, (Zll[0] + Zll[1]).M(), EW());
+
+  Hist.FillTH1D("TrileptonMass_"+Flavors, 100, 0, 200, (Zll[0] + Zll[1] +Zll[2]).M(), EW());
+  if (Zll[2].GetIsConvertedPhoton()) {
+    Hist.FillTH1D("TrileptonMassConvTagged_"+Flavors, 100, 0, 200, (Zll[0] + Zll[1] +Zll[2]).M(), EW());
+  }
 
   return;
 }
@@ -422,6 +509,7 @@ void SimpleAna::PlotZllE ()
   if (Zll[2].GetIsConvertedPhoton()) {
     Hist.FillTH1D("mme_mmMass_eTaggedAsConv", "Electron tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
     Hist.FillTH1D("mme_eTaggedAsConv_DZ", 50, -10, 10,  Zll[2].Getdz());
+    //printf("ConversionTaggedEvent: %12i %16i\n", GetRun(), GetEvent());
   } else {
     Hist.FillTH1D("mme_mmMass_eNotTaggedAsConv", "Electron not tagged as conversion", "mm Mass", "Events", 100, 0, 200, (Zll[0] + Zll[1]).M());
     Hist.FillTH1D("mme_eNotTaggedAsConv_DZ", 50, 10, 10,  Zll[2].Getdz());
@@ -694,7 +782,7 @@ bool SimpleAna::PassSelectionElectron (TLepton& Lep)
   if ( Lep.GetCalIso() / Lep.Perp() > 0.1) Pass = false;
   if ( Lep.Perp() < 15.0) Pass = false;
   //if ( TMath::Abs(Lep.Getdxy()) > 0.02) Pass = false;
-  return Pass;
+  return Pass || Lep.GetIsFake();
 }
 
 
@@ -704,7 +792,26 @@ bool SimpleAna::PassSelectionMuon (TLepton& Lep)
   if ( !Lep.PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Pass = false;
   if ( (TMath::Abs(Lep.Eta()) > 2.1) ) Pass = false;
   if ( Lep.GetCalIso() / Lep.Perp() > 0.1) Pass = false;
-  return Pass;
+  return Pass || Lep.GetIsFake();
+}
+
+
+bool SimpleAna::IsDenominatorObject (TLepton& Lep)
+{
+  if (!Lep.IsFlavor(TLepton::kLeptonFlavor_Electron)) return false;
+  if (TMath::Abs(Lep.Eta()) > 2.1) return false;
+  if (Lep.GetHCalOverECal() < 0.05) return false;
+
+  return true;
+}
+
+
+bool SimpleAna::IsDenominatorObject (TJet& Jet)
+{
+  if (TMath::Abs(Jet.Eta()) > 2.1) return false;
+  if (Jet.GetHadF() / Jet.GetEmF() < 0.05) return false;
+
+  return true;
 }
 
 
@@ -712,9 +819,39 @@ void SimpleAna::PlotElectronId ()
 {
   static TAnaHist Hist(fOutFile, "PlotElectronId");
 
+  TString Det;
+
   for (std::vector<TLepton>::iterator Lep = Leptons.begin(); Lep != Leptons.end(); ++Lep) {
     if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
-      Hist.FillTH1D("ElectronPt", 50, 0, 200, Lep->Perp());
+      if (PassSelectionElectron(*Lep)) {
+        Hist.FillTH1D("Pt", 50, 0, 200, Lep->Perp());
+        Hist.FillTH1D("Eta", 50, -3, 3, Lep->Eta());
+        Hist.FillTH1D("Phi", 50, -TMath::Pi(), TMath::Pi(), Lep->Phi());
+        Hist.FillTH1D("HOverE", 50, 0, 0.02, Lep->GetHCalOverECal());
+        Hist.FillTH1D("SigmaIEtaIEta", 50, 0, 0.04, Lep->GetSigmaIEtaIEta());
+        Hist.FillTH1D("DeltaPhiIn", 50, -0.1, 0.1, Lep->GetDeltaPhiIn());
+        Hist.FillTH1D("DeltaEtaIn", 50, -0.02, 0.02, Lep->GetDeltaEtaIn());
+        Hist.FillTH1D("e25Maxoe55", 50, 0, 1, Lep->GetE2x5overE5x5());
+        //Hist.FillTH1D("e15oe55", 50, 0, 200, Lep->Gete15oe55());
+
+
+        if (Lep->IsElectronDet(TLepton::kElectronDet_EB)) {
+          Det = "_EB";
+        } else if (Lep->IsElectronDet(TLepton::kElectronDet_EE)) {
+          Det = "_EE";
+        } else {
+          Det = "_Gap";
+        }
+        Hist.FillTH1D("Pt"+Det, 50, 0, 200, Lep->Perp());
+        Hist.FillTH1D("Eta"+Det, 50, -3, 3, Lep->Eta());
+        Hist.FillTH1D("Phi"+Det, 50, -TMath::Pi(), TMath::Pi(), Lep->Phi());
+        Hist.FillTH1D("HOverE"+Det, 50, 0, 0.02, Lep->GetHCalOverECal());
+        Hist.FillTH1D("SigmaIEtaIEta"+Det, 50, 0, 0.04, Lep->GetSigmaIEtaIEta());
+        Hist.FillTH1D("DeltaPhiIn"+Det, 50, -0.1, 0.1, Lep->GetDeltaPhiIn());
+        Hist.FillTH1D("DeltaEtaIn"+Det, 50, -0.02, 0.02, Lep->GetDeltaEtaIn());
+        Hist.FillTH1D("e25Maxoe55"+Det, 50, 0, 1, Lep->GetE2x5overE5x5());
+        //Hist.FillTH1D("e15oe55"+Det, 50, 0, 200, Lep->Gete15oe55());
+      }
     }
   }
 
@@ -756,6 +893,9 @@ void SimpleAna::GetElectronFromJet (TJet& Jet, TLepton& Lepton)
   Lepton.SetCharge(Jet.GetCharge());
   Lepton.SetFlavor(TLepton::kLeptonFlavor_Electron);
   Lepton.SetZ0(Jet.GetZ0());
+
+  // Can do some energy scaling if you need to here
+
   return;
 }
 
@@ -767,21 +907,58 @@ void SimpleAna::AddFakesToEvent (int const ientry, int const NFakesToAdd)
   // Loop over each fake denom object and apply the rate
   // adding a new entry for each "fake event"
 
+  //if (Leptons.size() != 0) {
+  //  return;
+  //}
+
   TLepton FakeLep;
-  for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
-    if (TMath::Abs(Jet->Eta()) < 2.1 && Jet->GetHadF() / Jet->GetEmF() > 0.05) {
-      FakeLep.DefaultValues();
-      fFakeDtuple->Clear();
-      CopyEventVarsTo(fFakeDtuple);
 
-      GetElectronFromJet(*Jet, FakeLep);
-      fFakeDtuple->AddLeptons(Leptons);
-      fFakeDtuple->AddLepton(FakeLep);
-      fFakeDtuple->AddJets(Jets);
-      fFakeDtuple->AddPhotons(Photons);
-
-      fFakeDtuple->Fill();
-    }
+  switch (0) {
+    case 0:
+      for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
+        if (IsDenominatorObject(*Jet)) {
+          FakeLep.DefaultValues();
+          fFakeDtuple->DefaultValues();
+          CopyEventVarsTo(fFakeDtuple);
+          fFakeDtuple->SetEventWeight(1); // For now.  remove this when ntuple fixed
+ 
+          FakeLep.SetIsFake(true);
+          fFakeDtuple->MultiplyEventWeight( fFakeRate->GetFakeRate(0, 0, FakeLep.Perp() ) );
+ 
+          GetElectronFromJet(*Jet, FakeLep);
+          FakeLep.SetCharge( 1 );
+          fFakeDtuple->AddLeptons(Leptons);
+          fFakeDtuple->AddLepton(FakeLep);
+          fFakeDtuple->AddJets(Jets);
+          fFakeDtuple->AddPhotons(Photons);
+ 
+          fFakeDtuple->Fill();
+        }
+      }
+      break;
+    case 1:
+      for (std::vector<TLepton>::iterator Lepton = Leptons.begin(); Lepton != Leptons.end(); ++Lepton) {
+        if (IsDenominatorObject(*Lepton)) {
+          fFakeDtuple->DefaultValues();
+          CopyEventVarsTo(fFakeDtuple);
+          fFakeDtuple->SetEventWeight(1); // For now.  remove this when ntuple fixed
+ 
+          Lepton->SetIsFake(true);
+          //std::cout << fFakeRate->GetFakeRate(0, 0, FakeLep.Perp()) << "  Pt " << FakeLep.Perp() << std::endl;
+          fFakeDtuple->MultiplyEventWeight( fFakeRate->GetFakeRate(0, 0, FakeLep.Perp() ) );
+ 
+          fFakeDtuple->AddLeptons(Leptons);
+          fFakeDtuple->AddPhotons(Photons);
+          fFakeDtuple->AddJets(Jets);
+ 
+          fFakeDtuple->Fill();
+          Lepton->SetIsFake(false);
+        }
+      }
+      break;
+    default:
+      std::cout << "ERROR in AddFakesToEvent.  Wrong switch value" << std::endl;
+      exit(1);
   }
   
   return;
@@ -802,12 +979,12 @@ void SimpleAna::ElectronJetTest ()
       for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
         if (Lep->DeltaR(*Jet) < 0.2) {
           FoundJetMatch = true;
-          Hist.FillTH2D("ElectronPtVsJetPt", 1000, 0, 200, 1000, 0, 200, Lep->Perp(), Jet->Perp());
+          Hist.FillTH2D("ElectronPtVsJetPt", fProcName, "Electron P_{T}", "Jet P_{T}", 1000, 0, 200, 1000, 0, 200, Lep->Perp(), Jet->Perp());
         }
       }
-      if (!FoundJetMatch) {
-        std::cout << "Did not find a jet match for this electron Pt: " << Lep->Perp() << "  " << Lep->Eta() << std::endl;
-      }
+      //if (!FoundJetMatch) {
+      //  std::cout << "Did not find a jet match for this electron Pt: " << Lep->Perp() << "  " << Lep->Eta() << std::endl;
+      //}
     }
   }
 
@@ -832,7 +1009,7 @@ void SimpleAna::PlotFakes ()
   //static float const EtaBins[NBinsPt] = {1,2,3,4,5,6};
 
   for (std::vector<TJet>::iterator Jet = Jets.begin(); Jet != Jets.end(); ++Jet) {
-    if (TMath::Abs(Jet->Eta()) < 2.1 && Jet->GetHadF() / Jet->GetEmF() > 0.05) {
+    if (IsDenominatorObject(*Jet)) {
       Hist.FillTH1D("EleFakeDenomJetPt", "EleFakeDenomJetPt", "P_{T}", "", NBinsPt, PtMin, PtMax, Jet->Perp());
       Hist.FillTH2D("EleFakeDenomJetEtaPt", "EleFakeDenomJetEtaPt", "#eta", "P_{T}", NBinsEta, EtaMin, EtaMax, NBinsPt, PtMin, PtMax, Jet->Eta(), Jet->Perp());
     }
@@ -888,8 +1065,10 @@ void SimpleAna::EndJob ()
   std::cout << "SimpleAna::EndJob() called" << std::endl;
 
   std::cout << "Summary:" <<std::endl;
-  TDUtility::PrintMapIntInt(fPlotTriLeptons_ElectronGenPMap, "ElectronGenP");
+  TDUtility::PrintMap(fPlotTriLeptons_ElectronGenPMap, "ElectronGenP");
   std::cout << "Detailed:" <<std::endl;
-  TDUtility::PrintMapIntPairInt(fPlotTriLeptons_ElectronGenPMotherMap, "ElectronGenP");
+  TDUtility::PrintMap(fPlotTriLeptons_ElectronGenPMotherMap, "ElectronGenP");
+  std::cout << "Trilepton Counting:" <<std::endl;
+  TDUtility::PrintMap(fPlotTriLeptons_Counter, "Tripelton");
   return;
 }

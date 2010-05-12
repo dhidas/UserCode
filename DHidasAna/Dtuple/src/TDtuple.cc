@@ -277,6 +277,7 @@ void TDtuple::SetBranches ()
   fDtupleTree->Branch("RawSumEt", &fRawSumEt, "RawSumEt/F");
   fDtupleTree->Branch("SumEt", &fSumEt, "SumEt/F");
   fDtupleTree->Branch("Lum", &fLum, "Lum/F");
+  fDtupleTree->Branch("EventWeight", &fEventWeight, "EventWeight/F");
 
   // Set branches for composite objects
   fDtupleTree->Branch("lepton", &fLepton);
@@ -322,6 +323,7 @@ void TDtuple::SetBranchAddresses ()
   fDtupleTree->SetBranchAddress("RawSumEt", &fRawSumEt);
   fDtupleTree->SetBranchAddress("SumEt", &fSumEt);
   fDtupleTree->SetBranchAddress("Lum", &fLum);
+  fDtupleTree->SetBranchAddress("EventWeight", &fEventWeight);
 
   // Set branches for composite objects
   fDtupleTree->SetBranchAddress("lepton", &fLepton);
@@ -426,6 +428,7 @@ void TDtuple::CopyEventVarsTo (TDtuple* To)
   To->SetSumEt(fSumEt);
   To->SetRawSumEt(fRawSumEt);
   To->SetLum(fLum);
+  To->SetEventWeight(fEventWeight);
 
   return;
 }
@@ -546,8 +549,9 @@ void TDtuple::DefaultValues()
   fSumEt           = -9999;
   fRawSumEt        = -9999;
   fLum             = -9999;
-  fTriggerBits     =  0x0;
-  fEventFlags      =  0x0;
+  fEventWeight     =     1;
+  fTriggerBits     =   0x0;
+  fEventFlags      =   0x0;
 
   Clear();
 
@@ -1150,6 +1154,27 @@ void TDtuple::SetLum (float const in)
 
 
 //
+// Function: SetEventWeight
+//
+// Purpose: Set the internal variable for event weight
+//
+// Arguments: float - event weight
+//
+// Return: void
+//
+void TDtuple::SetEventWeight (float const in)
+{
+  // Set the internal dtuple variable for instantaneous luminosity
+
+  fEventWeight = in;
+  return;
+}
+
+
+
+
+
+//
 // Function: GetRun
 //
 // Purpose: Get the run number
@@ -1413,6 +1438,30 @@ float TDtuple::GetLum ()
 
 
 //
+// Function: GetEventWeight
+//
+// Purpose: Get the variable which contains the event weight
+//
+// Arguments: none
+//
+// Return: float - event weight
+//
+float TDtuple::GetEventWeight ()
+{
+  // Get the interna dtuple variable for event weight
+
+  return fEventWeight;
+}
+
+float TDtuple::EW ()
+{
+  return GetEventWeight();
+}
+
+
+
+
+//
 // Function: GetTriggerBit
 //
 // Purpose: To see if a bit is set
@@ -1612,6 +1661,11 @@ std::vector<TPhoton>* TDtuple::GetPhotons ()
 
 
 
+void TDtuple::MultiplyEventWeight (float const Factor)
+{
+  fEventWeight *= Factor;
+  return;
+}
 
 
 
