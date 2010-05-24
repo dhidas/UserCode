@@ -23,6 +23,7 @@ class TDUtility : public TObject
     static void PrintMap (std::map<int, std::pair<int, int> >& MyMap, TString const Name);
     static void PrintMap (std::map<TString, int>& MyMap, TString const Name);
     static void PrintMap (std::map< std::pair<int, int>, int>& MyMap, TString const Name);
+    static void PrintMap (std::map< std::pair<int, int>, std::pair<int, int> >& MyMap, TString const Name);
     void MyFun () {};
 
   public:

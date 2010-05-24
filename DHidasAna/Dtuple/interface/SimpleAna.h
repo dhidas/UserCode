@@ -58,6 +58,9 @@ class SimpleAna : public TDtupleReader
     std::map<int, std::pair<int, int> > fPlotTriLeptons_ElectronGenPMap;
     std::map< std::pair<int, int>, int> fPlotTriLeptons_ElectronGenPMotherMap;
     std::map<TString, int> fPlotTriLeptons_Counter;
+    std::map< std::pair<int, int>, std::pair<int, int> > fPlotLeptons_ElectronGenPMotherMap;
+    int fPlotLeptons_Electrons;
+    int fPlotLeptons_ElectronsAfterConvVeto;
     bool fRunFakes;
     TFakeRate* fFakeRate;
     TDtuple* fFakeDtuple;

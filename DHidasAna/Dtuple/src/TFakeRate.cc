@@ -45,7 +45,7 @@ float TFakeRate::GetFakeRate(int const Flavor, int const Type, float const Pt)
   } else if (Bin == 0) {
     Bin = 1;
   }
-  return Hist->GetBinContent(Bin);
+  return Hist->GetBinContent(Bin) + Hist->GetBinError(Bin);
 }
 
 

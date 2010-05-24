@@ -38,6 +38,9 @@ void SimpleAna::BeginJob ()
     fFakeDtuple = new TDtuple( new TFile("Fakes_"+fProcName+".root", "recreate") );
   }
 
+  fPlotLeptons_Electrons = 0;
+  fPlotLeptons_ElectronsAfterConvVeto = 0;
+
   return;
 }
 
@@ -133,6 +136,16 @@ void SimpleAna::PlotLeptons ()
       Hist.FillTH1D("LeptonConvPhi", 50, 0, 2*TMath::Pi(), Lep->GetConvPhi());
       Hist.FillTH1D("LeptonConvR", 50, 0, 20, Lep->GetConvR());
       Hist.FillTH2D("LeptonConvPhiR", 1000, 0, 2*TMath::Pi(), 1000, 0, 20, Lep->GetConvPhi(), Lep->GetConvR());
+    }
+
+    if (Lep->IsFlavor(TLepton::kLeptonFlavor_Electron)) {
+      TGenP* ThisGenP = Lep->GetClosestGenP();
+      ++fPlotLeptons_Electrons;
+      ++fPlotLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>( TMath::Abs(ThisGenP->GetId()), TMath::Abs(ThisGenP->GetMotherId()) ) ].first;
+      if (!Lep->GetIsConvertedPhoton()) {
+        ++fPlotLeptons_ElectronGenPMotherMap[ std::make_pair<int, int>( TMath::Abs(ThisGenP->GetId()), TMath::Abs(ThisGenP->GetMotherId())) ].second;
+        ++fPlotLeptons_ElectronsAfterConvVeto;
+      }
     }
   }
   return;
@@ -777,11 +790,11 @@ void SimpleAna::SelectionPhoton ()
 bool SimpleAna::PassSelectionElectron (TLepton& Lep)
 {
   bool Pass = true;
-  if (!Lep.PassesSelection(TLepton::kMuonSel_GlobalMuonPromptTight)) Pass = false;
-  if ( (TMath::Abs(Lep.Eta()) > 2.4) ) Pass = false;
-  if ( Lep.GetCalIso() / Lep.Perp() > 0.1) Pass = false;
-  if ( Lep.Perp() < 15.0) Pass = false;
-  //if ( TMath::Abs(Lep.Getdxy()) > 0.02) Pass = false;
+  if (!Lep.PassesSelection(TLepton::kElectronSel_RobustTight)) Pass = false;
+  if ( (TMath::Abs(Lep.Eta()) > 2.1) ) Pass = false;
+  if ( Lep.GetCalIso() / Lep.Perp() > 0.15) Pass = false;
+  if ( Lep.Perp() < 8.0) Pass = false;
+  if ( TMath::Abs(Lep.Getdxy()) > 0.02) Pass = false;
   return Pass || Lep.GetIsFake();
 }
 
@@ -1069,6 +1082,11 @@ void SimpleAna::EndJob ()
   std::cout << "Detailed:" <<std::endl;
   TDUtility::PrintMap(fPlotTriLeptons_ElectronGenPMotherMap, "ElectronGenP");
   std::cout << "Trilepton Counting:" <<std::endl;
-  TDUtility::PrintMap(fPlotTriLeptons_Counter, "Tripelton");
+  TDUtility::PrintMap(fPlotTriLeptons_Counter, "Trilepton");
+
+  std::cout << "Lepton Counting:" <<std::endl;
+  TDUtility::PrintMap(fPlotLeptons_ElectronGenPMotherMap, "Lepton");
+  std::cout << "Lepton Counting:  " << fPlotLeptons_Electrons
+            << "  " << fPlotLeptons_ElectronsAfterConvVeto << std::endl;
   return;
 }
