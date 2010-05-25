@@ -37,7 +37,7 @@ float TFakeRate::GetFakeRate(int const Flavor, int const Type, float const Pt)
   TH1D* Hist = FakeMap1D[ std::make_pair<int, int>(Flavor, Type) ];
   if (Hist == 0x0) {
     std::cerr << "ERROR: TFakeRate::GetFakeRate does not see 1D hist" << std::endl;
-    exit(1);
+    throw;
   }
   int Bin = Hist->FindBin(Pt);
   if (Bin == Hist->GetNbinsX() + 1) {

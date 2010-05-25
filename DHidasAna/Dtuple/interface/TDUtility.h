@@ -1,6 +1,7 @@
 #ifndef GUARD_TDUtility_h
 #define GUARD_TDUtility_h
 
+#include <vector>
 #include <set>
 #include <map>
 
@@ -24,7 +25,9 @@ class TDUtility : public TObject
     static void PrintMap (std::map<TString, int>& MyMap, TString const Name);
     static void PrintMap (std::map< std::pair<int, int>, int>& MyMap, TString const Name);
     static void PrintMap (std::map< std::pair<int, int>, std::pair<int, int> >& MyMap, TString const Name);
-    void MyFun () {};
+
+    static std::vector<TLepton> ClosestZMatch (std::vector<TLepton>&, bool const RequireOS = true, bool const RequireSF = true, bool const AddOtherLeptonsAtEnd = false);
+
 
   public:
     ClassDef(TDUtility,1) // TDUtility class

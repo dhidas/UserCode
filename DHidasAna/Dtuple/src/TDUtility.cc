@@ -173,3 +173,74 @@ void TDUtility::PrintMap (std::map< std::pair<int, int>, std::pair<int, int> >& 
   }
   return;
 }
+
+
+
+
+std::vector<TLepton> TDUtility::ClosestZMatch(std::vector<TLepton>& InLeptons, bool const RequireOS, bool const RequireSF, bool const AddOtherLeptonsAtEnd)
+{
+  // This function will return the closest Z match from the leptons given to it.
+  // This function will return a vector of leptons
+  // There are a few options here.  You can require opposite sign leptons, same flavor,
+  // and optionally you can tack the other leptons on the end.  The latch will always be
+  // indices 0 and 1.  If OS and SF are specified but no match can be found satisfying 
+  // all criterion, then an empty vector is returned
+
+  // The vector of leptons we will return
+  std::vector<TLepton> Zll;
+
+  // This isn't even worth doing if there isn't 2 leptons
+  if (InLeptons.size() < 2) {
+    return Zll;
+  }
+
+  // 2 indices of best z match and best mass diff (wii find in alg below)
+  size_t BestZll[2];
+  float BestDiffMass = 999999;
+
+  // Loop over all lepton pairs i-j
+  for (size_t i = 0; i < InLeptons.size()-1; ++i) {
+    for (size_t j = i+1; j < InLeptons.size(); ++j) {
+
+      // Check for Opposite sign requirement
+      if (RequireOS && (InLeptons[i].GetCharge() + InLeptons[j].GetCharge() != 0)) {
+        continue;
+      }
+
+      // Check for same flavor requirement
+      if (RequireSF && (InLeptons[i].GetFlavor() != InLeptons[j].GetFlavor())) {
+        continue;
+      }
+
+      // Get the mass difference and if it's the best save indices and diff
+      if ( TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0) < BestDiffMass ) {
+        BestDiffMass = TMath::Abs((InLeptons[i] + InLeptons[j]).M() - 91.0);
+        BestZll[0] = i;
+        BestZll[1] = j;
+      }
+    }
+  }
+
+  // This means no match was found so return empty vector
+  if (BestDiffMass == 999999) {
+    return Zll;
+  }
+
+  // A match was found so add the two matching leptons to the vector
+  Zll.push_back( InLeptons[ BestZll[0] ] );
+  Zll.push_back( InLeptons[ BestZll[1] ] );
+
+  // If you want the other leptons tacked on the end add them here
+  if (AddOtherLeptonsAtEnd) {
+    for (size_t i = 0; i < InLeptons.size(); ++i) { 
+      if (i != BestZll[0] && i != BestZll[1]) {
+        Zll.push_back(InLeptons[i]);
+      }
+    }
+  }
+
+  // Return vector of leptons
+  return Zll;
+}
+
+

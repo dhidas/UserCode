@@ -10,7 +10,3 @@
   <use name="root">
 </bin>
 
-<bin name="RunSimpleAna" file="RunSimpleAna.cc">
-  <use name="DHidasAna/Dtuple">
-  <use name="root">
-</bin>
