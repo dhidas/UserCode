@@ -1,0 +1,4 @@
+<bin name="RunSimpleAna" file="RunSimpleAna.cc">
+  <use name="DHidasAna/SimpleAna">
+  <use name="root">
+</bin>
