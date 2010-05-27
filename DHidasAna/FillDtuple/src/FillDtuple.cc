@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Andrew HIDAS
 //         Created:  Mon Oct 26 11:59:20 CET 2009
-// $Id: FillDtuple.cc,v 1.25 2010/03/21 12:49:25 dhidas Exp $
+// $Id: FillDtuple.cc,v 1.26 2010/04/11 10:33:42 dhidas Exp $
 //
 //
 
@@ -212,11 +212,13 @@ FillDtuple::FillBasicEventQuantities (const edm::Event& iEvent)
   // Fill some event quantities
 
   fDtuple->SetRun    ( iEvent.id().run() );
+  fDtuple->SetLumiSection ( iEvent.luminosityBlock() );
   fDtuple->SetEvent  ( iEvent.id().event() );
   fDtuple->SetMetX   ( fMETs->front().px() );
   fDtuple->SetMetY   ( fMETs->front().py() );
   fDtuple->SetSumEt  ( fMETs->front().sumEt() );
   //fDtuple->SetMetSig ( fMETs->front().mEtSig() );
+  std::cout << iEvent.id().run() << "  " << iEvent.luminosityBlock() << std::endl;
 
   return;
 }
@@ -477,6 +479,7 @@ FillDtuple::FillJets(const edm::Event& iEvent)
     MyJet.SetHadF( jet.energyFractionHadronic() );
     MyJet.SetZ0( jet.vz() );
     //MyJet.Setdxy( jet.dxy() );
+    jet.charge();
 
     Jets.push_back(MyJet);
 
