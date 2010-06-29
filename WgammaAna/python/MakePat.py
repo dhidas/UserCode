@@ -10,9 +10,10 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 # Input your file or list of files (separate by ",")
 process.source = cms.Source("PoolSource",
-                   fileNames = cms.untracked.vstring(
-                   'file:/tmp/dhidas/RECO_3X/Wgamma/F295BB2E-0647-DF11-881C-0030487D858D.root'
-                 )
+    fileNames = cms.untracked.vstring(
+        #'file:/tmp/dhidas/RECO_3X/Wgamma/F295BB2E-0647-DF11-881C-0030487D858D.root'
+        'file:/cms/data16/dhidas/RECO_3X/Wgamma/F295BB2E-0647-DF11-881C-0030487D858D.root'
+    )
 )
 
 
