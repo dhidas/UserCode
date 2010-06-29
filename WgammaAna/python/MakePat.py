@@ -18,7 +18,7 @@ process.source = cms.Source("PoolSource",
 
 
 #Maximum number of events, -1=all
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 ### Geometry and Detector Conditions
 

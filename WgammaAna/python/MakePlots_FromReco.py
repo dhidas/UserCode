@@ -36,7 +36,7 @@ removeMCMatching(process,['All'])
 
 # This will provide the FillDtuple analyzer the output file
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string("Plots.root")
+  fileName = cms.string("PlotsFromReco.root")
 )
 
 
