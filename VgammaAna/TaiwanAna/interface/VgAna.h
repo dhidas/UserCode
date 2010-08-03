@@ -13,6 +13,8 @@ class VgAna : public VgNtuple
 
     void PlotElectrons ();
     void PlotMETs ();
+    void PlotJets ();
+    void PlotElectronPhoton ();
 
     TFile* OutFile_;
 };
