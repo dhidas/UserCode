@@ -5,6 +5,7 @@
 #include "TLorentzVector.h"
 
 #include <iostream>
+#include <algorithm>
 
 VgAna::VgAna ()
 {
@@ -74,7 +75,6 @@ void VgAna::PlotMETs ()
 
   return;
 }
-
 
 
 
