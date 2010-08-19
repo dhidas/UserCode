@@ -70,7 +70,8 @@ int PlotAllInDir (TString const FileName, TString const DirName = "", TString co
       TH1D* Hist = (TH1D*) Object;
       Name = Hist->GetName();
       Can.cd();
-      Hist->Draw();
+      Hist->SetFillColor(9);
+      Hist->Draw("hist");
       Can.SetLogy(1);
     } else if (ClassName == "TH2D" || ClassName == "TH2F") {
       TH2D* Hist = (TH2D*) Object;
