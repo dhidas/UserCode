@@ -16,6 +16,7 @@ class LHEPlotter : public LHEEvent
 {
   public:
     LHEPlotter (TString const, TString const);
+    LHEPlotter (std::vector<TString> const&, TString const);
     ~LHEPlotter ();
 
     int Loop ();
