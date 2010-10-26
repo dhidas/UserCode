@@ -4,6 +4,12 @@
 //
 // Created on: Tue Aug 25 14:30:21 CEST 2009
 //
+// To compile:
+//   g++ -Wall `root-config --cflags` `root-config --libs` -lMinuit PlotAllInDir.cc -o PlotAllInDir
+//
+// To Run:
+//   ./PlotAllInDir eps PlotElectrons/ TestInFile.root OutDir
+//
 ////////////////////////////////////////////////////////////////////
 
 
@@ -21,7 +27,9 @@
 #include "TSystem.h"
 
 
-int PlotAllInDir (TString const FileName, TString const DirName = "", TString const OutDir = "")
+
+
+int PlotAllInDir (TString const Suffix, TString const FileName, TString const DirName = "", TString const OutDir = "")
 {
   // Open File
   TFile File(FileName, "read");
@@ -71,8 +79,9 @@ int PlotAllInDir (TString const FileName, TString const DirName = "", TString co
       Name = Hist->GetName();
       Can.cd();
       Hist->SetFillColor(9);
-      Hist->Draw("hist");
-      Can.SetLogy(1);
+      //Hist->Draw("hist");
+      Hist->Draw("ep");
+      Can.SetLogy(0);
     } else if (ClassName == "TH2D" || ClassName == "TH2F") {
       TH2D* Hist = (TH2D*) Object;
       Name = Hist->GetName();
@@ -83,9 +92,9 @@ int PlotAllInDir (TString const FileName, TString const DirName = "", TString co
     }
     std::cout << "Name: " << Name << std::endl;
     if (OutDir == "") {
-      Can.SaveAs(Name+".gif");
+      Can.SaveAs(Name+"."+Suffix);
     } else {
-      Can.SaveAs(OutDir+"/"+Name+".gif");
+      Can.SaveAs(OutDir+"/"+Name+"."+Suffix);
     }
 
 
@@ -96,17 +105,17 @@ int PlotAllInDir (TString const FileName, TString const DirName = "", TString co
 
 int main (int argc, char* argv[])
 {
-  if (argc != 2 && argc != 3 && argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " [DirName] [FileName] ([OutDir])" << std::endl;
+  if (argc != 3 && argc != 4 && argc != 5) {
+    std::cerr << "Usage: " << argv[0] << " [eps|gif..] [DirName] [FileName] ([OutDir])" << std::endl;
     return 1;
   }
 
-  if (argc == 2) {
-    PlotAllInDir(argv[1]);
-  } else if (argc == 3) {
-    PlotAllInDir(argv[2], argv[1]);
+  if (argc == 3) {
+    PlotAllInDir(argv[1], argv[2]);
   } else if (argc == 4) {
-    PlotAllInDir(argv[2], argv[1], argv[3]);
+    PlotAllInDir(argv[1], argv[3], argv[2]);
+  } else if (argc == 5) {
+    PlotAllInDir(argv[1], argv[3], argv[2], argv[4]);
   }
 
   return 0;
