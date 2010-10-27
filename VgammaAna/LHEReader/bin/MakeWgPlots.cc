@@ -98,6 +98,7 @@ int MakeWgPlots (TString const InDir)
   MakePlotsFor("LHEPlots/PhotonEta", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
   MakePlotsFor("LHEPlots/LeptonPt", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
   MakePlotsFor("LHEPlots/LeptonEta", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
+  MakePlotsFor("LHEPlots/LeptonPhotonDeltaR", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
 
 
 

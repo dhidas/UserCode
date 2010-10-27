@@ -42,6 +42,7 @@ int LHEPlotter::Loop ()
 
     // Plot anything you want down here!!
     std::vector<LHEParticle> Leptons;
+    std::vector<LHEParticle> Photons;
     for (size_t ip = 0; ip != Particles.size(); ++ip) {
       LHEParticle P = Particles[ip];
 
@@ -54,6 +55,7 @@ int LHEPlotter::Loop ()
       }
 
       if (P.Id == 22) {
+        Photons.push_back(P);
         Hist.FillTH1D("PhotonEt", "Photon E_{T}", "Photon E_{T}(GeV)", "# of Events", PtBins, PtMin, PtMax, P.Perp(), Weight);
         Hist.FillTH1D("PhotonEta", "Photon #eta", "Photon #eta", "# of Events", EtaBins, -EtaMax, EtaMax, P.Eta(), Weight);
         Hist.FillTH1D("PhotonPhi", "Photon #phi", "Photon #phi", "# of Events", EtaBins, -TMath::Pi(), TMath::Pi(), P.Phi(), Weight);
@@ -69,6 +71,9 @@ int LHEPlotter::Loop ()
       Hist.FillTH1D("DileptonMass", "Dilepton Mass", "Dilepton Mass (GeV/c^{2})", "# of Events", PtBins, PtMin, PtMax, (Leptons[0] + Leptons[1]).M(), Weight);
     }
 
+    if (Leptons.size() == 1 && Photons.size() == 1) {
+      Hist.FillTH1D("LeptonPhotonDeltaR", "#Delta R(l,#gamma)", "#Delta R(l,#gamma)", "# of Events", EtaBins, 0, 6, Leptons[0].DeltaR(Photons[0]), Weight);
+    }
 
 
   }
