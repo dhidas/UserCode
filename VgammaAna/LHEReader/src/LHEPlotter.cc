@@ -35,7 +35,7 @@ int LHEPlotter::Loop ()
 
     int   const PtBins = 40;
     float const PtMin = 0;
-    float const PtMax = 200;
+    float const PtMax = 100;
 
     int   const EtaBins = 40;
     float const EtaMax = 5;
