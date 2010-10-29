@@ -51,7 +51,7 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   kFactor->Divide(hLO);
   kFactor->SetLineColor(4);
   kFactor->SetFillColor(0);
-  kFactor->SetMaximum(4);
+  kFactor->SetMaximum(3);
 
   TH1F* kFactorP = (TH1F*) hWpNLO->Clone();
   kFactorP->Divide(hWpLO);
@@ -59,8 +59,8 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   kFactorP->SetLineColor(6);
   TH1F* kFactorM = (TH1F*) hWmNLO->Clone();
   kFactorM->Divide(hWmLO);
-  kFactorM->SetLineStyle(3);
-  kFactorM->SetLineColor(8);
+  kFactorM->SetLineStyle(2);
+  kFactorM->SetLineColor(48);
 
   TH1F* hLO_Norm  = (TH1F*) hLO->Clone();
   TH1F* hNLO_Norm = (TH1F*) hNLO->Clone();
@@ -68,8 +68,9 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hNLO_Norm->SetNormFactor(1);
 
 
-  TCanvas Can(HistName, HistName, 300, 600);
-  Can.Divide(1,3);
+  TCanvas Can;
+  TCanvas Can1;
+  Can.Divide(2,2);
 
   TLegend Leg4(0.5, 0.7, 0.9, 0.9);
   Leg4.SetNColumns(2);
@@ -95,7 +96,11 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   LegK.AddEntry(kFactorP, "NLO/LO W^{+}", "l");
   LegK.AddEntry(kFactorM, "NLO/LO W^{-}", "l");
 
-  Can.cd(1);
+  TString MyName = HistName;
+  MyName = MyName(MyName.Last('/')+1, MyName.Length()-MyName.Last('/')-1);
+
+  //Can.cd(1);
+  Can1.Clear();
   hLO->SetYTitle("d#sigma");
   if (hLO->GetMaximum() < hNLO->GetMaximum()) {
     hLO->SetMaximum( hNLO->GetMaximum()*1.1 );
@@ -107,27 +112,43 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hWpNLO->Draw("samehist");
   hNLO->Draw("histsame");
   Leg4.Draw("same");
+  Can1.SaveAs(MyName+"_XS.eps");
 
-  Can.cd(2);
+  //Can.cd(2);
+  Can1.Clear();
   if (hLO_Norm->GetMaximum() < hNLO_Norm->GetMaximum()) {
     hLO_Norm->SetMaximum( hNLO_Norm->GetMaximum()*1.05 );
   }
-  hLO_Norm->SetTitle("Normalized to unity");
+  hLO_Norm->SetTitle("Baur W#gamma");
+  hLO_Norm->SetYTitle("Normalized to Unity");
   hLO_Norm->Draw("hist");
   hNLO_Norm->Draw("histsame");
   Leg2.Draw("same");
+  Can1.SaveAs(MyName+"_Norm.eps");
 
-  Can.cd(3);
+  //Can.cd(3);
+  Can1.Clear();
   kFactor->SetTitle("k-factor");
   kFactor->SetYTitle("NLO/LO");
   kFactor->Draw("hist");
   kFactorP->Draw("samehist");
   kFactorM->Draw("samehist");
   LegK.Draw("same");
+  Can1.SaveAs(MyName+"_kFactor.eps");
 
-  TString MyName = HistName;
-  MyName = MyName(MyName.Last('/')+1, MyName.Length()-MyName.Last('/')-1);
-  Can.SaveAs(MyName+".eps");
+
+  Can1.Clear();
+  hNLO->Scale(1/hNLO->Integral());
+  hLO->Scale(1/hLO->Integral());
+  hNLO->Divide(hLO);
+  hNLO->SetMaximum(3);
+  hNLO->Draw("hist");
+  Leg2.Draw("same");
+  Can1.SaveAs(MyName+"_kFactorNorm.eps");
+
+
+
+  //Can.SaveAs(MyName+".eps");
 
   printf("k-factor for All/W+/W- for %s is %8.4f / %8.4f / %8.4f\n", HistName.Data(),
       hNLO->Integral() / hLO->Integral(),
@@ -148,13 +169,28 @@ int MakeWgPlots (TString const InDir)
 {
   TFile fWpLO( InDir+"SM_LO_Wp.root", "read");
   TFile fWmLO( InDir+"SM_LO_Wm.root", "read");
+  //TFile fWpLO( InDir+"SM_LO_Wp_fromNLO.root", "read");
+  //TFile fWmLO( InDir+"SM_LO_Wm_fromNLO.root", "read");
   TFile fWpNLO(InDir+"SM_NLO_Wp.root", "read");
   TFile fWmNLO(InDir+"SM_NLO_Wm.root", "read");
 
-  float const xsWpLO  =  8.78;
-  float const xsWmLO  = 11.8;
-  float const xsWpNLO = 13.9;
-  float const xsWmNLO =  9.46;
+  // Orig with 5 GeV cuts.
+  //float const xsWpLO  =  8.78;
+  //float const xsWmLO  = 11.8;
+  //float const xsWpNLO = 13.9;
+  //float const xsWmNLO =  9.46;
+
+  // Orig with PCuts
+  //float const xsWpLO  =  6.03 * 0.108351951;
+  //float const xsWmLO  =  7.79 * 0.108351951;
+  //float const xsWpNLO =  2.29;
+  //float const xsWmNLO =  1.89;
+
+  // Orig with CTMCuts
+  float const xsWpLO  =  2.29;
+  float const xsWmLO  =  2.38;
+  float const xsWpNLO =  1.92;
+  float const xsWmNLO =  1.61;
 
   // Set some style bullshit
   gROOT->SetStyle("Plain");
@@ -171,6 +207,9 @@ int MakeWgPlots (TString const InDir)
   MakePlotsFor("LHEPlots/LeptonPt", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
   MakePlotsFor("LHEPlots/LeptonEta", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
   MakePlotsFor("LHEPlots/LeptonPhotonDeltaR", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
+  MakePlotsFor("LHEPlots/NeutrinoPt", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
+  MakePlotsFor("LHEPlots/NeutrinoEta", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
+  MakePlotsFor("LHEPlots/NeutrinoPhi", fWpLO, xsWpLO, fWmLO, xsWmLO, fWpNLO, xsWpNLO, fWmNLO, xsWmNLO);
 
 
 

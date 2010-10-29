@@ -35,7 +35,7 @@ int LHEPlotter::Loop ()
 
     int   const PtBins = 40;
     float const PtMin = 0;
-    float const PtMax = 100;
+    float const PtMax = 80;
 
     int   const EtaBins = 40;
     float const EtaMax = 5;
@@ -46,7 +46,7 @@ int LHEPlotter::Loop ()
     for (size_t ip = 0; ip != Particles.size(); ++ip) {
       LHEParticle P = Particles[ip];
 
-      if (TMath::Abs( P.Id ) == 11 || TMath::Abs( P.Id ) == 13) {
+      if (abs( P.Id ) == 11 || abs( P.Id ) == 13 || abs( P.Id ) == 15) {
         Leptons.push_back(P);
         Hist.FillTH1D("LeptonPt", "Lepton p_{T}", "Lepton p_{T}(GeV/c)", "# of Events", PtBins, PtMin, PtMax, P.Perp());
         Hist.FillTH1D("LeptonEta", "Lepton #eta", "Lepton #eta", "# of Events", EtaBins, -EtaMax, EtaMax, P.Eta(), Weight);
@@ -61,8 +61,10 @@ int LHEPlotter::Loop ()
         Hist.FillTH1D("PhotonPhi", "Photon #phi", "Photon #phi", "# of Events", EtaBins, -TMath::Pi(), TMath::Pi(), P.Phi(), Weight);
       }
 
-      if (abs(P.Id) == 12 || abs(P.Id) == 14) {
-        Hist.FillTH1D("NeutrinoEt", "Neutrino E_{T}", "Neutrino E_{T}(GeV)", "# of Events", PtBins, PtMin, PtMax, P.Perp(), Weight);
+      if (abs(P.Id) == 12 || abs(P.Id) == 14 || abs(P.Id) == 16) {
+        Hist.FillTH1D("NeutrinoPt", "Neutrino P_{T}", "Neutrino P_{T}(GeV/c)", "# of Events", PtBins, PtMin, PtMax, P.Perp(), Weight);
+        Hist.FillTH1D("NeutrinoEta", "Neutrino #eta", "Neutrino #eta", "# of Events", EtaBins, -EtaMax, EtaMax, P.Eta(), Weight);
+        Hist.FillTH1D("NeutrinoPhi", "Neutrino #phi", "Neutrino #phi", "# of Events", EtaBins, -TMath::Pi(), TMath::Pi(), P.Phi(), Weight);
       }
 
     }
