@@ -1,0 +1,5 @@
+%Wp#gamma_{LO}       4     1      -1    ~/UserCode/dhidas/VgammaAna/LHEReader/SM_LO_Wp.root
+Wm#gamma_{LO}       4     0     -1    ~/UserCode/dhidas/VgammaAna/LHEReader/SM_LO_Wm.root
+%Wp#gamma_{NLO}      6     0     -1    ~/UserCode/dhidas/VgammaAna/LHEReader/SM_NLO_Wp.root
+%Wm#gamma_{NLO}      6     0     -1    ~/UserCode/dhidas/VgammaAna/LHEReader/SM_NLO_Wm.root
+Wm#gamma_{fNLO}       1     1     -1    ~/UserCode/dhidas/VgammaAna/LHEReader/SM_LO_Wm_fromNLO.root
