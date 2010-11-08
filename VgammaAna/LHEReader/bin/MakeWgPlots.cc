@@ -51,7 +51,8 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   kFactor->Divide(hLO);
   kFactor->SetLineColor(4);
   kFactor->SetFillColor(0);
-  kFactor->SetMaximum(3);
+  kFactor->SetMaximum(6);
+  kFactor->SetMinimum(0);
 
   TH1F* kFactorP = (TH1F*) hWpNLO->Clone();
   kFactorP->Divide(hWpLO);
@@ -99,8 +100,13 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   TString MyName = HistName;
   MyName = MyName(MyName.Last('/')+1, MyName.Length()-MyName.Last('/')-1);
 
-  //Can.cd(1);
-  Can1.Clear();
+  printf("k-factor for All/W+/W- for %s is %8.4f / %8.4f / %8.4f\n", HistName.Data(),
+      hNLO->Integral() / hLO->Integral(),
+      hWpNLO->Integral() / hWpLO->Integral(), 
+      hWmNLO->Integral() / hWmLO->Integral());
+
+  Can.cd(1);
+  //Can1.Clear();
   hLO->SetYTitle("d#sigma");
   if (hLO->GetMaximum() < hNLO->GetMaximum()) {
     hLO->SetMaximum( hNLO->GetMaximum()*1.1 );
@@ -112,10 +118,10 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hWpNLO->Draw("samehist");
   hNLO->Draw("histsame");
   Leg4.Draw("same");
-  Can1.SaveAs(MyName+"_XS.eps");
+  //Can1.SaveAs(MyName+"_XS.eps");
 
-  //Can.cd(2);
-  Can1.Clear();
+  Can.cd(2);
+  //Can1.Clear();
   if (hLO_Norm->GetMaximum() < hNLO_Norm->GetMaximum()) {
     hLO_Norm->SetMaximum( hNLO_Norm->GetMaximum()*1.05 );
   }
@@ -124,36 +130,32 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hLO_Norm->Draw("hist");
   hNLO_Norm->Draw("histsame");
   Leg2.Draw("same");
-  Can1.SaveAs(MyName+"_Norm.eps");
+  //Can1.SaveAs(MyName+"_Norm.eps");
 
-  //Can.cd(3);
-  Can1.Clear();
+  Can.cd(3);
+  //Can1.Clear();
   kFactor->SetTitle("k-factor");
   kFactor->SetYTitle("NLO/LO");
   kFactor->Draw("hist");
   kFactorP->Draw("samehist");
   kFactorM->Draw("samehist");
   LegK.Draw("same");
-  Can1.SaveAs(MyName+"_kFactor.eps");
+  //Can1.SaveAs(MyName+"_kFactor.eps");
 
 
-  Can1.Clear();
+  Can.cd(4);
+  //Can1.Clear();
   hNLO->Scale(1/hNLO->Integral());
   hLO->Scale(1/hLO->Integral());
   hNLO->Divide(hLO);
   hNLO->SetMaximum(3);
   hNLO->Draw("hist");
   Leg2.Draw("same");
-  Can1.SaveAs(MyName+"_kFactorNorm.eps");
+  //Can1.SaveAs(MyName+"_kFactorNorm.eps");
 
 
 
-  //Can.SaveAs(MyName+".eps");
-
-  printf("k-factor for All/W+/W- for %s is %8.4f / %8.4f / %8.4f\n", HistName.Data(),
-      hNLO->Integral() / hLO->Integral(),
-      hWpNLO->Integral() / hWpLO->Integral(), 
-      hWmNLO->Integral() / hWmLO->Integral());
+  Can.SaveAs(MyName+".eps");
 
   delete hLO;
   delete hNLO;
@@ -174,6 +176,12 @@ int MakeWgPlots (TString const InDir)
   TFile fWpNLO(InDir+"SM_NLO_Wp.root", "read");
   TFile fWmNLO(InDir+"SM_NLO_Wm.root", "read");
 
+  // with 5 GeV cuts. all from NLO prog (born wgts used for LO)
+  float const xsWpLO  =  7.08;
+  float const xsWmLO  =  4.51;
+  float const xsWpNLO = 12.68;
+  float const xsWmNLO =  8.52;
+
   // Orig with 5 GeV cuts.
   //float const xsWpLO  =  8.78;
   //float const xsWmLO  = 11.8;
@@ -187,10 +195,10 @@ int MakeWgPlots (TString const InDir)
   //float const xsWmNLO =  1.89;
 
   // Orig with CTMCuts
-  float const xsWpLO  =  2.29;
-  float const xsWmLO  =  2.38;
-  float const xsWpNLO =  1.92;
-  float const xsWmNLO =  1.61;
+  //float const xsWpLO  =  2.29;
+  //float const xsWmLO  =  2.38;
+  //float const xsWpNLO =  1.92;
+  //float const xsWmNLO =  1.61;
 
   // Set some style bullshit
   gROOT->SetStyle("Plain");
