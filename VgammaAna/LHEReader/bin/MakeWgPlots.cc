@@ -65,8 +65,8 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
 
   TH1F* hLO_Norm  = (TH1F*) hLO->Clone();
   TH1F* hNLO_Norm = (TH1F*) hNLO->Clone();
-  hLO_Norm->SetNormFactor(1);
-  hNLO_Norm->SetNormFactor(1);
+  hLO_Norm->Scale(1/hLO_Norm->Integral());
+  hNLO_Norm->Scale(1/hNLO_Norm->Integral());
 
 
   TCanvas Can;
@@ -116,11 +116,11 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hWpLO->Draw("samehist");
   hWpNLO->SetLineStyle(2);
   hWpNLO->Draw("samehist");
-  hNLO->Draw("histsame");
+  hNLO->Draw("samehist");
   Leg4.Draw("same");
   //Can1.SaveAs(MyName+"_XS.eps");
 
-  Can.cd(2);
+  Can.cd(2)->SetLogy(0);
   //Can1.Clear();
   if (hLO_Norm->GetMaximum() < hNLO_Norm->GetMaximum()) {
     hLO_Norm->SetMaximum( hNLO_Norm->GetMaximum()*1.05 );
@@ -142,15 +142,20 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   LegK.Draw("same");
   //Can1.SaveAs(MyName+"_kFactor.eps");
 
-
-  Can.cd(4);
-  //Can1.Clear();
-  hNLO->Scale(1/hNLO->Integral());
-  hLO->Scale(1/hLO->Integral());
-  hNLO->Divide(hLO);
-  hNLO->SetMaximum(3);
-  hNLO->Draw("hist");
+  Can.cd(4)->SetLogy(1);
+  hLO_Norm->Draw("hist");
+  hNLO_Norm->Draw("histsame");
   Leg2.Draw("same");
+
+  //Can.cd(4);
+  //Can1.Clear();
+  //TH1F* hShape = (TH1F*) hNLO_Norm->Clone();
+  //hShape->SetTitle("Normalized Shape Comparison");
+  //hShape->SetYTitle("NLO/LO Shape Only");
+  //hShape->Divide(hLO_Norm);
+  //hShape->SetMaximum(3);
+  //hShape->Draw("hist");
+  //Leg2.Draw("same");
   //Can1.SaveAs(MyName+"_kFactorNorm.eps");
 
 

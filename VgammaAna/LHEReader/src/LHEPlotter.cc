@@ -70,13 +70,17 @@ int LHEPlotter::Loop ()
     }
 
     if (Leptons.size() == 2) {
-      Hist.FillTH1D("DileptonMass", "Dilepton Mass", "Dilepton Mass (GeV/c^{2})", "# of Events", PtBins, PtMin, PtMax, (Leptons[0] + Leptons[1]).M(), Weight);
+      Hist.FillTH1D("DileptonMass", "Dilepton Mass", "Dilepton Mass (GeV/c^{2})", "# of Events", PtBins, 0, 150, (Leptons[0] + Leptons[1]).M(), Weight);
     }
 
     if (Leptons.size() == 1 && Photons.size() == 1) {
       Hist.FillTH1D("LeptonPhotonDeltaR", "#Delta R(l,#gamma)", "#Delta R(l,#gamma)", "# of Events", EtaBins, 0, 6, Leptons[0].DeltaR(Photons[0]), Weight);
     }
 
+    if (Leptons.size() == 2 && Photons.size() == 1) {
+      Hist.FillTH1D("llgammaMass", "M_{ll#gamma}", "M_{ll#gamma}", "# of Events", PtBins, 0, 150, (Leptons[0]+Leptons[1]+Photons[0]).M());
+      Hist.FillTH2D("llgammaVSll", "", "M_{ll}", "M_{ll#gamma}", 300, 0, 150, 300, 0, 350, (Leptons[0]+Leptons[1]).M(), (Leptons[0]+Leptons[1]+Photons[0]).M());
+    }
 
   }
 
