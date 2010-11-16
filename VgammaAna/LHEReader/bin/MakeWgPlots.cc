@@ -23,6 +23,8 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
                                            TFile& fWpNLO, float const xsWpNLO,
                                            TFile& fWmNLO, float const xsWmNLO)
 {
+  bool const Together = false;
+
   TH1F* hWpLO = (TH1F*) fWpLO.Get(HistName);
   TH1F* hWmLO = (TH1F*) fWmLO.Get(HistName);
   TH1F* hWpNLO = (TH1F*) fWpNLO.Get(HistName);
@@ -73,7 +75,7 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   TCanvas Can1;
   Can.Divide(2,2);
 
-  TLegend Leg4(0.5, 0.7, 0.9, 0.9);
+  TLegend Leg4(0.5, 0.7, 0.89, 0.89);
   Leg4.SetNColumns(2);
   Leg4.SetFillColor(0);
   Leg4.SetBorderSize(0);
@@ -82,14 +84,14 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   Leg4.AddEntry(hWpLO, "LO W^{+}", "l");
   Leg4.AddEntry(hWpNLO, "NLO W^{+}", "l");
 
-  TLegend Leg2(0.5, 0.8, 0.9, 0.9);
+  TLegend Leg2(0.5, 0.8, 0.89, 0.89);
   Leg2.SetNColumns(2);
   Leg2.SetFillColor(0);
   Leg2.SetBorderSize(0);
   Leg2.AddEntry(hLO, "LO", "l");
   Leg2.AddEntry(hNLO, "NLO", "l");
 
-  TLegend LegK(0.5, 0.7, 0.9, 0.9);
+  TLegend LegK(0.5, 0.7, 0.89, 0.89);
   LegK.SetNColumns(2);
   LegK.SetFillColor(0);
   LegK.SetBorderSize(0);
@@ -105,9 +107,8 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
       hWpNLO->Integral() / hWpLO->Integral(), 
       hWmNLO->Integral() / hWmLO->Integral());
 
-  Can.cd(1);
-  //Can1.Clear();
-  hLO->SetYTitle("d#sigma");
+  if (Together) Can.cd(1)->SetLogy(1); else {Can1.Clear(); Can1.SetLogy(1);}
+  hLO->SetYTitle("d#sigma/dP_{T}^{#gamma}");
   if (hLO->GetMaximum() < hNLO->GetMaximum()) {
     hLO->SetMaximum( hNLO->GetMaximum()*1.1 );
   }
@@ -118,10 +119,9 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hWpNLO->Draw("samehist");
   hNLO->Draw("samehist");
   Leg4.Draw("same");
-  //Can1.SaveAs(MyName+"_XS.eps");
+  if (!Together)  Can1.SaveAs(MyName+"_XS.eps");
 
-  Can.cd(2)->SetLogy(0);
-  //Can1.Clear();
+  if (Together) Can.cd(2)->SetLogy(0); else {Can1.Clear(); Can1.SetLogy(0);}
   if (hLO_Norm->GetMaximum() < hNLO_Norm->GetMaximum()) {
     hLO_Norm->SetMaximum( hNLO_Norm->GetMaximum()*1.05 );
   }
@@ -130,37 +130,26 @@ void MakePlotsFor (TString const HistName, TFile& fWpLO, float const xsWpLO,
   hLO_Norm->Draw("hist");
   hNLO_Norm->Draw("histsame");
   Leg2.Draw("same");
-  //Can1.SaveAs(MyName+"_Norm.eps");
+  if (!Together) Can1.SaveAs(MyName+"_Norm.eps");
 
-  Can.cd(3);
-  //Can1.Clear();
+  if (Together) Can.cd(3); else Can1.Clear();
   kFactor->SetTitle("k-factor");
   kFactor->SetYTitle("NLO/LO");
   kFactor->Draw("hist");
   kFactorP->Draw("samehist");
   kFactorM->Draw("samehist");
   LegK.Draw("same");
-  //Can1.SaveAs(MyName+"_kFactor.eps");
+  if (!Together) Can1.SaveAs(MyName+"_kFactor.eps");
 
-  Can.cd(4)->SetLogy(1);
+  if (Together) Can.cd(4)->SetLogy(1); else {Can1.Clear(); Can1.SetLogy(1);}
   hLO_Norm->Draw("hist");
   hNLO_Norm->Draw("histsame");
   Leg2.Draw("same");
-
-  //Can.cd(4);
-  //Can1.Clear();
-  //TH1F* hShape = (TH1F*) hNLO_Norm->Clone();
-  //hShape->SetTitle("Normalized Shape Comparison");
-  //hShape->SetYTitle("NLO/LO Shape Only");
-  //hShape->Divide(hLO_Norm);
-  //hShape->SetMaximum(3);
-  //hShape->Draw("hist");
-  //Leg2.Draw("same");
-  //Can1.SaveAs(MyName+"_kFactorNorm.eps");
+  if (!Together) Can1.SaveAs(MyName+"_NormLog.eps");
 
 
 
-  Can.SaveAs(MyName+".eps");
+  if (Together) Can.SaveAs(MyName+".eps");
 
   delete hLO;
   delete hNLO;
@@ -181,11 +170,17 @@ int MakeWgPlots (TString const InDir)
   TFile fWpNLO(InDir+"SM_NLO_Wp.root", "read");
   TFile fWmNLO(InDir+"SM_NLO_Wm.root", "read");
 
+  // with Vg cuts. all from NLO prog (born wgts used for LO)
+  float const xsWpLO  =  7.03;
+  float const xsWmLO  =  4.49;
+  float const xsWpNLO = 12.76;
+  float const xsWmNLO =  8.48;
+
   // with 5 GeV cuts. all from NLO prog (born wgts used for LO)
-  float const xsWpLO  =  7.08;
-  float const xsWmLO  =  4.51;
-  float const xsWpNLO = 12.68;
-  float const xsWmNLO =  8.52;
+  //float const xsWpLO  =  7.08;
+  //float const xsWmLO  =  4.51;
+  //float const xsWpNLO = 12.68;
+  //float const xsWmNLO =  8.52;
 
   // Orig with 5 GeV cuts.
   //float const xsWpLO  =  8.78;
