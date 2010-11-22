@@ -227,7 +227,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
   float Sig = Gaus.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
   float BG  = Land.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
 
-  if (false) {
+  if (Obj.IsData) {
     TCanvas Can;
     Land.Draw();
     Gaus.Draw("same");
@@ -264,7 +264,7 @@ float LimitAtMass (FitObj const& Obj)
   Poisson.FixParameter(0, 1/Total);
 
   float mean = 0;
-  for ( ; Poisson.Integral(begin, mean) < 0.95; mean += 0.01) {}
+  for ( ; Poisson.Integral(begin, mean) < 0.95; mean += 0.1) {}
 
 
   float const Max = Poisson.GetMaximum();
@@ -320,7 +320,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
   float const BeginMass = 150;
   float const EndMass   = 450;
-  float const StepSize  =   5;
+  float const StepSize  =   10;
 
   for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
     fprintf(OutFile, "%10.3f ", ThisMass);
@@ -359,7 +359,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
   } else {
 
-    int const NPerSection = 3; // For 70 sections
+    int const NPerSection = 250; // For 70 sections
     //int const NPerSection = 500; // For 200
     int const Start = Section * NPerSection;
     int const End   = Start   + NPerSection;
@@ -391,9 +391,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
       }
       fprintf(OutFile, "\n");
       fflush(OutFile);
-      char BestFitHistName[100];
-      sprintf(BestFitHistName, "BestFitNEvents_%i.eps", ipe);
-      MakeGraph (GausMeanNGaus, "Number of signal events", "Gaus mean [GeV]", " Number of signal events", BestFitHistName);
+      char FitHistName[100];
+      sprintf(FitHistName, "Limit95NEvents_%i.eps", ipe);
+      MakeGraph (GausMeanNGaus, "95\% CL Number of signal events", "Gaus mean [GeV]", "95\% CL Number of signal events", FitHistName);
 
     }
   }
