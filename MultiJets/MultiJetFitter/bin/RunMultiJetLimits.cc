@@ -164,7 +164,7 @@ void SetFitObjParams (FitObj& MyFitObj)
 
   if (false) {
     TF1 Land("land", "[0]*TMath::Landau(x, [1], [2], 1)", MyFitObj.Hist->GetXaxis()->GetXmin(), MyFitObj.Hist->GetXaxis()->GetXmax());
-    Land.SetParameter(0, MyFitObj.Hist->GetEntries());
+    Land.SetParameter(0, MyFitObj.Hist->GetEntries() / MyFitObj.Hist->GetBinWidth(0));
     Land.SetParameter(1, MyFitObj.Hist->GetMean());
     Land.SetParameter(2, MyFitObj.Hist->GetRMS());
 
@@ -174,9 +174,9 @@ void SetFitObjParams (FitObj& MyFitObj)
     MyFitObj.lmpv   = Land.GetParameter(1);
     MyFitObj.lsigma = Land.GetParameter(2);
   } else {
-    MyFitObj.nland  = 209.245;
-    MyFitObj.lmpv   = 176.320;
-    MyFitObj.lsigma = 37.1101;
+    MyFitObj.nland  = 7.76513e+03;
+    MyFitObj.lmpv   = 1.76320e+02;
+    MyFitObj.lsigma = 3.71101e+01;
   }
 
   //TCanvas Can;
@@ -202,7 +202,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
   LandGaus.FixParameter(1, Obj.lmpv);
   LandGaus.SetParameter(2, Obj.lsigma);
   LandGaus.SetParLimits(2, Obj.lsigma*0.97, Obj.lsigma*1.03);
-  LandGaus.SetParameter(3, 200);
+  LandGaus.SetParameter(3, 20);
   LandGaus.SetParLimits(3, 0, 1000);
   LandGaus.FixParameter(4, Obj.gmean);
   LandGaus.SetParameter(5, (Obj.gsigmaRange.first + Obj.gsigmaRange.second)/2);
@@ -227,11 +227,21 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
   float Sig = Gaus.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
   float BG  = Land.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
 
+
+  printf("SigBG LandTotal: %12.3f %12.3f %12.3f\n", Sig, BG, Land.Integral(0, Obj.Hist->GetXaxis()->GetXmax()) / Obj.Hist->GetBinWidth(0));
+
   if (Obj.IsData) {
     TCanvas Can;
-    Land.Draw();
+    Obj.Hist->Draw();
+    //Land.FixParameter(0, LandGaus.GetParameter(0));
+    //Gaus.FixParameter(3, LandGaus.GetParameter(3));
+    LandGaus.Draw("same");
+    Land.SetLineStyle(2);
+    Land.Draw("same");
+    Gaus.SetLineColor(2);
     Gaus.Draw("same");
-    Obj.Hist->Draw("same");
+
+    //Gaus.Draw("same");
     char LandGausHistName[100];
     if (Obj.Section < 0) {
       sprintf(LandGausHistName, "LandGaus_%i_Data.eps", (int) Obj.gmean);
@@ -239,9 +249,13 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
       sprintf(LandGausHistName, "LandGaus_%i_%i.eps", (int) Obj.gmean, Obj.ipe);
     }
     Can.SaveAs(LandGausHistName);
+    std::cout << "MYLimit norms: " << Obj.Hist->Integral() << "  "
+      << LandGaus.GetParameter(0) << "  " 
+      << LandGaus.GetParameter(1) << "  " 
+      << LandGaus.GetParameter(2) << "  " 
+      << Gaus.Integral(0, 3000) << "  "
+      << LandGaus.Integral(0, 3000) << std::endl;
   }
-
-  printf("SigBG LandTotal: %12.3f %12.3f %12.3f\n", Sig, BG, Land.Integral(0, 3000) / Obj.Hist->GetBinWidth(0));
 
   return std::make_pair<float, float>(Sig, BG);
 
@@ -252,7 +266,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
 float LimitAtMass (FitObj const& Obj)
 {
   float const begin = 0;
-  float const end = 100;
+  float const end = 400;
 
   std::pair<float, float> SigBG = BestFitSigBG(Obj);
   TF1 Poisson("land", "[0]*TMath::Poisson([1], [2]+x)", begin, end);
@@ -264,7 +278,7 @@ float LimitAtMass (FitObj const& Obj)
   Poisson.FixParameter(0, 1/Total);
 
   float mean = 0;
-  for ( ; Poisson.Integral(begin, mean) < 0.95; mean += 0.1) {}
+  for ( ; Poisson.Integral(begin, mean) < 0.95; mean += 0.01) {}
 
 
   float const Max = Poisson.GetMaximum();
@@ -335,7 +349,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
   if (Section < 0) {
     std::vector< std::pair<float, float> > GausMeanNGaus;
 
-    for (float ThisMass = BeginMass; ThisMass < EndMass; ThisMass += StepSize) {
+    for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
       TH1D* DataTH1 = GetHistForMjjj(ThisMass, &InFile, -1);
       if (!DataTH1) {
         std::cerr << "ERROR: cannot get data histogram: " << std::endl;
@@ -351,15 +365,15 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
       MyFitObj.Section = Section;
 
       Limit = LimitAtMass(MyFitObj);
-      printf("DataLimit %9i %12.4f\n", (int) ThisMass, Limit);
+      printf("MYLimit %9i %12.4f\n", (int) ThisMass, Limit);
       fprintf(OutFile, "%10E ", Limit);
       GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, Limit));
     }
-    MakeGraph (GausMeanNGaus, "95% C.L. Number of signal events", "Gaus mean [GeV]", " Number of signal events", "LimitNEvents.eps");
+    MakeGraph (GausMeanNGaus, "95% C.L. Number of signal events", "Gaus mean [GeV]", " Number of signal events", "Limit95NEvents_Data.eps");
 
   } else {
 
-    int const NPerSection = 250; // For 70 sections
+    int const NPerSection = 100; // For 70 sections
     //int const NPerSection = 500; // For 200
     int const Start = Section * NPerSection;
     int const End   = Start   + NPerSection;
@@ -368,7 +382,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
       std::vector< std::pair<float, float> > GausMeanNGaus;
 
-      for (float ThisMass = BeginMass; ThisMass < EndMass; ThisMass += StepSize) {
+      for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
         TH1D* HistPE = GetHistForMjjj(ThisMass, &InFile, ipe);
         if (!HistPE) {
           std::cerr << "ERROR: cannot get PE: " << ipe << std::endl;
@@ -385,15 +399,17 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
         MyFitObj.ipe = ipe;
 
         Limit = LimitAtMass(MyFitObj);
-        printf("PELimit %9i %9i %12.4f\n", ipe, (int) ThisMass, Limit);
+        printf("MYLimit %9i %9i %12.4f\n", ipe, (int) ThisMass, Limit);
         fprintf(OutFile, "%10E ", Limit);
         GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, Limit));
       }
       fprintf(OutFile, "\n");
       fflush(OutFile);
-      char FitHistName[100];
-      sprintf(FitHistName, "Limit95NEvents_%i.eps", ipe);
-      MakeGraph (GausMeanNGaus, "95\% CL Number of signal events", "Gaus mean [GeV]", "95\% CL Number of signal events", FitHistName);
+      if (ipe % 1000 == 0) {
+        char FitHistName[100];
+        sprintf(FitHistName, "Limit95NEvents_%i.eps", ipe);
+        MakeGraph (GausMeanNGaus, "95\% CL Number of signal events", "Gaus mean [GeV]", "95\% CL Number of signal events", FitHistName);
+      }
 
     }
   }

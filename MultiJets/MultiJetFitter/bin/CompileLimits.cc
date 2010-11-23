@@ -52,7 +52,7 @@ float Quantile (std::vector<float> const& Vec, float Q)
 
 
 
-int CompileLimits (TString const OutFileName, TString const DataFileName, std::vector<TString>&  PEFileNames)
+int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileNames)
 {
   // some variabes we'll read from the file
   int ipe;
@@ -86,7 +86,7 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
       std::getline(InFile, tmp);
       InStream.str(tmp);
       while (InStream >> mass) {
-        std::cout << mass << std::endl;
+        std::cout << "Mass found: " << mass << std::endl;
         Masses.push_back(mass);
       }
       NMasses = Masses.size();
@@ -123,7 +123,6 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
   for (size_t imass = 0; imass < NMasses; ++imass) {
     std::cout << "Sorting PEs for Mass " << Masses[imass] << std::endl;
     std::sort(PE[imass].begin(), PE[imass].end());
-    //std::reverse(PE[imass].begin(), PE[imass].end());
   }
 
   // Make and fill histogram
@@ -143,11 +142,18 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
 
   // make a line for data
   std::vector<TLine*> Line;
+  std::vector<TLine*> MLinePE;
   Line.resize(NMasses);
+  MLinePE.resize(NMasses);
   for (size_t imass = 0; imass < NMasses; ++imass) {
     Line[imass] = new TLine(Data[imass], 0, Data[imass], Hist[imass]->GetMaximum());
-    Line[imass]->SetLineColor(2);
+    Line[imass]->SetLineColor(1);
     Line[imass]->SetLineWidth(2);
+    float const MedianPE = Median(PE[imass]);
+    MLinePE[imass] = new TLine(MedianPE, 0, MedianPE, Hist[imass]->GetMaximum());
+    MLinePE[imass]->SetLineColor(2);
+    MLinePE[imass]->SetLineWidth(2);
+    MLinePE[imass]->SetLineStyle(2);
   }
 
   // Make canvas, plot histogram, and save canvas
@@ -157,6 +163,7 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
     Can.cd();
     Hist[imass]->Draw("hist");
     Line[imass]->Draw("same");
+    MLinePE[imass]->Draw("same");
     sprintf(BUFF, "LimitsPlot_%i.eps", (int) Masses[imass]);
     Can.SaveAs(BUFF);
   }
@@ -164,7 +171,7 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
 
   FILE*  OutFile = fopen("Limits.dat", "w");
   if (OutFile == NULL) {
-    std::cerr << "ERROR: cannot open output file: " << OutFileName << std::endl;
+    std::cerr << "ERROR: cannot open output file" << std::endl;
     exit(1);
   }
   fprintf(OutFile, "Test\n");
@@ -179,7 +186,7 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
   fclose(OutFile);
 
 
-  for (size_t i = 0; i != NMasses; ++i) std::cout << "MQ: " << Median(PE[i]) << "  " << Quantile(PE[i],0.5) << "  " << Quantile(PE[i],-0.5) << std::endl;
+  for (size_t i = 0; i != NMasses; ++i) std::cout << Masses[i] << "  MQ: " << Median(PE[i]) << "  " << Quantile(PE[i],0.5) << "  " << Quantile(PE[i],-0.5) << std::endl;
 
   return 0;
 }
@@ -188,18 +195,17 @@ int CompileLimits (TString const OutFileName, TString const DataFileName, std::v
 int main (int argc, char* argv[])
 {
   if (argc < 4) {
-    std::cerr << "Usage: " << argv[0] << " [Outname.eps] [DataFile.dat] [PEFile.dat]s" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [DataFile.dat] [PEFile.dat]s" << std::endl;
     return 1;
   }
 
-  TString const OutFileName = argv[1];
-  TString const DataFileName = argv[2];
+  TString const DataFileName = argv[1];
   std::vector<TString> PEFiles;
-  for (int i = 3; i < argc; ++i) {
+  for (int i = 2; i < argc; ++i) {
     PEFiles.push_back(argv[i]);
   }
 
-  CompileLimits(OutFileName, DataFileName, PEFiles);
+  CompileLimits(DataFileName, PEFiles);
 
   return 0;
 }

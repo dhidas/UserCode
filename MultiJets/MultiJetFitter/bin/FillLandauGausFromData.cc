@@ -75,7 +75,7 @@ int FillLandauGaus (TString const InFileName)
 
     int   const NData = (int) Hist->Integral();
 
-    int   const NPE = 10;
+    int   const NPE = 10000;
 
     char BUFF[200];
     float ThisLMPV;

@@ -57,10 +57,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (false) {
-    HiggsLimits.DrawFrame(150,0.1,450,190);
+    HiggsLimits.DrawFrame(150,0.1,450,250);
     HiggsLimits.SetLogy(0);
   } else {
-    HiggsLimits.DrawFrame(150,0,450,190);
+    HiggsLimits.DrawFrame(150,0,450,250);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
