@@ -49,7 +49,7 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
 {
   // Get the range for the gaussian width you want to use for a given Mjjj
 
-  return std::make_pair<float, float>(8, 25);
+  return std::make_pair<float, float>(5, 15);
   if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
   if (Mjjj < 350) return std::make_pair<float, float>(15, 20);
   return std::make_pair<float, float>(20, 25);
@@ -198,12 +198,13 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
   TF1 LandGaus("LandGaus", "[0]*TMath::Landau(x, [1], [2], 1) + [3]*TMath::Gaus(x, [4], [5], 1)", Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
   //LandGaus.FixParameter(0, Obj.Hist->Integral() * Obj.Hist->GetBinWidth(0));
   LandGaus.SetParameter(0, Obj.nland);
-  LandGaus.SetParLimits(0, Obj.nland * 0.97, Obj.nland * 1.03);
+  LandGaus.SetParLimits(0, Obj.nland * 0.97, Obj.nland * 1.07);
   LandGaus.FixParameter(1, Obj.lmpv);
+  //LandGaus.FixParameter(2, Obj.lsigma);
   LandGaus.SetParameter(2, Obj.lsigma);
   LandGaus.SetParLimits(2, Obj.lsigma*0.97, Obj.lsigma*1.03);
-  LandGaus.SetParameter(3, 20);
-  LandGaus.SetParLimits(3, 0, 1000);
+  LandGaus.SetParameter(3, 0);
+  LandGaus.SetParLimits(3, -1000, 1000);
   LandGaus.FixParameter(4, Obj.gmean);
   LandGaus.SetParameter(5, (Obj.gsigmaRange.first + Obj.gsigmaRange.second)/2);
   LandGaus.SetParLimits(5, Obj.gsigmaRange.first, Obj.gsigmaRange.second);
@@ -211,6 +212,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
   //Obj->Hist->Fit("land");
   TH1D* FitHist = (TH1D*) Obj.Hist->Clone();
   FitHist->Fit("LandGaus");
+
 
   TF1 Land("Land", "[0]*TMath::Landau(x, [1], [2], 1)", Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
   TF1 Gaus("Gaus", "[3]*TMath::Gaus(x, [4], [5], 1)",   Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
@@ -229,6 +231,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj)
 
 
   printf("SigBG LandTotal: %12.3f %12.3f %12.3f\n", Sig, BG, Land.Integral(0, Obj.Hist->GetXaxis()->GetXmax()) / Obj.Hist->GetBinWidth(0));
+  //if (Obj.gmean == 150) std::cout << "EX150 " << LandGaus.GetParameter(5) << std::endl;
 
   if (Obj.IsData) {
     TCanvas Can;
@@ -272,7 +275,7 @@ float LimitAtMass (FitObj const& Obj)
   TF1 Poisson("land", "[0]*TMath::Poisson([1], [2]+x)", begin, end);
   Poisson.FixParameter(0, 1);
   Poisson.FixParameter(1, SigBG.first + SigBG.second);
-  Poisson.FixParameter(2, SigBG.first);
+  Poisson.FixParameter(2, SigBG.second);
 
   float const Total = Poisson.Integral(begin, end);
   Poisson.FixParameter(0, 1/Total);
@@ -286,8 +289,10 @@ float LimitAtMass (FitObj const& Obj)
   float const Mass = Obj.gmean;
 
   if (Obj.IsData) {
+    //if (!Obj.IsData && Obj.ipe % 100 == 0) {
     char HistName[200];
     sprintf(HistName, "CL95_%i.eps", (int) Mass);
+    //sprintf(HistName, "CL95_%i_%i.eps", (int) Mass, Obj.ipe);
     TCanvas Can;
     Poisson.Draw();
     TLine Line(mean, 0, mean, Max);
@@ -295,6 +300,10 @@ float LimitAtMass (FitObj const& Obj)
     Line.SetLineWidth(2);
     Line.Draw("same");
     Can.SaveAs(HistName);
+  }
+
+  if (Obj.gmean == 150) {
+    printf("EX150 Sig BG Limit width %12.3f %12.3f %12.3f %12.3f\n", SigBG.first, SigBG.second, mean, Obj.gsigma);
   }
 
   return mean;
@@ -373,7 +382,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
   } else {
 
-    int const NPerSection = 100; // For 70 sections
+    int const NPerSection = 150; // For 70 sections
     //int const NPerSection = 500; // For 200
     int const Start = Section * NPerSection;
     int const End   = Start   + NPerSection;

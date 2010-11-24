@@ -143,8 +143,16 @@ int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileName
   // make a line for data
   std::vector<TLine*> Line;
   std::vector<TLine*> MLinePE;
+  std::vector<TLine*> M2LinePE;
+  std::vector<TLine*> M1LinePE;
+  std::vector<TLine*> P1LinePE;
+  std::vector<TLine*> P2LinePE;
   Line.resize(NMasses);
   MLinePE.resize(NMasses);
+  M2LinePE.resize(NMasses);
+  M1LinePE.resize(NMasses);
+  P1LinePE.resize(NMasses);
+  P2LinePE.resize(NMasses);
   for (size_t imass = 0; imass < NMasses; ++imass) {
     Line[imass] = new TLine(Data[imass], 0, Data[imass], Hist[imass]->GetMaximum());
     Line[imass]->SetLineColor(1);
@@ -154,6 +162,26 @@ int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileName
     MLinePE[imass]->SetLineColor(2);
     MLinePE[imass]->SetLineWidth(2);
     MLinePE[imass]->SetLineStyle(2);
+    float const M2PE = Quantile(PE[imass],  0.95);
+    float const M1PE = Quantile(PE[imass],  0.67);
+    float const P1PE = Quantile(PE[imass], -0.67);
+    float const P2PE = Quantile(PE[imass], -0.95);
+    M2LinePE[imass] = new TLine(M2PE, 0, M2PE, Hist[imass]->GetMaximum());
+    M2LinePE[imass]->SetLineColor(3);
+    M2LinePE[imass]->SetLineWidth(1);
+    M2LinePE[imass]->SetLineStyle(3);
+    P2LinePE[imass] = new TLine(P2PE, 0, P2PE, Hist[imass]->GetMaximum());
+    P2LinePE[imass]->SetLineColor(3);
+    P2LinePE[imass]->SetLineWidth(1);
+    P2LinePE[imass]->SetLineStyle(3);
+    M1LinePE[imass] = new TLine(M1PE, 0, M1PE, Hist[imass]->GetMaximum());
+    M1LinePE[imass]->SetLineColor(4);
+    M1LinePE[imass]->SetLineWidth(1);
+    M1LinePE[imass]->SetLineStyle(2);
+    P1LinePE[imass] = new TLine(P1PE, 0, P1PE, Hist[imass]->GetMaximum());
+    P1LinePE[imass]->SetLineColor(4);
+    P1LinePE[imass]->SetLineWidth(1);
+    P1LinePE[imass]->SetLineStyle(2);
   }
 
   // Make canvas, plot histogram, and save canvas
@@ -164,6 +192,10 @@ int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileName
     Hist[imass]->Draw("hist");
     Line[imass]->Draw("same");
     MLinePE[imass]->Draw("same");
+    M2LinePE[imass]->Draw("same");
+    M1LinePE[imass]->Draw("same");
+    P1LinePE[imass]->Draw("same");
+    P2LinePE[imass]->Draw("same");
     sprintf(BUFF, "LimitsPlot_%i.eps", (int) Masses[imass]);
     Can.SaveAs(BUFF);
   }
