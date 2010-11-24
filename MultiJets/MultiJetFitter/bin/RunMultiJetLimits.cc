@@ -74,8 +74,10 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File, int const iPE)
   char BUFF[200];
   //if (iPE < 0)          sprintf(BUFF,  "Mjjj_20_20_%i", GetDiagForMjjj(Mjjj));
   //else                  sprintf(BUFF, "PE_20_20_%i_%i", GetDiagForMjjj(Mjjj), iPE);
-  if (iPE < 0)          sprintf(BUFF,  "Mjjj_20_20_200");
-  else                  sprintf(BUFF, "PE_20_20_200_%i", iPE);
+  //if (iPE < 0)          sprintf(BUFF,  "Mjjj_20_20_200");
+  //else                  sprintf(BUFF, "PE_20_20_200_%i", iPE);
+  if (iPE < 0)          sprintf(BUFF,  "Mjjj_45_20_120");
+  else                  sprintf(BUFF, "PE_45_20_120_%i", iPE);
 
   std::cout << "Getting Hist: " << BUFF << "  for mass " << Mjjj << std::endl;
   TH1D* Hist = (TH1D*) File->Get(BUFF);
@@ -174,9 +176,15 @@ void SetFitObjParams (FitObj& MyFitObj)
     MyFitObj.lmpv   = Land.GetParameter(1);
     MyFitObj.lsigma = Land.GetParameter(2);
   } else {
-    MyFitObj.nland  = 7.76513e+03;
-    MyFitObj.lmpv   = 1.76320e+02;
-    MyFitObj.lsigma = 3.71101e+01;
+    // 20_20_200
+    //MyFitObj.nland  = 7.76513e+03;
+    //MyFitObj.lmpv   = 1.76320e+02;
+    //MyFitObj.lsigma = 3.71101e+01;
+
+    // 45_20_120
+    MyFitObj.nland  = 6.24861e+03;
+    MyFitObj.lmpv   = 1.74180e+02;
+    MyFitObj.lsigma = 4.05476e+01;
   }
 
   //TCanvas Can;

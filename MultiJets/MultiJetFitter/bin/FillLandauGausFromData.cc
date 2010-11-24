@@ -36,16 +36,8 @@ int FillLandauGaus (TString const InFileName)
 
 
   std::vector<TString> HistNames;
-  HistNames.push_back("20_20_160");
-  HistNames.push_back("20_20_180");
   HistNames.push_back("20_20_200");
-  HistNames.push_back("20_20_220");
-  HistNames.push_back("20_20_240");
-  HistNames.push_back("20_20_260");
-  HistNames.push_back("20_20_280");
-  HistNames.push_back("20_20_300");
-  HistNames.push_back("20_20_320");
-  HistNames.push_back("20_20_340");
+  HistNames.push_back("45_20_120");
 
 
   for (size_t iDiag = 0; iDiag != HistNames.size(); ++iDiag) {
