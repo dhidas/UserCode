@@ -8,6 +8,7 @@
 
 
 #include <iostream>
+#include <cmath>
 
 #include "TF1.h"
 #include "TH1D.h"
@@ -18,6 +19,7 @@
 #include "TMath.h"
 #include "TFitResult.h"
 #include "TLine.h"
+#include "TRandom.h"
 
 
 
@@ -353,6 +355,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
     exit(1);
   }
 
+  gRandom->SetSeed(fmod(time(NULL),100000));
+
+
 
   // Setup the output text file
   // Output file name
@@ -419,7 +424,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
       Limit = LimitAtMass(MyFitObj);
       printf("MYLimit %9i %12.4f\n", (int) ThisMass, Limit);
       fprintf(OutFile, "%10E ", Limit);
-      GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, Limit));
+      GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, Limit / (Acceptance * Luminosity)));
     }
     MakeGraph (GausMeanNGaus, "95% C.L. Number of signal events", "Gaus mean [GeV]", " Number of signal events", "Limit95NEvents_Data.eps");
 
@@ -455,7 +460,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
           std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
           printf("MYLimit NEvents %9i %9i %12.4f\n", ipe, (int) ThisMass, SigBG.first);
           fprintf(OutFile2, "%10E ", SigBG.first);
-          float const ThisAcceptance = DoAccSmear ? Acceptance * Rand.Uniform(Acceptance - AcceptErr, Acceptance + AcceptErr) : Acceptance;
+          float const ThisAcceptance = DoAccSmear ? Acceptance * gRandom->Uniform(Acceptance - AcceptErr, Acceptance + AcceptErr) : Acceptance;
           GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, SigBG.first / (Luminosity * ThisAcceptance) ) );
         }
         if (false) {
