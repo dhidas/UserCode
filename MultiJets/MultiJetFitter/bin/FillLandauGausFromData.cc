@@ -24,7 +24,7 @@ int FillLandauGaus (TString const InFileName)
     return -1;
   }
 
-  TFile f("DeanDataAndPE.root", "recreate");
+  TFile f("DeanDataAndPE_3.root", "recreate");
   if (!f.IsOpen()) {
     std::cerr << "ERROR: cannot open output file" << std::endl;
     return -1;
@@ -52,7 +52,7 @@ int FillLandauGaus (TString const InFileName)
     HistClone->SetDirectory(&f);
     HistClone->Write();
 
-    TF1 Land("land", "[0]*TMath::Landau(x, [1], [2], 1)", 0, 450);
+    TF1 Land("land", "[0]*TMath::Landau(x, [1], [2], 1)", Hist->GetXaxis()->GetXmin(), Hist->GetXaxis()->GetXmax());
     Land.SetParameter(0, Hist->GetEntries());
     Land.SetParameter(1, Hist->GetMean());
     Land.SetParameter(2, Hist->GetRMS());
@@ -72,17 +72,19 @@ int FillLandauGaus (TString const InFileName)
     char BUFF[200];
     float ThisLMPV;
     float ThisLSigma;
-    bool const DoSyst = true;
+    bool const DoSyst = false;
     for (int ipe = 0; ipe != NPE; ++ipe) {
       if (ipe % 1000 == 0) {
         std::cout << HistNames[iDiag] << " Filling PE: " << ipe << std::endl;
       }
       sprintf(BUFF, "PE_%s_%i", HistNames[iDiag].Data(), ipe);
       TH1F h(BUFF, BUFF, Hist->GetNbinsX(), Hist->GetXaxis()->GetXmin(), Hist->GetXaxis()->GetXmax());
-      //h.SetDirectory(&f);
-      for (int i = 0; i != NData; ++i) {
-        ThisLMPV   = DoSyst ?    lmpv + r.Gaus(0, elmpv) : lmpv;
-        ThisLSigma = DoSyst ? lsigma + r.Gaus(0, elsigma) : lsigma;
+
+      ThisLMPV   = DoSyst ?    lmpv + r.Gaus(0, elmpv) : lmpv;
+      ThisLSigma = DoSyst ? lsigma + r.Gaus(0, elsigma) : lsigma;
+
+      int NDataThisPE = NData;//r.Poisson(NData);
+      for (int i = 0; i != NDataThisPE; ++i) {
         h.Fill( r.Landau(ThisLMPV, ThisLSigma) );
       }
       h.Write();
