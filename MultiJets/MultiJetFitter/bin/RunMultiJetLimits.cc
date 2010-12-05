@@ -39,9 +39,12 @@ class FitObj : public TObject
     float gmean;
     float gsigma;
     std::pair<float, float> gsigmaRange;
-    bool IsData;
-    int Section;
-    int ipe;
+    bool  IsData;
+    int   Section;
+    int   ipe;
+    int   nbins;
+    float xmin;
+    float xmax;
 };
 
 
@@ -69,6 +72,36 @@ int GetDiagForMjjj (float const Mjjj)
   else if (Mjjj < 400) return 240;
   else                 return 260;
 }
+
+
+
+TH1D* GetPE (FitObj const& Obj, bool const DoSyst)
+{
+  TF1 Land("Land", "[0]*TMath::Landau(x, [1], [2], 1)", Obj.xmin, Obj.xmax);
+
+  if (DoSyst) {
+    Land.FixParameter(0, Obj.nland  * (1.0 + gRandom->Gaus(0, 0.10)));
+    Land.FixParameter(1, Obj.lmpv   * (1.0 + gRandom->Gaus(0, 0.01)));
+    Land.FixParameter(2, Obj.lsigma * (1.0 + gRandom->Gaus(0, 0.10)));
+  } else {
+    Land.FixParameter(0, Obj.nland);
+    Land.FixParameter(1, Obj.lmpv);
+    Land.FixParameter(2, Obj.lsigma);
+  }
+
+  char BUFF[40];
+  sprintf(BUFF, "PE_%i", Obj.ipe);
+  TH1D* hPE = new TH1D(BUFF, BUFF, Obj.nbins, Obj.xmin, Obj.xmax);
+
+  float xval;
+  for (int ibin = 1; ibin <= Obj.nbins; ++ibin) {
+    xval = Obj.xmin + (Obj.xmax - Obj.xmin) / ((float) Obj.nbins) * (ibin - 0.5);
+    hPE->SetBinContent(ibin, gRandom->Poisson( Land.Eval(xval) ) );
+  }
+
+  return hPE;
+}
+
 
 
 TH1D* GetHistForMjjj (float const Mjjj, TFile* File, int const iPE)
@@ -355,7 +388,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
     exit(1);
   }
 
-  gRandom->SetSeed(fmod(time(NULL),100000));
+  //gRandom->SetSeed((int) fmod(time(NULL),100000));
+  gRandom->SetSeed(5 * Section);
 
 
 
@@ -389,7 +423,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
   float const Acceptance = 1;
   float const Luminosity = 1;
   float const AcceptErr  = 0.30;
-  bool  const DoAccSmear = true;
+  bool  const DoAccSmear = false;
 
   for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
     fprintf(OutFile, "%10.3f ", ThisMass);
@@ -422,9 +456,10 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
       MyFitObj.Section = Section;
 
       Limit = LimitAtMass(MyFitObj);
-      printf("MYLimit %9i %12.4f\n", (int) ThisMass, Limit);
-      fprintf(OutFile, "%10E ", Limit);
-      GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, Limit / (Acceptance * Luminosity)));
+      float const XSecLimit = Limit / (Luminosity * Acceptance);
+      printf("MYLimit %9i %12.4f\n", (int) ThisMass, XSecLimit);
+      fprintf(OutFile, "%10E ", XSecLimit);
+      GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, XSecLimit));
     }
     MakeGraph (GausMeanNGaus, "95% C.L. Number of signal events", "Gaus mean [GeV]", " Number of signal events", "Limit95NEvents_Data.eps");
 
@@ -440,28 +475,36 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
       std::vector< std::pair<float, float> > GausMeanNGaus;
       std::vector< std::pair<float, float> > GausMeanBestFit;
 
+
+      FitObj MyFitObj;
+      MyFitObj.Hist = GetPE(MyFitObj, false);
+      SetFitObjParams(MyFitObj);
+      MyFitObj.IsData = false;
+      MyFitObj.Section = Section;
+      MyFitObj.ipe = ipe;
+
+      MyFitObj.nbins =  300;
+      MyFitObj.xmin  =    0;
+      MyFitObj.xmax  = 3000;
+
       for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
-        TH1D* HistPE = GetHistForMjjj(ThisMass, &InFile, ipe);
-        if (!HistPE) {
+        //TH1D* HistPE = GetHistForMjjj(ThisMass, &InFile, ipe);
+        if (!MyFitObj.Hist) {
           std::cerr << "ERROR: cannot get PE: " << ipe << std::endl;
           exit(1);
         }
 
-        FitObj MyFitObj;
-        MyFitObj.Hist = HistPE;
-        SetFitObjParams(MyFitObj);
         MyFitObj.gmean = ThisMass;
         MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
-        MyFitObj.IsData = false;
-        MyFitObj.Section = Section;
-        MyFitObj.ipe = ipe;
 
         if (true) {
           std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
-          printf("MYLimit NEvents %9i %9i %12.4f\n", ipe, (int) ThisMass, SigBG.first);
-          fprintf(OutFile2, "%10E ", SigBG.first);
-          float const ThisAcceptance = DoAccSmear ? Acceptance * gRandom->Uniform(Acceptance - AcceptErr, Acceptance + AcceptErr) : Acceptance;
-          GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, SigBG.first / (Luminosity * ThisAcceptance) ) );
+          float const ThisAcceptance = DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
+          std::cout << "ThisAcceptance: " << ThisAcceptance << std::endl;
+          float const XSec = SigBG.first / (Luminosity * ThisAcceptance);
+          printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);
+          fprintf(OutFile2, "%10E ", XSec);
+          GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, XSec) );
         }
         if (false) {
           Limit = LimitAtMass(MyFitObj);

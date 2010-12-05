@@ -118,6 +118,9 @@ int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileName
     while (!InFile.eof()) {
       for (size_t imass = 0; imass < NMasses; ++imass) {
         InFile >> dtmp;
+        if (InFile.eof()) {
+          break;
+        }
         PE[imass].push_back(dtmp);
       }
     }
