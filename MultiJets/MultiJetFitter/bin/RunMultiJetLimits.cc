@@ -200,6 +200,7 @@ void SetFitObjParams (FitObj& MyFitObj)
   // Set the fig object parameters however you want
 
   if (false) {
+    // This is if you want to fit right now for some shape.
     TF1 Land("land", "[0]*TMath::Landau(x, [1], [2], 1)", MyFitObj.Hist->GetXaxis()->GetXmin(), MyFitObj.Hist->GetXaxis()->GetXmax());
     Land.SetParameter(0, MyFitObj.Hist->GetEntries() / MyFitObj.Hist->GetBinWidth(0));
     Land.SetParameter(1, MyFitObj.Hist->GetMean());
@@ -211,6 +212,8 @@ void SetFitObjParams (FitObj& MyFitObj)
     MyFitObj.lmpv   = Land.GetParameter(1);
     MyFitObj.lsigma = Land.GetParameter(2);
   } else {
+    // Hard code fit parameters
+
     // 20_20_200
     //MyFitObj.nland  = 7.76513e+03;
     //MyFitObj.lmpv   = 1.76320e+02;
@@ -243,37 +246,48 @@ void SetFitObjParams (FitObj& MyFitObj)
 std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal = false)
 {
 
+  // Landau plus gaus function
   TF1 LandGaus("LandGaus", "[0]*TMath::Landau(x, [1], [2], 1) + [3]*TMath::Gaus(x, [4], [5], 1)", Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
 
+  // This error taken from CDF code
   float err=0.000000001;
+
   //LandGaus.FixParameter(0, Obj.nland);
   LandGaus.SetParameter(0, Obj.nland);
   LandGaus.SetParLimits(0, Obj.nland - err, Obj.nland + err);
+
   //LandGaus.FixParameter(1, Obj.lmpv);
   LandGaus.SetParameter(1, Obj.lmpv);
   LandGaus.SetParLimits(1, Obj.lmpv - err, Obj.lmpv + err);
+
   //LandGaus.FixParameter(2, Obj.lsigma);
   LandGaus.SetParameter(2, Obj.lsigma);
   LandGaus.SetParLimits(2, Obj.lsigma - err, Obj.lsigma + err);
+
   LandGaus.SetParameter(3, 0);
   LandGaus.SetParLimits(3, -1000, 1000);
+
   //LandGaus.FixParameter(4, Obj.gmean);
   LandGaus.SetParameter(4, Obj.gmean);
   LandGaus.SetParLimits(4, Obj.gmean - 0.1, Obj.gmean + 0.1);
+
   LandGaus.SetParameter(5, (Obj.gsigmaRange.first + Obj.gsigmaRange.second)/2);
   LandGaus.SetParLimits(5, Obj.gsigmaRange.first, Obj.gsigmaRange.second);
 
-  //Obj->Hist->Fit("land");
-  TH1D* FitHist = (TH1D*) Obj.Hist->Clone();
-  FitHist->Fit("LandGaus", "QL");
+  // Fit the function to the histogram given
+  Obj.Hist->Fit("LandGaus", "QL");
+
 
   // Right here if you want the total integral no more is needed since the gaussian is normalized
   if (ReturnTotal) {
+    // Note that the landau is an approximation since the function is cut off at some x value..
+    // this returns the integral to infinity for both...
     return std::make_pair<float, float>(LandGaus.GetParameter(3) / Obj.Hist->GetBinWidth(0),
         LandGaus.GetParameter(0) / Obj.Hist->GetBinWidth(0));
   }
 
 
+  // Define landau and gaus given the parameters fo the fit
   TF1 Land("Land", "[0]*TMath::Landau(x, [1], [2], 1)", Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
   TF1 Gaus("Gaus", "[0]*TMath::Gaus(x, [1], [2], 1)",   Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
   Land.FixParameter(0, LandGaus.GetParameter(0));
@@ -283,32 +297,32 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal 
   Gaus.FixParameter(1, LandGaus.GetParameter(4));
   Gaus.FixParameter(2, LandGaus.GetParameter(5));
 
+  // Get the signal in +/- 1 sigma
   float const NGausTotal = LandGaus.GetParameter(3);
   float const Sig = 0.683 * NGausTotal / Obj.Hist->GetBinWidth(0);
 
+  // Need to know where to integrate the landau from and to
   float const begin = Obj.gmean - Gaus.GetParameter(2);
   float const end   = Obj.gmean + Gaus.GetParameter(2);
 
-  //float Sig = Gaus.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
-  float BG  = Land.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
+  // Get the background
+  float const BG = Land.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
 
 
-  printf("SigBG LandTotal: %12.3f %12.3f %12.3f\n", Sig, BG, Land.Integral(0, Obj.Hist->GetXaxis()->GetXmax()) / Obj.Hist->GetBinWidth(0));
-  //if (Obj.gmean == 150) std::cout << "EX150 " << LandGaus.GetParameter(5) << std::endl;
+  // If you want to see the signal and BG totals uncomment the following line
+  //printf("SigBG LandTotal: %12.3f %12.3f %12.3f\n", Sig, BG, Land.Integral(0, Obj.Hist->GetXaxis()->GetXmax()) / Obj.Hist->GetBinWidth(0));
 
   bool const DoAllPlots = false;
   if (Obj.IsData || DoAllPlots) {
+    // This just saves the plot for data, and optionally for all...if you reall want
     TCanvas Can;
     Obj.Hist->Draw();
-    //Land.FixParameter(0, LandGaus.GetParameter(0));
-    //Gaus.FixParameter(3, LandGaus.GetParameter(3));
     LandGaus.Draw("same");
     Land.SetLineStyle(2);
     Land.Draw("same");
     Gaus.SetLineColor(2);
     Gaus.Draw("same");
 
-    //Gaus.Draw("same");
     char LandGausHistName[100];
     if (Obj.Section < 0) {
       sprintf(LandGausHistName, "LandGaus_%i_Data.eps", (int) Obj.gmean);
@@ -316,14 +330,17 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal 
       sprintf(LandGausHistName, "LandGaus_%i_%i.eps", (int) Obj.gmean, Obj.ipe);
     }
     Can.SaveAs(LandGausHistName);
+
     std::cout << "MYLimit norms: " << Obj.Hist->Integral() << "  "
       << LandGaus.GetParameter(0) << "  " 
       << LandGaus.GetParameter(1) << "  " 
       << LandGaus.GetParameter(2) << "  " 
-      << Gaus.Integral(0, 3000) << "  "
-      << LandGaus.Integral(0, 3000) << std::endl;
+      //<< Gaus.Integral(0, 3000) << "  "
+      //<< LandGaus.Integral(0, 3000)
+      << std::endl;
   }
 
+  // return the signal and background pair
   return std::make_pair<float, float>(Sig, BG);
 
 }
@@ -332,31 +349,40 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal 
 
 float LimitAtMass (FitObj const& Obj)
 {
+  // Get the 95% limit given the best fit signal and BG.  This uses
+  // a poisson likelihood, which is integrated to 95%..
+
+  // You have to define where to integrate to and from.  The important part
+  // is the end or cutooff.  It must be practical to trust this.
   float const begin = 0;
   float const end = 60;
 
+  // Get the best fir signal and background
   std::pair<float, float> SigBG = BestFitSigBG(Obj);
+
+  // Define a poisson likelhood given the best fit parameters
   TF1 Poisson("land", "[0]*TMath::Poisson([1], [2]+x)", begin, end);
   Poisson.FixParameter(0, 1);
   Poisson.FixParameter(1, SigBG.first + SigBG.second);
   Poisson.FixParameter(2, SigBG.second);
 
+  // This is to normalize the poisson
   float const Total = Poisson.Integral(begin, end);
   Poisson.FixParameter(0, 1/Total);
 
+  // Integrate to 95% =)
   float mean = 0;
   for ( ; Poisson.Integral(begin, mean) < 0.95; mean += 0.01) {}
 
 
-  float const Max = Poisson.GetMaximum();
-
-  float const Mass = Obj.gmean;
 
   if (Obj.IsData) {
-    //if (!Obj.IsData && Obj.ipe % 100 == 0) {
+    // Let's draw these for data
+
+    float const Max = Poisson.GetMaximum();
+    float const Mass = Obj.gmean;
     char HistName[200];
     sprintf(HistName, "CL95_%i.eps", (int) Mass);
-    //sprintf(HistName, "CL95_%i_%i.eps", (int) Mass, Obj.ipe);
     TCanvas Can;
     Poisson.Draw();
     TLine Line(mean, 0, mean, Max);
@@ -366,10 +392,7 @@ float LimitAtMass (FitObj const& Obj)
     Can.SaveAs(HistName);
   }
 
-  if (Obj.gmean == 150) {
-    printf("EX150 Sig BG Limit width %12.3f %12.3f %12.3f %12.3f\n", SigBG.first, SigBG.second, mean, Obj.gsigma);
-  }
-
+  // Teturn the 95% limit
   return mean;
 }
 
@@ -396,22 +419,15 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
   // Setup the output text file
   // Output file name
   char OutFileName[200];
-  char OutFileName2[200];
   if (Section < 0) {
     sprintf(OutFileName, "DataLimits.dat");
   } else {
-    sprintf(OutFileName, "Limits_%i.dat", Section);
-    sprintf(OutFileName2, "LimitsNEvents_%i.dat", Section);
+    sprintf(OutFileName, "PELimits_%i.dat", Section);
   }
 
   FILE*  OutFile = fopen(OutFileName, "w");
-  FILE*  OutFile2 = fopen(OutFileName2, "w");
   if (OutFile == NULL) {
     std::cerr << "ERROR: cannot open output file: " << OutFileName << std::endl;
-    exit(1);
-  }
-  if (OutFile2 == NULL) {
-    std::cerr << "ERROR: cannot open output file: " << OutFileName2 << std::endl;
     exit(1);
   }
 
@@ -427,10 +443,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
   for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
     fprintf(OutFile, "%10.3f ", ThisMass);
-    fprintf(OutFile2, "%10.3f ", ThisMass);
   }
   fprintf(OutFile, "\n");
-  fprintf(OutFile2, "\n");
 
 
 
@@ -477,15 +491,15 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
 
       FitObj MyFitObj;
-      MyFitObj.Hist = GetPE(MyFitObj, false);
       SetFitObjParams(MyFitObj);
+      MyFitObj.ipe = ipe;
       MyFitObj.IsData = false;
       MyFitObj.Section = Section;
-      MyFitObj.ipe = ipe;
-
       MyFitObj.nbins =  300;
       MyFitObj.xmin  =    0;
       MyFitObj.xmax  = 3000;
+      MyFitObj.Hist = GetPE(MyFitObj, false);
+
 
       for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
         //TH1D* HistPE = GetHistForMjjj(ThisMass, &InFile, ipe);
@@ -497,26 +511,15 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
         MyFitObj.gmean = ThisMass;
         MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
 
-        if (true) {
-          std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
-          float const ThisAcceptance = DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
-          std::cout << "ThisAcceptance: " << ThisAcceptance << std::endl;
-          float const XSec = SigBG.first / (Luminosity * ThisAcceptance);
-          printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);
-          fprintf(OutFile2, "%10E ", XSec);
-          GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, XSec) );
-        }
-        if (false) {
-          Limit = LimitAtMass(MyFitObj);
-          printf("MYLimit %9i %9i %12.4f\n", ipe, (int) ThisMass, Limit);
-          fprintf(OutFile, "%10E ", Limit);
-          GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, Limit));
-        }
+        std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
+        float const ThisAcceptance = DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
+        float const XSec = SigBG.first / (Luminosity * ThisAcceptance);
+        printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);
+        fprintf(OutFile, "%10E ", XSec);
+        GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, XSec) );
       }
       fprintf(OutFile, "\n");
-      fprintf(OutFile2, "\n");
       fflush(OutFile);
-      fflush(OutFile2);
       if (ipe % 1000 == 0) {
         char FitHistName[100];
         sprintf(FitHistName, "Limit95NEvents_%i.eps", ipe);
@@ -527,7 +530,6 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
   }
 
   fclose(OutFile);
-  fclose(OutFile2);
 
   return 0;
 }
