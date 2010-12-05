@@ -23,10 +23,39 @@
 
 
 
+// Let's maks this self contained and put all function and class declaritions here
+
+// Object for fit stuff
+class FitObj;
+
+// In the order they appear in.
+std::pair<float, float> GetGausWidthRange (float const);
+int   GetDiagForMjjj (float const);
+TH1D* GetPE (FitObj const&);
+TH1D* GetHistForMjjj (float const, TFile*, int const);
+void  MakeGraph (std::vector< std::pair<float, float> > const&, TString const, TString const, TString const, TString const);
+
+template <class T> double KahanSummation(T, T);
+long double LogFactorial (int const);
+
+void  SetFitObjParams (FitObj&);
+
+std::pair<float, float> BestFitSigBG (FitObj const&, bool const ReturnTotal = false);
+
+float LimitAtMass (FitObj const&);
+int   RunMultiJetLimits (int const, TString const);
+
+
+
+
+
 
 
 class FitObj : public TObject
 {
+  // This is just a simple object to use in the fit.
+  // Just easier to pass things that way I think...
+
   public:
     FitObj () {};
     ~FitObj () {};
@@ -45,6 +74,8 @@ class FitObj : public TObject
     int   nbins;
     float xmin;
     float xmax;
+    bool  DoSyst;
+    bool  DoAccSmear;
 };
 
 
@@ -53,6 +84,7 @@ class FitObj : public TObject
 std::pair<float, float> GetGausWidthRange (float const Mjjj)
 {
   // Get the range for the gaussian width you want to use for a given Mjjj
+  // This will eventually be a parametrization
 
   return std::make_pair<float, float>(15, 15);
   if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
@@ -64,6 +96,9 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
 
 int GetDiagForMjjj (float const Mjjj)
 {
+  // Let's say you want to get the diag cut for a given mass..
+  // I was using this to choose which hist to use..
+
   if (Mjjj < 150)      return 140;
   else if (Mjjj < 200) return 160;
   else if (Mjjj < 250) return 180;
@@ -75,11 +110,17 @@ int GetDiagForMjjj (float const Mjjj)
 
 
 
-TH1D* GetPE (FitObj const& Obj, bool const DoSyst)
+TH1D* GetPE (FitObj const& Obj)
 {
+  // This function shall return a PE given the parameters in the FitObj
+  // YOU are the owner of this PE so please delete it.
+
+  // Landau function!
   TF1 Land("Land", "[0]*TMath::Landau(x, [1], [2], 1)", Obj.xmin, Obj.xmax);
 
-  if (DoSyst) {
+  // If we're doing systematics let's add some randomness.  These numbers taken from
+  // the CDF code
+  if (Obj.DoSyst) {
     Land.FixParameter(0, Obj.nland  * (1.0 + gRandom->Gaus(0, 0.10)));
     Land.FixParameter(1, Obj.lmpv   * (1.0 + gRandom->Gaus(0, 0.01)));
     Land.FixParameter(2, Obj.lsigma * (1.0 + gRandom->Gaus(0, 0.10)));
@@ -89,10 +130,12 @@ TH1D* GetPE (FitObj const& Obj, bool const DoSyst)
     Land.FixParameter(2, Obj.lsigma);
   }
 
+  // Create a histogram
   char BUFF[40];
   sprintf(BUFF, "PE_%i", Obj.ipe);
   TH1D* hPE = new TH1D(BUFF, BUFF, Obj.nbins, Obj.xmin, Obj.xmax);
 
+  // Fill the histogram
   float xval;
   for (int ibin = 1; ibin <= Obj.nbins; ++ibin) {
     xval = Obj.xmin + (Obj.xmax - Obj.xmin) / ((float) Obj.nbins) * (ibin - 0.5);
@@ -106,6 +149,10 @@ TH1D* GetPE (FitObj const& Obj, bool const DoSyst)
 
 TH1D* GetHistForMjjj (float const Mjjj, TFile* File, int const iPE)
 {
+  // This function will return a histogram, either data, or PE.
+  // Before, I had put all PEs in a file and ran over them.. now generate
+  // on the go.. so this may or may not be used for more than data..
+
   char BUFF[200];
   //if (iPE < 0)          sprintf(BUFF,  "Mjjj_20_20_%i", GetDiagForMjjj(Mjjj));
   //else                  sprintf(BUFF, "PE_20_20_%i_%i", GetDiagForMjjj(Mjjj), iPE);
@@ -155,13 +202,15 @@ void MakeGraph (std::vector< std::pair<float, float> > const& P, TString const T
 }
 
 
-template <class T>
-double KahanSummation(T begin, T end) {
+template <class T> double KahanSummation(T begin, T end)
+{
+  // You should be careful how you sum a lot of things...
+
   double result = 0.f;
 
   double c = 0.f;
   double y, t;
-  for(;begin != end; ++begin) {
+  for ( ; begin != end; ++begin) {
     y = *begin - c;
     t = result + y;
     c = (t - result) - y;
@@ -184,12 +233,14 @@ long double LogFactorial (int const in)
   Logs.reserve(in);
   long double LogSum = 0.0;
   for (int i=1; i <= in; ++i) {
-    //LogSum += TMath::Log(i);
     Logs.push_back(TMath::Log(i));
   }
 
+  // Are you really asking for the log factorial of such a large number?
+  // Shame on you.
   LogSum = KahanSummation(Logs.begin(), Logs.end());
 
+  // Fine, I'll give it to you anyway.
   return LogSum;
 }
 
@@ -198,6 +249,14 @@ long double LogFactorial (int const in)
 void SetFitObjParams (FitObj& MyFitObj)
 {
   // Set the fig object parameters however you want
+
+  // Some default parameters.  I could change how this is done someday because it shoudl be automatic
+  // ie done from the data hist.. I'll get to that later I guess
+  MyFitObj.nbins      =  300;
+  MyFitObj.xmin       =    0;
+  MyFitObj.xmax       = 3000;
+  MyFitObj.DoSyst     = true;
+  MyFitObj.DoAccSmear = true;
 
   if (false) {
     // This is if you want to fit right now for some shape.
@@ -243,7 +302,7 @@ void SetFitObjParams (FitObj& MyFitObj)
 
 
 
-std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal = false)
+std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 {
 
   // Landau plus gaus function
@@ -411,8 +470,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
     exit(1);
   }
 
-  //gRandom->SetSeed((int) fmod(time(NULL),100000));
-  gRandom->SetSeed(5 * Section);
+  // Set the random seed.
+  //gRandom->SetSeed(5 * Section);
+  gRandom->SetSeed( (Section + 2) * (int) fmod(time(NULL),100000));
 
 
 
@@ -425,22 +485,24 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
     sprintf(OutFileName, "PELimits_%i.dat", Section);
   }
 
+  // Open the output text file for this section
   FILE*  OutFile = fopen(OutFileName, "w");
   if (OutFile == NULL) {
     std::cerr << "ERROR: cannot open output file: " << OutFileName << std::endl;
     exit(1);
   }
 
-
+  // These numbers are what range you want to calculate limits for.
   float const BeginMass = 150;
   float const EndMass   = 450;
   float const StepSize  =  10;
 
+  // Maybe these will be more realistic someday
   float const Acceptance = 1;
   float const Luminosity = 1;
   float const AcceptErr  = 0.30;
-  bool  const DoAccSmear = false;
 
+  // Print the masses to the text file
   for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
     fprintf(OutFile, "%10.3f ", ThisMass);
   }
@@ -450,17 +512,23 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
 
   // Which section is this... data or PE?
-  float Limit;
   if (Section < 0) {
+    // This is data
+
+    // Something to keep track of the limits
     std::vector< std::pair<float, float> > GausMeanNGaus;
 
+    // Run through the masses
     for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
+
+      // Grab the data hist
       TH1D* DataTH1 = GetHistForMjjj(ThisMass, &InFile, -1);
       if (!DataTH1) {
         std::cerr << "ERROR: cannot get data histogram: " << std::endl;
         exit(1);
       }
 
+      // Setup FitObj
       FitObj MyFitObj;
       MyFitObj.Hist = DataTH1;
       SetFitObjParams(MyFitObj);
@@ -469,66 +537,94 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
       MyFitObj.IsData = true;
       MyFitObj.Section = Section;
 
-      Limit = LimitAtMass(MyFitObj);
+      // Calcuate the limit for this mass
+      float const Limit = LimitAtMass(MyFitObj);
+
+      // Technically I guess a cross section//
       float const XSecLimit = Limit / (Luminosity * Acceptance);
+
+      // Print that out
       printf("MYLimit %9i %12.4f\n", (int) ThisMass, XSecLimit);
       fprintf(OutFile, "%10E ", XSecLimit);
+
+      // Save it to our little friendly vector
       GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, XSecLimit));
     }
+
+    // May as well plot the limit as a functino of mass..
     MakeGraph (GausMeanNGaus, "95% C.L. Number of signal events", "Gaus mean [GeV]", " Number of signal events", "Limit95NEvents_Data.eps");
 
   } else {
+    // This is for PEs
 
+    // This just defines how many to run per section
     int const NPerSection = 100;
-    //int const NPerSection = 500; // For 200
     int const Start = Section * NPerSection;
     int const End   = Start   + NPerSection;
 
+    // Set the basic fit obj parameters
+    FitObj MyFitObj;
+    SetFitObjParams(MyFitObj);
+    MyFitObj.IsData = false;
+    MyFitObj.Section = Section;
+
+    // Let's run some PEs
     for (int ipe = Start; ipe != End; ++ipe) {
 
-      std::vector< std::pair<float, float> > GausMeanNGaus;
+      // Keep track of the best fit by mass for each PE just in case
       std::vector< std::pair<float, float> > GausMeanBestFit;
 
-
-      FitObj MyFitObj;
-      SetFitObjParams(MyFitObj);
+      // Set the PE number and get a PE
       MyFitObj.ipe = ipe;
-      MyFitObj.IsData = false;
-      MyFitObj.Section = Section;
-      MyFitObj.nbins =  300;
-      MyFitObj.xmin  =    0;
-      MyFitObj.xmax  = 3000;
-      MyFitObj.Hist = GetPE(MyFitObj, false);
+      MyFitObj.Hist = GetPE(MyFitObj);
+
+      // Chec to see that we have a hist
+      if (!MyFitObj.Hist) {
+        std::cerr << "ERROR: cannot get PE: " << ipe << std::endl;
+        exit(1);
+      }
 
 
+
+      // Do the masses
       for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
-        //TH1D* HistPE = GetHistForMjjj(ThisMass, &InFile, ipe);
-        if (!MyFitObj.Hist) {
-          std::cerr << "ERROR: cannot get PE: " << ipe << std::endl;
-          exit(1);
-        }
 
+        // Set the mass and width range
         MyFitObj.gmean = ThisMass;
         MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
 
+        // Grab the best fit given this PE and mass
         std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
-        float const ThisAcceptance = DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
+
+        // Technically a cross section is okay too I guess
+        // If you're doing acceptance smear do it here.
+        float const ThisAcceptance = MyFitObj.DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
         float const XSec = SigBG.first / (Luminosity * ThisAcceptance);
+
+        // Print that out and save it to file
         printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);
         fprintf(OutFile, "%10E ", XSec);
+
+        // Why not put that in a vector
         GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, XSec) );
       }
       fprintf(OutFile, "\n");
       fflush(OutFile);
+
+      // I told you we should delete this
+      delete MyFitObj.Hist;
+
+      // Every so often output a graph just because
       if (ipe % 1000 == 0) {
         char FitHistName[100];
         sprintf(FitHistName, "Limit95NEvents_%i.eps", ipe);
-        MakeGraph (GausMeanNGaus, "95\% CL Number of signal events", "Gaus mean [GeV]", "95\% CL Number of signal events", FitHistName);
+        MakeGraph (GausMeanBestFit, "Best Fit Number of signal events", "Gaus mean [GeV]", "Number of signal events", FitHistName);
       }
 
     }
   }
 
+  // Nicely close the text output file
   fclose(OutFile);
 
   return 0;
@@ -544,6 +640,11 @@ int main (int argc, char* argv[])
 
   int const Section = atoi(argv[1]);
   TString const InFileName = argv[2];
+
+  if (Section < -1) {
+    std::cerr << "Well, I really intended data to be -1 and PEs to be >= 0.  Be careful" << std::endl;
+    return 1;
+  }
 
   RunMultiJetLimits(Section, InFileName);
 
