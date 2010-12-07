@@ -116,7 +116,7 @@ TH1D* GetPE (FitObj const& Obj)
   // YOU are the owner of this PE so please delete it.
 
   // Landau function!
-  TF1 Land("Land", "[0]*TMath::Landau(x, [1], [2], 1)", Obj.xmin, Obj.xmax);
+  TF1 Land("Land", "[0] * TMath::Landau(x, [1], [2], 1)", Obj.xmin, Obj.xmax);
 
   // If we're doing systematics let's add some randomness.  These numbers taken from
   // the CDF code
@@ -141,6 +141,18 @@ TH1D* GetPE (FitObj const& Obj)
     xval = Obj.xmin + (Obj.xmax - Obj.xmin) / ((float) Obj.nbins) * (ibin - 0.5);
     hPE->SetBinContent(ibin, gRandom->Poisson( Land.Eval(xval) ) );
   }
+
+  // If we're adding signal to this..
+  if (false) {
+    int const NSignal = 15;
+    float const Mass = 200;
+    std::pair<float, float> const WidthRange = GetGausWidthRange(Mass);
+    float const Width = gRandom->Uniform(WidthRange.first, WidthRange.second);
+    TF1 Gaus("Gaus", "[0] * TMath::Gaus(x, [1], [2], 1)", Mass - Width, Mass + Width);
+
+    hPE->FillRandom("Gaus", NSignal);
+  }
+
 
   return hPE;
 }
