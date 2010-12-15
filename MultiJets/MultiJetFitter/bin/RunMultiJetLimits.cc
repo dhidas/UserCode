@@ -33,7 +33,7 @@ class FitObj;
 std::pair<float, float> GetGausWidthRange (float const);
 int   GetDiagForMjjj (float const);
 TH1D* GetPE (FitObj const&);
-TH1D* GetHistForMjjj (float const, TFile*, int const);
+TH1D* GetHistForMjjj (float const, TFile*);
 void  MakeGraph (std::vector< std::pair<float, float> > const&, TString const, TString const, TString const, TString const);
 
 template <class T> double KahanSummation(T, T);
@@ -237,19 +237,38 @@ TH1D* GetPE (FitObj const& Obj)
 
 
 
-TH1D* GetHistForMjjj (float const Mjjj, TFile* File, int const iPE)
+TF1* GetFitForMjjj (float const Mjjj, TFile* File, TString const FitName)
 {
-  // This function will return a histogram, either data, or PE.
+  // Get the fit from the hist for this
+  TH1D* Hist = GetHistForMjjj(Mjjj, File);
+  TF1* Func = Hist->GetFunction(FitName);
+  delete Hist;
+
+  if (FitName == "landau") {
+    TF1* Func2 = new TF1("land", "[0] * TMath::Landau(x, [1], [2])", Func->GetXmin(), Func->GetXmax());
+    Func2->FixParameter(0, Func->GetParameter(0) * Func->GetParameter(2));
+    Func2->FixParameter(1, Func->GetParameter(1));
+    Func2->FixParameter(2, Func->GetParameter(2));
+
+    delete Func;
+    Func = Func2;
+  }
+
+  return Func;
+}
+
+
+
+TH1D* GetHistForMjjj (float const Mjjj, TFile* File)
+{
+  // This function will return a histogram
   // Before, I had put all PEs in a file and ran over them.. now generate
   // on the go.. so this may or may not be used for more than data..
 
   char BUFF[200];
-  //if (iPE < 0)          sprintf(BUFF,  "Mjjj_20_20_%i", GetDiagForMjjj(Mjjj));
-  //else                  sprintf(BUFF, "PE_20_20_%i_%i", GetDiagForMjjj(Mjjj), iPE);
-  //if (iPE < 0)          sprintf(BUFF,  "Mjjj_20_20_200");
-  //else                  sprintf(BUFF, "PE_20_20_200_%i", iPE);
-  if (iPE < 0)          sprintf(BUFF,  "Mjjj_45_20_120");
-  else                  sprintf(BUFF, "PE_45_20_120_%i", iPE);
+  if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_6jet");
+  else                    sprintf(BUFF,  "Mjjj_45_20_170_6jet");
+
 
   std::cout << "Getting Hist: " << BUFF << "  for mass " << Mjjj << std::endl;
   TH1D* Hist = (TH1D*) File->Get(BUFF);
@@ -372,11 +391,35 @@ void SetFitObjParams (FitObj& MyFitObj)
     //1  p0           6.24862e+03   2.64835e+02   1.58729e-02   2.92855e-09
     //2  p1           1.74180e+02   3.77501e+00  -6.12847e-04  -3.13182e-06
     //3  p2           4.05476e+01   2.02809e+00   2.66564e-04   5.77415e-06
+    //
+    // MyFitObj.nland  = 6.24862e+03;
+    // MyFitObj.lmpv   = 1.74180e+02;
+    // MyFitObj.lsigma = 4.05476e+01;
 
-    MyFitObj.nland  = 6.24862e+03;
-    MyFitObj.lmpv   = 1.74180e+02;
-    MyFitObj.lsigma = 4.05476e+01;
+
+    if (MyFitObj.gmean <= 250) {
+      // 45_20_130_6jet
+      // Par  0              Constant = 477.634
+      // Par  1                   MPV = 178.983
+      // Par  2                 Sigma = 37.8893
+      MyFitObj.nland  = 477.634 * 37.8893;
+      MyFitObj.lmpv   = 178.983;
+      MyFitObj.lsigma = 37.8893;
+    } else {
+      // 45_20_170_6jet
+      // Par  0              Constant = 180.015
+      // Par  1                   MPV = 201.844
+      // Par  2                 Sigma = 41.7328
+      MyFitObj.nland  = 180.015 * 41.7328;
+      MyFitObj.lmpv   = 201.844;
+      MyFitObj.lsigma = 41.7328;
+    }
+
+
+
+
   }
+
 
   //TCanvas Can;
   //MyFitObj.Hist->Draw("hist");
@@ -615,7 +658,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
     for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
 
       // Grab the data hist
-      TH1D* DataTH1 = GetHistForMjjj(ThisMass, &InFile, -1);
+      TH1D* DataTH1 = GetHistForMjjj(ThisMass, &InFile);
       if (!DataTH1) {
         std::cerr << "ERROR: cannot get data histogram: " << std::endl;
         exit(1);
@@ -623,8 +666,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
       // Setup the fit object
       MyFitObj.Hist = DataTH1;
-      SetFitObjParams(MyFitObj);
       MyFitObj.gmean = ThisMass;
+      SetFitObjParams(MyFitObj);
       MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
       MyFitObj.IsData = true;
       MyFitObj.Section = Section;
@@ -655,7 +698,6 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
     int const End   = Start   + NPerSection;
 
     // Set the basic fit obj parameters
-    SetFitObjParams(MyFitObj);
     MyFitObj.IsData = false;
     MyFitObj.Section = Section;
 
@@ -681,6 +723,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
         // Set the mass and width range
         MyFitObj.gmean = ThisMass;
+        SetFitObjParams(MyFitObj);
         MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
 
         // Get PE for this ipe and mass (this need to be here for when we add signal...)
