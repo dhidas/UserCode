@@ -264,7 +264,7 @@ TF1* GetFitForMjjj (float const Mjjj, TFile* File, TString const FitName)
   TF1* Func = Hist->GetFunction(FitName);
 
 
-  if (FitName == "landau") {
+  if (false) {
     TF1* Func2 = new TF1("land", "[0] * TMath::Landau(x, [1], [2], 1)", Func->GetXmin(), Func->GetXmax());
     Func2->FixParameter(0, Func->GetParameter(0) * Func->GetParameter(2));
     Func2->FixParameter(1, Func->GetParameter(1));
@@ -473,7 +473,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 
 
   // Fit the function to the histogram given
-  Obj.Hist->Fit("FuncGaus", "QL");
+  Obj.Hist->Fit("FuncGaus", "QL", "", FuncGaus.GetXmin(), FuncGaus.GetXmax());
 
 
   // Right here if you want the total integral no more is needed since the gaussian is normalized
