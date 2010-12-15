@@ -8,6 +8,8 @@
 
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cmath>
 
 #include "TF1.h"
@@ -17,7 +19,6 @@
 #include "TGraph.h"
 #include "TCanvas.h"
 #include "TMath.h"
-#include "TFitResult.h"
 #include "TLine.h"
 #include "TRandom.h"
 
@@ -76,7 +77,80 @@ class FitObj : public TObject
     float xmax;
     bool  DoSyst;
     bool  DoAccSmear;
+    TString LimitsFileName;
 };
+
+
+
+std::vector< std::pair<float, float> > ReadLimitsFile (TString const FileName)
+{
+  // Vector we'll return
+  std::vector< std::pair<float, float> > Vec;
+
+  // string
+  std::string word;
+
+  // Open the input file
+  std::ifstream In(FileName.Data());
+  if (!In.is_open()) {
+    std::cerr << "ERROR: cannot open limits file for reading" << std::endl;
+    exit(1);
+  }
+
+  // Skip first line which is title
+  std::getline(In, word);
+
+  // Get the first line
+  std::string line;
+  std::getline(In, line);
+  std::istringstream linestream;
+  linestream.str(line);
+
+  for (int i; linestream >> word; ++i) {
+    if (linestream.eof()) {
+      break;
+    }
+    Vec.push_back( std::make_pair<float, float>(atof(word.c_str()), -1) );
+  }
+
+  // Skip two lines
+  std::getline(In, word);
+  std::getline(In, word);
+
+  // Sure, read the values..
+  for (size_t i = 0; i != Vec.size(); ++i) {
+    In >> Vec[i].second;
+  }
+
+  // Print just to check the are correct
+  if (true) {
+    for (size_t i = 0; i != Vec.size(); ++i) {
+      printf("Read Meadian Limits  M = %8.1f    Limits = %7.3f\n", Vec[i].first, Vec[i].second);
+    }
+  }
+
+  // Close the input file
+  In.close();
+
+  return Vec;
+}
+
+
+
+float GetPESignalNForMass (FitObj const& MyFitObj)
+{
+  static std::vector< std::pair<float, float> > Vec = ReadLimitsFile(MyFitObj.LimitsFileName);
+
+  for (size_t i = 0; i != Vec.size(); ++i) {
+    if (Vec[i].first == MyFitObj.gmean) {
+      return Vec[i].second;
+    }
+  }
+
+  std::cerr << "ERROR: did not find mass match for M=" << MyFitObj.gmean << std::endl;
+
+  return 9999;
+}
 
 
 
@@ -143,12 +217,16 @@ TH1D* GetPE (FitObj const& Obj)
   }
 
   // If we're adding signal to this..
-  if (false) {
-    int const NSignal = 15;
-    float const Mass = 200;
-    std::pair<float, float> const WidthRange = GetGausWidthRange(Mass);
+  if (Obj.LimitsFileName != "") {
+    float const Mass = Obj.gmean;
+    int const NSignal = (int) (GetPESignalNForMass(Obj) / 0.683);
+    std::cout << "MM " << Mass << "  " << NSignal << std::endl;
+    std::pair<float, float> const WidthRange = Obj.gsigmaRange;
     float const Width = gRandom->Uniform(WidthRange.first, WidthRange.second);
-    TF1 Gaus("Gaus", "[0] * TMath::Gaus(x, [1], [2], 1)", Mass - Width, Mass + Width);
+    TF1 Gaus("Gaus", "[0] * TMath::Gaus(x, [1], [2], 1)", Mass, Mass);
+    Gaus.FixParameter(0, NSignal);
+    Gaus.FixParameter(1, Mass);
+    Gaus.FixParameter(2, Width);
 
     hPE->FillRandom("Gaus", NSignal);
   }
@@ -474,7 +552,7 @@ float LimitAtMass (FitObj const& Obj)
 
 
 
-int RunMultiJetLimits (int const Section, TString const InFileName)
+int RunMultiJetLimits (int const Section, TString const InFileName, TString const LimitsFileName)
 {
   TFile InFile(InFileName, "read");
   if (!InFile.IsOpen()) {
@@ -521,6 +599,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
   fprintf(OutFile, "\n");
 
 
+  // Setup FitObj
+  FitObj MyFitObj;
+  MyFitObj.LimitsFileName = LimitsFileName;
 
 
   // Which section is this... data or PE?
@@ -540,8 +621,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
         exit(1);
       }
 
-      // Setup FitObj
-      FitObj MyFitObj;
+      // Setup the fit object
       MyFitObj.Hist = DataTH1;
       SetFitObjParams(MyFitObj);
       MyFitObj.gmean = ThisMass;
@@ -575,7 +655,6 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
     int const End   = Start   + NPerSection;
 
     // Set the basic fit obj parameters
-    FitObj MyFitObj;
     SetFitObjParams(MyFitObj);
     MyFitObj.IsData = false;
     MyFitObj.Section = Section;
@@ -588,7 +667,6 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
       // Set the PE number and get a PE
       MyFitObj.ipe = ipe;
-      MyFitObj.Hist = GetPE(MyFitObj);
 
       // Chec to see that we have a hist
       if (!MyFitObj.Hist) {
@@ -605,6 +683,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
         MyFitObj.gmean = ThisMass;
         MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
 
+        // Get PE for this ipe and mass (this need to be here for when we add signal...)
+        MyFitObj.Hist = GetPE(MyFitObj);
+
         // Grab the best fit given this PE and mass
         std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
 
@@ -619,12 +700,12 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
         // Why not put that in a vector
         GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, XSec) );
+
+        // I told you we should delete this
+        delete MyFitObj.Hist;
       }
       fprintf(OutFile, "\n");
       fflush(OutFile);
-
-      // I told you we should delete this
-      delete MyFitObj.Hist;
 
       // Every so often output a graph just because
       if (ipe % 1000 == 0) {
@@ -645,20 +726,21 @@ int RunMultiJetLimits (int const Section, TString const InFileName)
 
 int main (int argc, char* argv[])
 {
-  if (argc != 3) {
-    std::cerr << "Usage: " << argv[0] << " [Section] [InFileName]" << std::endl;
+  if (argc != 3 && argc != 4) {
+    std::cerr << "Usage: " << argv[0] << " [Section] [InFileName] [Optional Limits file]" << std::endl;
     return 1;
   }
 
   int const Section = atoi(argv[1]);
   TString const InFileName = argv[2];
+  TString const LimitsFileName = argc == 4 ? argv[3] : "";
 
   if (Section < -1) {
     std::cerr << "Well, I really intended data to be -1 and PEs to be >= 0.  Be careful" << std::endl;
     return 1;
   }
 
-  RunMultiJetLimits(Section, InFileName);
+  RunMultiJetLimits(Section, InFileName, LimitsFileName);
 
   return 0;
 }
