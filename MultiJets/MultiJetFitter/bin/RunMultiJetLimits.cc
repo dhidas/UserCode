@@ -456,6 +456,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
       FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
       FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
       FuncGaus.SetParLimits(2, FuncGaus.GetParameter(2) - err, FuncGaus.GetParameter(2) + err);
+      break;
     default:
       std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
       exit(1);
