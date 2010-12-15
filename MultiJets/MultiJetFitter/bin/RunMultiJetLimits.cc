@@ -47,6 +47,11 @@ float LimitAtMass (FitObj const&);
 int   RunMultiJetLimits (int const, TString const);
 
 
+enum kFitType { kFitLandau, kFitExp, kFitDijet };
+
+kFitType const FitType = kFitLandau;
+
+
 
 
 
@@ -61,11 +66,8 @@ class FitObj : public TObject
     FitObj () {};
     ~FitObj () {};
 
+    TFile* File;
     TH1D* Hist;
-
-    float lmpv;
-    float lsigma;
-    float nland;
     float gmean;
     float gsigma;
     std::pair<float, float> gsigmaRange;
@@ -78,6 +80,8 @@ class FitObj : public TObject
     bool  DoSyst;
     bool  DoAccSmear;
     TString LimitsFileName;
+
+    TF1* Function;
 };
 
 
@@ -190,18 +194,20 @@ TH1D* GetPE (FitObj const& Obj)
   // YOU are the owner of this PE so please delete it.
 
   // Landau function!
-  TF1 Land("Land", "[0] * TMath::Landau(x, [1], [2], 1)", Obj.xmin, Obj.xmax);
+  TF1* Func = (TF1*) Obj.Function->Clone("MyFunction");
 
   // If we're doing systematics let's add some randomness.  These numbers taken from
   // the CDF code
   if (Obj.DoSyst) {
-    Land.FixParameter(0, Obj.nland  * (1.0 + gRandom->Gaus(0, 0.10)));
-    Land.FixParameter(1, Obj.lmpv   * (1.0 + gRandom->Gaus(0, 0.01)));
-    Land.FixParameter(2, Obj.lsigma * (1.0 + gRandom->Gaus(0, 0.10)));
+    switch (FitType) {
+      case kFitLandau:
+        Func->FixParameter(0, Func->GetParameter(0) * (1.0 + gRandom->Gaus(0, 0.10)));
+        Func->FixParameter(1, Func->GetParameter(1) * (1.0 + gRandom->Gaus(0, 0.01)));
+        Func->FixParameter(2, Func->GetParameter(2) * (1.0 + gRandom->Gaus(0, 0.10)));
+        break;
+    }
   } else {
-    Land.FixParameter(0, Obj.nland);
-    Land.FixParameter(1, Obj.lmpv);
-    Land.FixParameter(2, Obj.lsigma);
+    // Do nothing!
   }
 
   // Create a histogram
@@ -213,7 +219,7 @@ TH1D* GetPE (FitObj const& Obj)
   float xval;
   for (int ibin = 1; ibin <= Obj.nbins; ++ibin) {
     xval = Obj.xmin + (Obj.xmax - Obj.xmin) / ((float) Obj.nbins) * (ibin - 0.5);
-    hPE->SetBinContent(ibin, gRandom->Poisson( Land.Eval(xval) ) );
+    hPE->SetBinContent(ibin, gRandom->Poisson( Func->Eval(xval) ) );
   }
 
   // If we're adding signal to this..
@@ -231,6 +237,7 @@ TH1D* GetPE (FitObj const& Obj)
     hPE->FillRandom("Gaus", NSignal);
   }
 
+  delete Func;
 
   return hPE;
 }
@@ -242,10 +249,10 @@ TF1* GetFitForMjjj (float const Mjjj, TFile* File, TString const FitName)
   // Get the fit from the hist for this
   TH1D* Hist = GetHistForMjjj(Mjjj, File);
   TF1* Func = Hist->GetFunction(FitName);
-  delete Hist;
+
 
   if (FitName == "landau") {
-    TF1* Func2 = new TF1("land", "[0] * TMath::Landau(x, [1], [2])", Func->GetXmin(), Func->GetXmax());
+    TF1* Func2 = new TF1("land", "[0] * TMath::Landau(x, [1], [2], 1)", Func->GetXmin(), Func->GetXmax());
     Func2->FixParameter(0, Func->GetParameter(0) * Func->GetParameter(2));
     Func2->FixParameter(1, Func->GetParameter(1));
     Func2->FixParameter(2, Func->GetParameter(2));
@@ -367,58 +374,15 @@ void SetFitObjParams (FitObj& MyFitObj)
   MyFitObj.DoSyst     = true;
   MyFitObj.DoAccSmear = true;
 
-  if (false) {
-    // This is if you want to fit right now for some shape.
-    TF1 Land("land", "[0]*TMath::Landau(x, [1], [2], 1)", MyFitObj.Hist->GetXaxis()->GetXmin(), MyFitObj.Hist->GetXaxis()->GetXmax());
-    Land.SetParameter(0, MyFitObj.Hist->GetEntries() / MyFitObj.Hist->GetBinWidth(0));
-    Land.SetParameter(1, MyFitObj.Hist->GetMean());
-    Land.SetParameter(2, MyFitObj.Hist->GetRMS());
+  TH1D* DataHist = GetHistForMjjj(MyFitObj.gmean, MyFitObj.File);
+  MyFitObj.nbins      = DataHist->GetNbinsX();
+  MyFitObj.xmin       = DataHist->GetXaxis()->GetXmin();
+  MyFitObj.xmax       = DataHist->GetXaxis()->GetXmax();
+  MyFitObj.DoSyst     = true;
+  MyFitObj.DoAccSmear = true;
+  delete DataHist;
 
-    MyFitObj.Hist->Fit("land", "QL");
-
-    MyFitObj.nland  = Land.GetParameter(0);
-    MyFitObj.lmpv   = Land.GetParameter(1);
-    MyFitObj.lsigma = Land.GetParameter(2);
-  } else {
-    // Hard code fit parameters
-
-    // 20_20_200
-    //MyFitObj.nland  = 7.76513e+03;
-    //MyFitObj.lmpv   = 1.76320e+02;
-    //MyFitObj.lsigma = 3.71101e+01;
-
-    // 45_20_120
-    //1  p0           6.24862e+03   2.64835e+02   1.58729e-02   2.92855e-09
-    //2  p1           1.74180e+02   3.77501e+00  -6.12847e-04  -3.13182e-06
-    //3  p2           4.05476e+01   2.02809e+00   2.66564e-04   5.77415e-06
-    //
-    // MyFitObj.nland  = 6.24862e+03;
-    // MyFitObj.lmpv   = 1.74180e+02;
-    // MyFitObj.lsigma = 4.05476e+01;
-
-
-    if (MyFitObj.gmean <= 250) {
-      // 45_20_130_6jet
-      // Par  0              Constant = 477.634
-      // Par  1                   MPV = 178.983
-      // Par  2                 Sigma = 37.8893
-      MyFitObj.nland  = 477.634 * 37.8893;
-      MyFitObj.lmpv   = 178.983;
-      MyFitObj.lsigma = 37.8893;
-    } else {
-      // 45_20_170_6jet
-      // Par  0              Constant = 180.015
-      // Par  1                   MPV = 201.844
-      // Par  2                 Sigma = 41.7328
-      MyFitObj.nland  = 180.015 * 41.7328;
-      MyFitObj.lmpv   = 201.844;
-      MyFitObj.lsigma = 41.7328;
-    }
-
-
-
-
-  }
+  MyFitObj.Function   = GetFitForMjjj(MyFitObj.gmean, MyFitObj.File, "total");
 
 
   //TCanvas Can;
@@ -438,59 +402,65 @@ void SetFitObjParams (FitObj& MyFitObj)
 std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 {
 
-  // Landau plus gaus function
-  TF1 LandGaus("LandGaus", "[0]*TMath::Landau(x, [1], [2], 1) + [3]*TMath::Gaus(x, [4], [5], 1)", Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
+  TString BGFuncStr;
+  switch (FitType) {
+    case kFitLandau:
+      BGFuncStr = "[0] * TMath::Landau(x, [1], [2], 1)";
+      break;
+  }
+
+  // Get out function
+  TF1 FuncGaus("FuncGaus", BGFuncStr + " + [3] * TMath::Gaus(x, [4], [5], 1)", Obj.xmin, Obj.xmax);
 
   // This error taken from CDF code
   float err=0.000000001;
 
-  //LandGaus.FixParameter(0, Obj.nland);
-  LandGaus.SetParameter(0, Obj.nland);
-  LandGaus.SetParLimits(0, Obj.nland - err, Obj.nland + err);
+  // Set the parameters depending on which fit it is
+  switch (FitType) {
+    case kFitLandau:
+      FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
+      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
+      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
+      FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
+      break;
+  }
 
-  //LandGaus.FixParameter(1, Obj.lmpv);
-  LandGaus.SetParameter(1, Obj.lmpv);
-  LandGaus.SetParLimits(1, Obj.lmpv - err, Obj.lmpv + err);
+  // Set the gaussian parameters
+  FuncGaus.SetParameter(3, 0);
+  FuncGaus.SetParLimits(3, -1000, 1000);
+  FuncGaus.SetParameter(4, Obj.gmean);
+  FuncGaus.SetParLimits(4, Obj.gmean - 0.1, Obj.gmean + 0.1);
+  FuncGaus.SetParameter(5, (Obj.gsigmaRange.first + Obj.gsigmaRange.second)/2);
+  FuncGaus.SetParLimits(5, Obj.gsigmaRange.first, Obj.gsigmaRange.second);
 
-  //LandGaus.FixParameter(2, Obj.lsigma);
-  LandGaus.SetParameter(2, Obj.lsigma);
-  LandGaus.SetParLimits(2, Obj.lsigma - err, Obj.lsigma + err);
-
-  LandGaus.SetParameter(3, 0);
-  LandGaus.SetParLimits(3, -1000, 1000);
-
-  //LandGaus.FixParameter(4, Obj.gmean);
-  LandGaus.SetParameter(4, Obj.gmean);
-  LandGaus.SetParLimits(4, Obj.gmean - 0.1, Obj.gmean + 0.1);
-
-  LandGaus.SetParameter(5, (Obj.gsigmaRange.first + Obj.gsigmaRange.second)/2);
-  LandGaus.SetParLimits(5, Obj.gsigmaRange.first, Obj.gsigmaRange.second);
 
   // Fit the function to the histogram given
-  Obj.Hist->Fit("LandGaus", "QL");
+  Obj.Hist->Fit("FuncGaus", "QL");
 
 
   // Right here if you want the total integral no more is needed since the gaussian is normalized
   if (ReturnTotal) {
     // Note that the landau is an approximation since the function is cut off at some x value..
     // this returns the integral to infinity for both...
-    return std::make_pair<float, float>(LandGaus.GetParameter(3) / Obj.Hist->GetBinWidth(0),
-        LandGaus.GetParameter(0) / Obj.Hist->GetBinWidth(0));
+    return std::make_pair<float, float>(FuncGaus.GetParameter(3) / Obj.Hist->GetBinWidth(0),
+        FuncGaus.GetParameter(0) / Obj.Hist->GetBinWidth(0));
   }
 
 
   // Define landau and gaus given the parameters fo the fit
-  TF1 Land("Land", "[0]*TMath::Landau(x, [1], [2], 1)", Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
-  TF1 Gaus("Gaus", "[0]*TMath::Gaus(x, [1], [2], 1)",   Obj.Hist->GetXaxis()->GetXmin(), Obj.Hist->GetXaxis()->GetXmax());
-  Land.FixParameter(0, LandGaus.GetParameter(0));
-  Land.FixParameter(1, LandGaus.GetParameter(1));
-  Land.FixParameter(2, LandGaus.GetParameter(2));
-  Gaus.FixParameter(0, LandGaus.GetParameter(3));
-  Gaus.FixParameter(1, LandGaus.GetParameter(4));
-  Gaus.FixParameter(2, LandGaus.GetParameter(5));
+  TF1 BGFunc("BGFunc", BGFuncStr, Obj.xmin, Obj.xmax);
+  TF1 Gaus("Gaus", "[0]*TMath::Gaus(x, [1], [2], 1)",   Obj.xmin, Obj.xmax);
+  BGFunc.FixParameter(0, FuncGaus.GetParameter(0));
+  BGFunc.FixParameter(1, FuncGaus.GetParameter(1));
+  BGFunc.FixParameter(2, FuncGaus.GetParameter(2));
+  Gaus.FixParameter  (0, FuncGaus.GetParameter(3));
+  Gaus.FixParameter  (1, FuncGaus.GetParameter(4));
+  Gaus.FixParameter  (2, FuncGaus.GetParameter(5));
 
   // Get the signal in +/- 1 sigma
-  float const NGausTotal = LandGaus.GetParameter(3);
+  float const NGausTotal = FuncGaus.GetParameter(3);
   float const Sig = 0.683 * NGausTotal / Obj.Hist->GetBinWidth(0);
 
   // Need to know where to integrate the landau from and to
@@ -498,35 +468,36 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   float const end   = Obj.gmean + Gaus.GetParameter(2);
 
   // Get the background
-  float const BG = Land.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
+  float const BG = BGFunc.Integral(begin, end) / Obj.Hist->GetBinWidth(0);
 
 
   // If you want to see the signal and BG totals uncomment the following line
-  //printf("SigBG LandTotal: %12.3f %12.3f %12.3f\n", Sig, BG, Land.Integral(0, Obj.Hist->GetXaxis()->GetXmax()) / Obj.Hist->GetBinWidth(0));
+  printf("SigBG Total: %12.3f %12.3f %12.3f\n", Sig, BG, BGFunc.Integral(Obj.xmin, Obj.xmax) / Obj.Hist->GetBinWidth(0));
+
 
   bool const DoAllPlots = false;
   if (Obj.IsData || DoAllPlots) {
     // This just saves the plot for data, and optionally for all...if you reall want
     TCanvas Can;
     Obj.Hist->Draw();
-    LandGaus.Draw("same");
-    Land.SetLineStyle(2);
-    Land.Draw("same");
+    FuncGaus.Draw("same");
+    BGFunc.SetLineStyle(2);
+    BGFunc.Draw("same");
     Gaus.SetLineColor(2);
     Gaus.Draw("same");
 
-    char LandGausHistName[100];
+    char FuncGausHistName[100];
     if (Obj.Section < 0) {
-      sprintf(LandGausHistName, "LandGaus_%i_Data.eps", (int) Obj.gmean);
+      sprintf(FuncGausHistName, "FuncGaus_%i_Data.eps", (int) Obj.gmean);
     } else {
-      sprintf(LandGausHistName, "LandGaus_%i_%i.eps", (int) Obj.gmean, Obj.ipe);
+      sprintf(FuncGausHistName, "FuncGaus_%i_%i.eps", (int) Obj.gmean, Obj.ipe);
     }
-    Can.SaveAs(LandGausHistName);
+    Can.SaveAs(FuncGausHistName);
 
     std::cout << "MYLimit norms: " << Obj.Hist->Integral() << "  "
-      << LandGaus.GetParameter(0) << "  " 
-      << LandGaus.GetParameter(1) << "  " 
-      << LandGaus.GetParameter(2) << "  " 
+      << FuncGaus.GetParameter(0) << "  " 
+      << FuncGaus.GetParameter(1) << "  " 
+      << FuncGaus.GetParameter(2) << "  " 
       //<< Gaus.Integral(0, 3000) << "  "
       //<< LandGaus.Integral(0, 3000)
       << std::endl;
@@ -644,6 +615,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
   // Setup FitObj
   FitObj MyFitObj;
+  MyFitObj.File = &InFile;
   MyFitObj.LimitsFileName = LimitsFileName;
 
 
