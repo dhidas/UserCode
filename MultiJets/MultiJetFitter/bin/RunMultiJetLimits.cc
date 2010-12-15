@@ -216,7 +216,7 @@ TH1D* GetPE (FitObj const& Obj)
         break;
       default:
         std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
-        assert(false);
+        exit(1);
         break;
     }
   } else {
@@ -422,7 +422,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
       break;
     default:
       std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
-      assert(false);
+      exit(1);
       break;
   }
 
@@ -458,7 +458,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
       FuncGaus.SetParLimits(2, FuncGaus.GetParameter(2) - err, FuncGaus.GetParameter(2) + err);
     default:
       std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
-      assert(false);
+      exit(1);
       break;
   }
 
