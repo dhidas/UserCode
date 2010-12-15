@@ -49,7 +49,7 @@ int   RunMultiJetLimits (int const, TString const);
 
 enum kFitType { kFitLandau, kFitExp, kFitDijet };
 
-kFitType const FitType = kFitLandau;
+kFitType gFitType;
 
 
 
@@ -199,11 +199,24 @@ TH1D* GetPE (FitObj const& Obj)
   // If we're doing systematics let's add some randomness.  These numbers taken from
   // the CDF code
   if (Obj.DoSyst) {
-    switch (FitType) {
+    switch (gFitType) {
       case kFitLandau:
         Func->FixParameter(0, Func->GetParameter(0) * (1.0 + gRandom->Gaus(0, 0.10)));
         Func->FixParameter(1, Func->GetParameter(1) * (1.0 + gRandom->Gaus(0, 0.01)));
         Func->FixParameter(2, Func->GetParameter(2) * (1.0 + gRandom->Gaus(0, 0.10)));
+        break;
+      case kFitExp:
+        Func->FixParameter(0, Func->GetParameter(0) * (1.0 + gRandom->Gaus(0, 0.10)));
+        Func->FixParameter(1, Func->GetParameter(1) * (1.0 + gRandom->Gaus(0, 0.01)));
+        break;
+      case kFitDijet:
+        Func->FixParameter(0, Func->GetParameter(0) * (1.0 + gRandom->Gaus(0, 0.10)));
+        Func->FixParameter(1, Func->GetParameter(1) * (1.0 + gRandom->Gaus(0, 0.01)));
+        Func->FixParameter(2, Func->GetParameter(2) * (1.0 + gRandom->Gaus(0, 0.10)));
+        break;
+      default:
+        std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
+        assert(false);
         break;
     }
   } else {
@@ -229,7 +242,7 @@ TH1D* GetPE (FitObj const& Obj)
     std::cout << "MM " << Mass << "  " << NSignal << std::endl;
     std::pair<float, float> const WidthRange = Obj.gsigmaRange;
     float const Width = gRandom->Uniform(WidthRange.first, WidthRange.second);
-    TF1 Gaus("Gaus", "[0] * TMath::Gaus(x, [1], [2], 1)", Mass, Mass);
+    TF1 Gaus("Gaus", "[0] * TMath::Gaus(x, [1], [2], 1)", Mass - Width, Mass + Width);
     Gaus.FixParameter(0, NSignal);
     Gaus.FixParameter(1, Mass);
     Gaus.FixParameter(2, Width);
@@ -397,20 +410,30 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 {
 
   TString BGFuncStr;
-  switch (FitType) {
+  switch (gFitType) {
     case kFitLandau:
       BGFuncStr = "[0] * TMath::Landau(x, [1], [2], 1)";
+      break;
+    case kFitExp:
+      BGFuncStr = "TMath::Exp([0] + [1] * x) + 0*[2]";
+      break;
+    case kFitDijet:
+      BGFuncStr = "[0] * ( ((1.0 - x/7000.0)^[1]) / (x^[2]) )";
+      break;
+    default:
+      std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
+      assert(false);
       break;
   }
 
   // Get out function
-  TF1 FuncGaus("FuncGaus", BGFuncStr + " + [3] * TMath::Gaus(x, [4], [5], 1)", Obj.xmin, Obj.xmax);
+  TF1 FuncGaus("FuncGaus", BGFuncStr + " + [3] * TMath::Gaus(x, [4], [5], 1)", Obj.Function->GetXmin(), Obj.Function->GetXmax());
 
   // This error taken from CDF code
   float err=0.000000001;
 
   // Set the parameters depending on which fit it is
-  switch (FitType) {
+  switch (gFitType) {
     case kFitLandau:
       FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
       FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
@@ -418,6 +441,24 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
       FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
       FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
       FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
+      break;
+    case kFitExp:
+      FuncGaus.SetParameter(0, Obj.Function->GetParameter(0));
+      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
+      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      FuncGaus.FixParameter(2, 0);
+      break;
+    case kFitDijet:
+      FuncGaus.SetParameter(0, Obj.Function->GetParameter(0));
+      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
+      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
+      FuncGaus.SetParLimits(2, FuncGaus.GetParameter(2) - err, FuncGaus.GetParameter(2) + err);
+    default:
+      std::cerr << "Uhm, dude, you should not be here and now I am going to barf on you" << std::endl;
+      assert(false);
       break;
   }
 
@@ -444,8 +485,8 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 
 
   // Define landau and gaus given the parameters fo the fit
-  TF1 BGFunc("BGFunc", BGFuncStr, Obj.xmin, Obj.xmax);
-  TF1 Gaus("Gaus", "[0]*TMath::Gaus(x, [1], [2], 1)",   Obj.xmin, Obj.xmax);
+  TF1 BGFunc("BGFunc", BGFuncStr, Obj.Function->GetXmin(), Obj.Function->GetXmax());
+  TF1 Gaus("Gaus", "[0]*TMath::Gaus(x, [1], [2], 1)", Obj.Function->GetXmin(), Obj.Function->GetXmax());
   BGFunc.FixParameter(0, FuncGaus.GetParameter(0));
   BGFunc.FixParameter(1, FuncGaus.GetParameter(1));
   BGFunc.FixParameter(2, FuncGaus.GetParameter(2));
@@ -591,8 +632,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
   }
 
   // These numbers are what range you want to calculate limits for.
-  float const BeginMass = 150;
-  float const EndMass   = 450;
+  float const BeginMass = 200;
+  float const EndMass   = 500;
   float const StepSize  =  10;
 
   // Maybe these will be more realistic someday
@@ -739,18 +780,28 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
 int main (int argc, char* argv[])
 {
-  if (argc != 3 && argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " [Section] [InFileName] [Optional Limits file]" << std::endl;
+  if (argc != 4 && argc != 5) {
+    std::cerr << "Usage: " << argv[0] << " [FitType] [Section] [InFileName] [Optional Limits file]" << std::endl;
     return 1;
   }
 
-  int const Section = atoi(argv[1]);
-  TString const InFileName = argv[2];
-  TString const LimitsFileName = argc == 4 ? argv[3] : "";
+  TString const FitTypeStr = argv[1];
+  int const Section = atoi(argv[2]);
+  TString const InFileName = argv[3];
+  TString const LimitsFileName = argc == 5 ? argv[4] : "";
 
   if (Section < -1) {
     std::cerr << "Well, I really intended data to be -1 and PEs to be >= 0.  Be careful" << std::endl;
     return 1;
+  }
+
+  // Set the fit Ty[e
+  if      (FitTypeStr == "Landau") gFitType = kFitLandau;
+  else if (FitTypeStr == "Exp")    gFitType = kFitExp;
+  else if (FitTypeStr == "Dijet")  gFitType = kFitDijet;
+  else {
+    std::cerr << "ERROR: I don't know what fit type you want" << std::endl;
+    exit(1);
   }
 
   RunMultiJetLimits(Section, InFileName, LimitsFileName);
