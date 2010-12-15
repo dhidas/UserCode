@@ -250,8 +250,6 @@ TF1* GetFitForMjjj (float const Mjjj, TFile* File, TString const FitName)
   TH1D* Hist = GetHistForMjjj(Mjjj, File);
   TF1* Func = Hist->GetFunction(FitName);
 
-  std::cout << "HISTTT " << Hist << std::endl;
-  std::cout << "FUNCCC " << Func << std::endl;
 
   if (FitName == "landau") {
     TF1* Func2 = new TF1("land", "[0] * TMath::Landau(x, [1], [2], 1)", Func->GetXmin(), Func->GetXmax());
@@ -379,7 +377,6 @@ void SetFitObjParams (FitObj& MyFitObj)
   MyFitObj.DoAccSmear = true;
 
   MyFitObj.Function   = GetFitForMjjj(MyFitObj.gmean, MyFitObj.File, "total");
-  std::cout << "HERENOW " << MyFitObj.Function << std::endl;
 
 
   //TCanvas Can;
