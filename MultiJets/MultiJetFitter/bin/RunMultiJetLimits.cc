@@ -194,7 +194,7 @@ TH1D* GetPE (FitObj const& Obj)
   // YOU are the owner of this PE so please delete it.
 
   // Landau function!
-  TF1* Func = (TF1*) Obj.Function->Clone("MyFunction");
+  TF1* Func = (TF1*) Obj.Function->Clone();
 
   // If we're doing systematics let's add some randomness.  These numbers taken from
   // the CDF code
@@ -250,6 +250,8 @@ TF1* GetFitForMjjj (float const Mjjj, TFile* File, TString const FitName)
   TH1D* Hist = GetHistForMjjj(Mjjj, File);
   TF1* Func = Hist->GetFunction(FitName);
 
+  std::cout << "HISTTT " << Hist << std::endl;
+  std::cout << "FUNCCC " << Func << std::endl;
 
   if (FitName == "landau") {
     TF1* Func2 = new TF1("land", "[0] * TMath::Landau(x, [1], [2], 1)", Func->GetXmin(), Func->GetXmax());
@@ -257,8 +259,8 @@ TF1* GetFitForMjjj (float const Mjjj, TFile* File, TString const FitName)
     Func2->FixParameter(1, Func->GetParameter(1));
     Func2->FixParameter(2, Func->GetParameter(2));
 
-    delete Func;
-    Func = Func2;
+    //delete Func;
+    return Func2;
   }
 
   return Func;
@@ -368,11 +370,6 @@ void SetFitObjParams (FitObj& MyFitObj)
 
   // Some default parameters.  I could change how this is done someday because it shoudl be automatic
   // ie done from the data hist.. I'll get to that later I guess
-  MyFitObj.nbins      =  300;
-  MyFitObj.xmin       =    0;
-  MyFitObj.xmax       = 3000;
-  MyFitObj.DoSyst     = true;
-  MyFitObj.DoAccSmear = true;
 
   TH1D* DataHist = GetHistForMjjj(MyFitObj.gmean, MyFitObj.File);
   MyFitObj.nbins      = DataHist->GetNbinsX();
@@ -380,9 +377,9 @@ void SetFitObjParams (FitObj& MyFitObj)
   MyFitObj.xmax       = DataHist->GetXaxis()->GetXmax();
   MyFitObj.DoSyst     = true;
   MyFitObj.DoAccSmear = true;
-  delete DataHist;
 
   MyFitObj.Function   = GetFitForMjjj(MyFitObj.gmean, MyFitObj.File, "total");
+  std::cout << "HERENOW " << MyFitObj.Function << std::endl;
 
 
   //TCanvas Can;
@@ -637,12 +634,13 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
       }
 
       // Setup the fit object
-      MyFitObj.Hist = DataTH1;
+      MyFitObj.Hist = (TH1D*) DataTH1->Clone(0);
       MyFitObj.gmean = ThisMass;
       SetFitObjParams(MyFitObj);
       MyFitObj.gsigmaRange = GetGausWidthRange(ThisMass);
       MyFitObj.IsData = true;
       MyFitObj.Section = Section;
+
 
       // Calcuate the limit for this mass
       float const Limit = LimitAtMass(MyFitObj);
@@ -656,6 +654,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
       // Save it to our little friendly vector
       GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, XSecLimit));
+
+      // delete our new hist
+      delete MyFitObj.Hist;
     }
 
     // May as well plot the limit as a functino of mass..
