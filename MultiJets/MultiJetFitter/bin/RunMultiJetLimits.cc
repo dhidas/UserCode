@@ -511,7 +511,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   printf("SigBG Total: %12.3f %12.3f %12.3f\n", Sig, BG, BGFunc.Integral(Obj.xmin, Obj.xmax) / Obj.Hist->GetBinWidth(0));
 
 
-  bool const DoAllPlots = false;
+  bool const DoAllPlots = true;
   if (Obj.IsData || DoAllPlots) {
     // This just saves the plot for data, and optionally for all...if you reall want
     TCanvas Can;

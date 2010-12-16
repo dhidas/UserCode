@@ -57,10 +57,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (false) {
-    HiggsLimits.DrawFrame(150,0.1,450,120);
+    HiggsLimits.DrawFrame(200,0.1,500,120);
     HiggsLimits.SetLogy(0);
   } else {
-    HiggsLimits.DrawFrame(150,0,450,120);
+    HiggsLimits.DrawFrame(200,0,500,120);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
@@ -210,7 +210,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grShade2S->SetFillColor(5);
 
     // Draw the shades only for first file
-    if (ifile == 0) {
+    if (false && ifile == 0) {
       std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
       UseShade2S = grShade2S;
       UseShade1S = grShade1S;
@@ -226,8 +226,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grMedian->SetMarkerColor(Color);
     grMedian->SetLineColor(Color);
     grMedian->SetMarkerStyle(0);
-    grMedian->Draw("l");
-    MyLegend.AddEntry(grMedian, (MyLabel+" Expectation").c_str(), "l");
+    if (ifile == 0) {
+      grMedian->Draw("l");
+      MyLegend.AddEntry(grMedian, (MyLabel+" Expectation").c_str(), "l");
+    }
 
     // Draw the Observed
     if (DrawObserved) {
@@ -268,7 +270,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   HMassLabel->Draw("same");
 
   TPaveLabel *YLabel = new TPaveLabel();
-  YLabel->SetLabel("Expected 95\% C.L.# of Events");
+  YLabel->SetLabel("95\% C.L.# of Events");
   YLabel->SetX1NDC(0.00);
   YLabel->SetX2NDC(0.05);
   YLabel->SetY1NDC(0.10);
