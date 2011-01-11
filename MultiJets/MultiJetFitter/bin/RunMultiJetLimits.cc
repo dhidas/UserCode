@@ -22,6 +22,7 @@
 #include "TLine.h"
 #include "TRandom.h"
 
+#include "MultiJets/MultiJetFitter/interface/TAnaHist.h"
 
 
 // Let's maks this self contained and put all function and class declaritions here
@@ -49,7 +50,9 @@ int   RunMultiJetLimits (int const, TString const);
 
 enum kFitType { kFitLandau, kFitExp, kFitDijet };
 
+// Some global variables just to make my life easier
 kFitType gFitType;
+TFile* gOutFile;
 
 
 
@@ -225,7 +228,7 @@ TH1D* GetPE (FitObj const& Obj)
 
   // Create a histogram
   char BUFF[40];
-  sprintf(BUFF, "PE_%i", Obj.ipe);
+  sprintf(BUFF, "PE_%i_%i", (int) Obj.gmean, Obj.ipe);
   TH1D* hPE = new TH1D(BUFF, BUFF, Obj.nbins, Obj.xmin, Obj.xmax);
 
   // Fill the histogram
@@ -248,6 +251,16 @@ TH1D* GetPE (FitObj const& Obj)
     Gaus.FixParameter(2, Width);
 
     hPE->FillRandom("Gaus", NSignal);
+  }
+
+  TCanvas Can(hPE->GetName(), hPE->GetName());
+  Can.cd();
+  hPE->Draw();
+  Func->Draw("same");
+
+  if (gOutFile) {
+    gOutFile->cd();
+    Can.Write();
   }
 
   delete Func;
@@ -514,7 +527,16 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   bool const DoAllPlots = true;
   if (Obj.IsData || DoAllPlots) {
     // This just saves the plot for data, and optionally for all...if you reall want
-    TCanvas Can;
+
+    char FuncGausHistName[100];
+    if (Obj.Section < 0) {
+      sprintf(FuncGausHistName, "FuncGaus_%i_Data", (int) Obj.gmean);
+    } else {
+      sprintf(FuncGausHistName, "FuncGaus_%i_%i", (int) Obj.gmean, Obj.ipe);
+    }
+
+    TCanvas Can(FuncGausHistName, FuncGausHistName);
+    Can.cd();
     Obj.Hist->Draw();
     FuncGaus.Draw("same");
     BGFunc.SetLineStyle(2);
@@ -522,13 +544,18 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
     Gaus.SetLineColor(2);
     Gaus.Draw("same");
 
-    char FuncGausHistName[100];
     if (Obj.Section < 0) {
       sprintf(FuncGausHistName, "FuncGaus_%i_Data.eps", (int) Obj.gmean);
     } else {
       sprintf(FuncGausHistName, "FuncGaus_%i_%i.eps", (int) Obj.gmean, Obj.ipe);
     }
-    Can.SaveAs(FuncGausHistName);
+    if (Obj.IsData) {
+      Can.SaveAs(FuncGausHistName);
+    }
+    if (gOutFile) {
+      gOutFile->cd();
+      Can.Write();
+    }
 
     std::cout << "MYLimit norms: " << Obj.Hist->Integral() << "  "
       << FuncGaus.GetParameter(0) << "  " 
@@ -604,21 +631,42 @@ float LimitAtMass (FitObj const& Obj)
 
 int RunMultiJetLimits (int const Section, TString const InFileName, TString const LimitsFileName)
 {
+  // Open the inpu file
   TFile InFile(InFileName, "read");
   if (!InFile.IsOpen()) {
     std::cerr << "ERROR: cannot open input file: " << InFileName << std::endl;
     exit(1);
   }
 
+
+  // Open the output file
+  char OutFileName[200];
+  if (Section < 0) {
+    sprintf(OutFileName, "LimitPlots_Data.root");
+  } else {
+    sprintf(OutFileName, "LimitPlots_%i.root", Section);
+  }
+
+  // If you want to save all the plots to a root file
+  // make tis true...
+  gOutFile = 0x0;
+  if (false) {
+    gOutFile = new TFile(OutFileName, "recreate");
+    if (!gOutFile->IsOpen()) {
+      std::cerr << "ERROR: cannot open Output file: " << OutFileName << std::endl;
+      exit(1);
+    }
+  }
+
   // Set the random seed.
   //gRandom->SetSeed(5 * Section);
   gRandom->SetSeed( (Section + 2) * (int) fmod(time(NULL),100000));
+  std::cout << "Setting seed to: " << gRandom->GetSeed() << std::endl;
 
 
 
   // Setup the output text file
   // Output file name
-  char OutFileName[200];
   if (Section < 0) {
     sprintf(OutFileName, "DataLimits.dat");
   } else {
@@ -741,6 +789,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
         // Get PE for this ipe and mass (this need to be here for when we add signal...)
         MyFitObj.Hist = GetPE(MyFitObj);
 
+
         // Grab the best fit given this PE and mass
         std::pair<float, float> SigBG = BestFitSigBG(MyFitObj);
 
@@ -774,6 +823,12 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
   // Nicely close the text output file
   fclose(OutFile);
+
+  // Close the out root file if it exists
+  if (gOutFile) {
+    gOutFile->Close();
+    delete gOutFile;
+  }
 
   return 0;
 }
