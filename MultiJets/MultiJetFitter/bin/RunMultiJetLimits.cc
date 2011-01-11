@@ -169,7 +169,8 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
 
   return std::make_pair<float, float>(15, 15);
   if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
-  if (Mjjj < 350) return std::make_pair<float, float>(15, 20);
+  if (Mjjj < 350) return std::make_pair<float, float>(10 + 10 * (Mjjj - 250.) / 100., 15 + 10 * (Mjjj - 250.) / 100.);
+  //if (Mjjj < 350) return std::make_pair<float, float>(15, 20);
   return std::make_pair<float, float>(20, 25);
 }
 
