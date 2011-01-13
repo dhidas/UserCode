@@ -57,10 +57,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (false) {
-    HiggsLimits.DrawFrame(200,0.1,500,120);
+    HiggsLimits.DrawFrame(200,0.1,500,420);
     HiggsLimits.SetLogy(0);
   } else {
-    HiggsLimits.DrawFrame(200,0,500,120);
+    HiggsLimits.DrawFrame(200,0,500,420);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
@@ -76,6 +76,18 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TGraph *UseShade2S;
   std::string ShadeLabel;
 
+  // TGraph for Model
+  float ModelX[7] = { 200, 250, 300, 350, 400, 450, 500 };
+  float ModelY[7] = {
+        336.6  * 1.6877,
+         88.28 * 1.7680,
+         28.8  * 1.8462,
+         11.37 * 1.9250,
+          4.69 * 2.0074,
+          2.09 * 2.0925,
+          1.01 * 2.1879
+  };
+  TGraph grModel(7, ModelX, ModelY);
 
   // Loop over all filenames
   for (size_t ifile=0; ifile != FileNames.size(); ++ifile) {
@@ -210,11 +222,11 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grShade2S->SetFillColor(5);
 
     // Draw the shades only for first file
-    if (false && ifile == 0) {
+    if (true && ifile == 0) {
       std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
       UseShade2S = grShade2S;
       UseShade1S = grShade1S;
-      UseShade2S->Draw("f");
+      //UseShade2S->Draw("f");
       UseShade1S->Draw("f");
       ShadeLabel = MyLabel;
     }
@@ -246,7 +258,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   }
 
   // Draw the sigma shaded bands and add to legend
-  //MyLegend.AddEntry(UseShade1S, (ShadeLabel+" \\pm 1\\sigma").c_str(), "f");
+  MyLegend.AddEntry(UseShade1S, (ShadeLabel+" \\pm 1\\sigma").c_str(), "f");
   //MyLegend.AddEntry(UseShade2S, (ShadeLabel+" \\pm 2\\sigma").c_str(), "f");
 
 
@@ -258,9 +270,13 @@ void DrawLimits (std::vector<TString> const& FileNames)
   SMLine->SetLineColor(4);
   //SMLine->Draw();
   //MyLegend.AddEntry(SMLine, "SM", "l");
+  MyLegend.AddEntry(&grModel, "#sigma^{NLO}(Gluino)", "l");
+  grModel.SetLineWidth(2);
+  grModel.SetLineColor(4);
+  grModel.Draw("samec");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
-  HMassLabel->SetLabel("Mass [GeV/c^{2}]");
+  HMassLabel->SetLabel("Gluino Mass [GeV/c^{2}]");
   HMassLabel->SetX1NDC(0.60);
   HMassLabel->SetX2NDC(0.90);
   HMassLabel->SetY1NDC(0.01);
@@ -270,7 +286,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   HMassLabel->Draw("same");
 
   TPaveLabel *YLabel = new TPaveLabel();
-  YLabel->SetLabel("95\% C.L.# of Events");
+  YLabel->SetLabel("95\% CL Limit #sigma (pb)");
   YLabel->SetX1NDC(0.00);
   YLabel->SetX2NDC(0.05);
   YLabel->SetY1NDC(0.10);
@@ -294,7 +310,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   TPaveLabel *RunII = new TPaveLabel();
   //RunII->SetLabel("CDF Run II Preliminary");
-  RunII->SetLabel("CDF Run II UnBlessed");
+  RunII->SetLabel("CMS MultiJets");
   RunII->SetX1NDC(0.1);
   RunII->SetX2NDC(0.5);
   RunII->SetY1NDC(0.92);
@@ -302,10 +318,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->SetFillColor(0);
   //RunII->SetTextAlign(22);
   RunII->SetTextSize(0.5);
-  //RunII->Draw("same");
+  RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
-  Lumi->SetLabel("#int L = 1.9 fb^{-1}");
+  Lumi->SetLabel("#int L = 35.0 pb^{-1}");
   Lumi->SetX1NDC(0.5);
   Lumi->SetX2NDC(0.9);
   Lumi->SetY1NDC(0.92);
@@ -313,7 +329,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   Lumi->SetFillColor(0);
   Lumi->SetTextAlign(31);
   Lumi->SetTextSize(0.44);
-  //Lumi->Draw("same");
+  Lumi->Draw("same");
 
 
 

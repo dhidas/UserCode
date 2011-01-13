@@ -21,6 +21,8 @@
 #include "TMath.h"
 #include "TLine.h"
 #include "TRandom.h"
+#include "TROOT.h"
+#include "TStyle.h"
 
 #include "MultiJets/MultiJetFitter/interface/TAnaHist.h"
 
@@ -33,6 +35,8 @@ class FitObj;
 // In the order they appear in.
 std::pair<float, float> GetGausWidthRange (float const);
 int   GetDiagForMjjj (float const);
+float GetAcceptanceForMass (float const);
+float Luminosity ();
 TH1D* GetPE (FitObj const&);
 TH1D* GetHistForMjjj (float const, TFile*);
 void  MakeGraph (std::vector< std::pair<float, float> > const&, TString const, TString const, TString const, TString const);
@@ -144,7 +148,7 @@ std::vector< std::pair<float, float> > ReadLimitsFile (TString const FileName)
 
 
 
-float GetPESignalNForMass (FitObj const& MyFitObj)
+float GetPESignalXSForMass (FitObj const& MyFitObj)
 {
   static std::vector< std::pair<float, float> > Vec = ReadLimitsFile(MyFitObj.LimitsFileName);
 
@@ -188,6 +192,38 @@ int GetDiagForMjjj (float const Mjjj)
   else if (Mjjj < 350) return 220;
   else if (Mjjj < 400) return 240;
   else                 return 260;
+}
+
+
+
+float GetAcceptanceForMass (float const Mjjj)
+{
+  // Get the acceptance for a given mass
+
+  // Acceptance numbers from dan
+  // Pol0:  1.93282628706596682e-03
+  // Pol1: -3.61649088607910918e-05
+  // Pol2:  1.84254776396677824e-07
+  //TF1 AcceptanceFunc("AcceptanceFunc", "pol2(0)", BeginMass, EndMass);
+  //AcceptanceFunc.SetParameter(0,  1.93282628706596682e-03);
+  //AcceptanceFunc.SetParameter(1, -3.61649088607910918e-05);
+  //AcceptanceFunc.SetParameter(2,  1.84254776396677824e-07);
+  //return AcceptanceFunc.Eval(Mjjj);
+
+  // This is equivalent to the above, but a hell of a lot faster
+  if (Mjjj <= 250) {
+    return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
+  } else {
+    return 1.93282628706596682e-03 - 3.61649088607910918e-05 * Mjjj + 1.84254776396677824e-07 * Mjjj * Mjjj;
+  }
+
+}
+
+
+
+float Luminosity ()
+{
+  return 35.0;
 }
 
 
@@ -242,7 +278,7 @@ TH1D* GetPE (FitObj const& Obj)
   // If we're adding signal to this..
   if (Obj.LimitsFileName != "") {
     float const Mass = Obj.gmean;
-    int const NSignal = (int) (GetPESignalNForMass(Obj) / 0.683);
+    int const NSignal = (int) (GetPESignalXSForMass(Obj) / 0.683 * Luminosity() * GetAcceptanceForMass(Mass));
     std::cout << "MM " << Mass << "  " << NSignal << std::endl;
     std::pair<float, float> const WidthRange = Obj.gsigmaRange;
     float const Width = gRandom->Uniform(WidthRange.first, WidthRange.second);
@@ -302,6 +338,7 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File)
   char BUFF[200];
   if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_6jet");
   else                    sprintf(BUFF,  "Mjjj_45_20_170_6jet");
+  //sprintf(BUFF,  "Mjjj_45_20_170_6jet");
 
 
   std::cout << "Getting Hist: " << BUFF << "  for mass " << Mjjj << std::endl;
@@ -525,7 +562,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   printf("SigBG Total: %12.3f %12.3f %12.3f\n", Sig, BG, BGFunc.Integral(Obj.xmin, Obj.xmax) / Obj.Hist->GetBinWidth(0));
 
 
-  bool const DoAllPlots = true;
+  bool const DoAllPlots = false;
   if (Obj.IsData || DoAllPlots) {
     // This just saves the plot for data, and optionally for all...if you reall want
 
@@ -632,6 +669,9 @@ float LimitAtMass (FitObj const& Obj)
 
 int RunMultiJetLimits (int const Section, TString const InFileName, TString const LimitsFileName)
 {
+  // Set the default style to plain to not waste ink
+  gROOT->SetStyle("Plain");
+
   // Open the inpu file
   TFile InFile(InFileName, "read");
   if (!InFile.IsOpen()) {
@@ -686,9 +726,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
   float const EndMass   = 500;
   float const StepSize  =  10;
 
-  // Maybe these will be more realistic someday
-  float const Acceptance = 1;
-  float const Luminosity = 1;
+
   float const AcceptErr  = 0.30;
 
   // Print the masses to the text file
@@ -734,7 +772,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
       float const Limit = LimitAtMass(MyFitObj);
 
       // Technically I guess a cross section//
-      float const XSecLimit = Limit / (Luminosity * Acceptance);
+      float const Acceptance = GetAcceptanceForMass(ThisMass);
+      float const XSecLimit = Limit / (Luminosity() * Acceptance);
 
       // Print that out
       printf("MYLimit %9i %12.4f\n", (int) ThisMass, XSecLimit);
@@ -796,8 +835,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
         // Technically a cross section is okay too I guess
         // If you're doing acceptance smear do it here.
+        float const Acceptance = GetAcceptanceForMass(ThisMass);
         float const ThisAcceptance = MyFitObj.DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
-        float const XSec = SigBG.first / (Luminosity * ThisAcceptance);
+        float const XSec = SigBG.first / (Luminosity() * ThisAcceptance);
 
         // Print that out and save it to file
         printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);

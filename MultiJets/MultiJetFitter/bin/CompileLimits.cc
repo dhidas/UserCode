@@ -18,6 +18,7 @@
 #include "TCanvas.h"
 #include "TMath.h"
 #include "TLine.h"
+#include "TROOT.h"
 #include "TStyle.h"
 
 
@@ -73,6 +74,9 @@ float FracUpDown (std::vector<float> const& Vec, float Q)
 
 int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileNames)
 {
+  // Set the default style to plain
+  gROOT->SetStyle("Plain");
+
   // some variabes we'll read from the file
   int ipe;
   double pvalue, gmean, gsigma;
@@ -191,8 +195,8 @@ int CompileLimits (TString const DataFileName, std::vector<TString>&  PEFileName
     float const P2PE = Quantile(PE[imass], MedianPE[imass],  0.95);
     N95PE[imass] = FracUpDown(PE[imass], 0.95);
     N95LinePE[imass] = new TLine(N95PE[imass], 0, N95PE[imass], Hist[imass]->GetMaximum());
-    N95LinePE[imass]->SetLineColor(3);
-    N95LinePE[imass]->SetLineWidth(1);
+    N95LinePE[imass]->SetLineColor(2);
+    N95LinePE[imass]->SetLineWidth(2);
     N95LinePE[imass]->SetLineStyle(3);
     M2LinePE[imass] = new TLine(M2PE, 0, M2PE, Hist[imass]->GetMaximum());
     M2LinePE[imass]->SetLineColor(3);
