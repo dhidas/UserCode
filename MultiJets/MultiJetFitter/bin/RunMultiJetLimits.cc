@@ -562,7 +562,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   printf("SigBG Total: %12.3f %12.3f %12.3f\n", Sig, BG, BGFunc.Integral(Obj.xmin, Obj.xmax) / Obj.Hist->GetBinWidth(0));
 
 
-  bool const DoAllPlots = false;
+  bool const DoAllPlots = true;
   if (Obj.IsData || DoAllPlots) {
     // This just saves the plot for data, and optionally for all...if you reall want
 
@@ -587,9 +587,8 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
     } else {
       sprintf(FuncGausHistName, "FuncGaus_%i_%i.eps", (int) Obj.gmean, Obj.ipe);
     }
-    if (Obj.IsData) {
-      Can.SaveAs(FuncGausHistName);
-    }
+    Can.SaveAs(FuncGausHistName);
+
     if (gOutFile) {
       gOutFile->cd();
       Can.Write();
@@ -838,6 +837,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
         float const Acceptance = GetAcceptanceForMass(ThisMass);
         float const ThisAcceptance = MyFitObj.DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
         float const XSec = SigBG.first / (Luminosity() * ThisAcceptance);
+        //float const Limit = LimitAtMass(MyFitObj);
+        //float const XSec = Limit / (Luminosity() * Acceptance);
+
 
         // Print that out and save it to file
         printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);
