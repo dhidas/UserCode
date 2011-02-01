@@ -276,7 +276,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   grModel.Draw("samec");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
-  HMassLabel->SetLabel("Gluino Mass [GeV/c^{2}]");
+  HMassLabel->SetLabel("Tri-jet Mass [GeV/c^{2}]");
   HMassLabel->SetX1NDC(0.60);
   HMassLabel->SetX2NDC(0.90);
   HMassLabel->SetY1NDC(0.01);

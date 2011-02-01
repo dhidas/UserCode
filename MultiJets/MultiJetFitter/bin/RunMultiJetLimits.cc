@@ -242,8 +242,8 @@ TH1D* GetPE (FitObj const& Obj)
     switch (gFitType) {
       case kFitLandau:
         Func->FixParameter(0, Func->GetParameter(0) * (1.0 + gRandom->Gaus(0, 0.10)));
-        Func->FixParameter(1, Func->GetParameter(1) * (1.0 + gRandom->Gaus(0, 0.01)));
-        Func->FixParameter(2, Func->GetParameter(2) * (1.0 + gRandom->Gaus(0, 0.10)));
+        Func->FixParameter(1, Func->GetParameter(1) * (1.0 + gRandom->Gaus(0, 0.02)));
+        Func->FixParameter(2, Func->GetParameter(2) * (1.0 + gRandom->Gaus(0, 0.07)));
         break;
       case kFitExp:
         Func->FixParameter(0, Func->GetParameter(0) * (1.0 + gRandom->Gaus(0, 0.10)));
@@ -562,7 +562,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   printf("SigBG Total: %12.3f %12.3f %12.3f\n", Sig, BG, BGFunc.Integral(Obj.xmin, Obj.xmax) / Obj.Hist->GetBinWidth(0));
 
 
-  bool const DoAllPlots = true;
+  bool const DoAllPlots = false;
   if (Obj.IsData || DoAllPlots) {
     // This just saves the plot for data, and optionally for all...if you reall want
 
@@ -575,6 +575,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 
     TCanvas Can(FuncGausHistName, FuncGausHistName);
     Can.cd();
+    gStyle->SetOptFit(101);
     Obj.Hist->Draw();
     FuncGaus.Draw("same");
     BGFunc.SetLineStyle(2);
@@ -726,7 +727,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
   float const StepSize  =  10;
 
 
-  float const AcceptErr  = 0.30;
+  float const AcceptErr  = 0.211; // largest total uncert
 
   // Print the masses to the text file
   for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
