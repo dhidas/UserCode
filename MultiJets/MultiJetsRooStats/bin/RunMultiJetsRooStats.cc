@@ -180,7 +180,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   float const ACCERROR   = 0.13;
 
-  float const MAXXS      = 250;
+  float const MAXXS      = 1000;
 
   char label[100];
   sprintf(label, "Dean_%i_%i_%i", (int) SignalMass, method, statLevel);
@@ -435,14 +435,17 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // I can get you a toy, believe me.  There are ways, Dude.
   RooMCStudy* MCS = 0x0;
   if (Section >= 0) {
-    MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
+    //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
+    //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)));
+    //MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)));
+    MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
     //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)) );
   }
 
   RooStats::UpperLimitMCSModule ULMCS(ws.set("POI"), 0.95);
   //RooDLLSignificanceMCSModule sigModule("xs", 0); // For significance test??
   MCS->addModule(ULMCS);
-  MCS->generateAndFit(20);
+  MCS->generateAndFit(2000);
   MCS->Print();
   std::cout << "AFTER" << std::endl;
 
@@ -455,6 +458,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   c2->cd();
   //c2->Divide(1,2);
   //c2->cd(1);
+  RooPlot* hist = MCS->plotParam(*ws.var("xs"));
+  std::cout << "XXX " << hist->GetNbinsX() << std::endl;
+  //hist->Draw();
   mcslimit_histo->Draw();
   //c2->cd(2);
   //mcslimitvsevt_histo->Draw();
@@ -475,7 +481,8 @@ int main (int argc, char* argv[])
 
   int const Section = 0;
 
-  TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   float const BeginMass = 200;
   float const EndMass   = 500;
