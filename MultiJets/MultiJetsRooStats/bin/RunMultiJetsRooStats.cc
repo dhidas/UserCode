@@ -274,6 +274,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // Define model and parameters of interest and so on
   ws.factory("SUM::model(nsig*signal, nbkg*background)");
+  ws.factory("SUM::background_model(nbkg*background)");
   ws.defineSet("observables","mjjj");
   ws.defineSet("POI","xs");
   ws.factory("PROD::prior0(xs_prior)");
@@ -435,16 +436,16 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // I can get you a toy, believe me.  There are ways, Dude.
   RooMCStudy* MCS = 0x0;
   if (Section >= 0) {
-    //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
+    MCS = new RooMCStudy(*ws.pdf("background_model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()), RooFit::Silence());
     //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)));
     //MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)));
-    MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
+    //MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
     //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)) );
   }
 
-  RooStats::UpperLimitMCSModule ULMCS(ws.set("POI"), 0.95);
+  //RooStats::UpperLimitMCSModule ULMCS(ws.set("POI"), 0.95);
   //RooDLLSignificanceMCSModule sigModule("xs", 0); // For significance test??
-  MCS->addModule(ULMCS);
+  //MCS->addModule(ULMCS);
   MCS->generateAndFit(2000);
   MCS->Print();
   std::cout << "AFTER" << std::endl;
@@ -456,13 +457,13 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   //TH1* mcslimitvsevt_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr2+ws.set("POI")->GetName());
   TCanvas* c2 =new TCanvas();
   c2->cd();
-  //c2->Divide(1,2);
-  //c2->cd(1);
+  c2->Divide(1,2);
+  c2->cd(1);
   RooPlot* hist = MCS->plotParam(*ws.var("xs"));
   std::cout << "XXX " << hist->GetNbinsX() << std::endl;
-  //hist->Draw();
+  hist->Draw();
+  c2->cd(2);
   mcslimit_histo->Draw();
-  //c2->cd(2);
   //mcslimitvsevt_histo->Draw();
   //c2->Draw();
   c2->SaveAs("plplpl.eps");
