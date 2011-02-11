@@ -575,8 +575,19 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 
     TCanvas Can(FuncGausHistName, FuncGausHistName);
     Can.cd();
-    gStyle->SetOptFit(101);
+    //gStyle->SetOptFit(101);
+    gStyle->SetOptFit(0);
+    gStyle->SetOptStat(0);
+    gStyle->SetTitleBorderSize(0);
+    //gStyle->SetTitleSize(0.005);
+    gStyle->SetTitleX(0.1);
+    gStyle->SetTitleY(0.965);
+    gStyle->SetTitleH(0.05);
+    gStyle->SetTitleW(0.8);
+    Obj.Hist->SetLineColor(1);
     Obj.Hist->Draw();
+    Obj.Hist->SetYTitle("Events / 10 GeV");
+    Obj.Hist->SetTitle("Trijet Mass for M_{jjj} < #sum |p_{T}| - 170 GeV");
     FuncGaus.Draw("same");
     BGFunc.SetLineStyle(2);
     BGFunc.Draw("same");
@@ -593,6 +604,9 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
     if (gOutFile) {
       gOutFile->cd();
       Can.Write();
+      BGFunc.Write();
+      Gaus.Write();
+      Obj.Hist->Write();
     }
 
     std::cout << "MYLimit norms: " << Obj.Hist->Integral() << "  "
@@ -691,7 +705,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
   // If you want to save all the plots to a root file
   // make tis true...
   gOutFile = 0x0;
-  if (false) {
+  if (Section == -1) {
     gOutFile = new TFile(OutFileName, "recreate");
     if (!gOutFile->IsOpen()) {
       std::cerr << "ERROR: cannot open Output file: " << OutFileName << std::endl;
