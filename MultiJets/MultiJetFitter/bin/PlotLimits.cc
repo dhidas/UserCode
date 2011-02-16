@@ -255,6 +255,12 @@ void DrawLimits (std::vector<TString> const& FileNames)
       MyLegend.AddEntry(grObserved, (MyLabel+" Observed").c_str(), "l");
     }
 
+    // Print the limits in a nice way
+    printf("%6s %8s %8s %8s\n", "Obs", "Exp", "-1Sig", "+1Sig");
+    for (size_t i = 0; i != NMass; ++i) {
+      printf("%6.1f %8.3f %8.3f %8.3f\n", Observed[i], Median[i], M1Sigma[i], P1Sigma[i]);
+    }
+
   }
 
   // Draw the sigma shaded bands and add to legend
