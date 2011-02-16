@@ -210,6 +210,8 @@ float GetAcceptanceForMass (float const Mjjj)
   //AcceptanceFunc.SetParameter(2,  1.84254776396677824e-07);
   //return AcceptanceFunc.Eval(Mjjj);
 
+  float const CorrectionFactor = 0.683;
+
   // This is equivalent to the above, but a hell of a lot faster
   if (Mjjj <= 250) {
     return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
