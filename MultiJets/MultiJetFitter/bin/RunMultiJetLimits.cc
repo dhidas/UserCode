@@ -46,9 +46,9 @@ long double LogFactorial (int const);
 
 void  SetFitObjParams (FitObj&);
 
-std::pair<float, float> BestFitSigBG (FitObj const&, bool const ReturnTotal = false);
+std::pair<float, float> BestFitSigBG (FitObj&, bool const ReturnTotal = false);
 
-float LimitAtMass (FitObj const&);
+float LimitAtMass (FitObj&);
 int   RunMultiJetLimits (int const, TString const);
 
 
@@ -87,6 +87,7 @@ class FitObj : public TObject
     bool  DoSyst;
     bool  DoAccSmear;
     TString LimitsFileName;
+    float LastChi2;
 
     TF1* Function;
 };
@@ -171,10 +172,9 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
   // Get the range for the gaussian width you want to use for a given Mjjj
   // This will eventually be a parametrization
 
-  return std::make_pair<float, float>(15, 15);
+  //return std::make_pair<float, float>(15, 15);
   if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
   if (Mjjj < 350) return std::make_pair<float, float>(10 + 10 * (Mjjj - 250.) / 100., 15 + 10 * (Mjjj - 250.) / 100.);
-  //if (Mjjj < 350) return std::make_pair<float, float>(15, 20);
   return std::make_pair<float, float>(20, 25);
 }
 
@@ -214,9 +214,9 @@ float GetAcceptanceForMass (float const Mjjj)
 
   // This is equivalent to the above, but a hell of a lot faster
   if (Mjjj <= 250) {
-    return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
+    return CorrectionFactor * (-5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj);
   } else {
-    return 1.93282628706596682e-03 - 3.61649088607910918e-05 * Mjjj + 1.84254776396677824e-07 * Mjjj * Mjjj;
+    return CorrectionFactor * (1.93282628706596682e-03 - 3.61649088607910918e-05 * Mjjj + 1.84254776396677824e-07 * Mjjj * Mjjj);
   }
 
 }
@@ -459,7 +459,7 @@ void SetFitObjParams (FitObj& MyFitObj)
 
 
 
-std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
+std::pair<float, float> BestFitSigBG (FitObj& Obj, bool const ReturnTotal)
 {
 
   TString BGFuncStr;
@@ -485,15 +485,25 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
   // This error taken from CDF code
   float err=0.000000001;
 
+
   // Set the parameters depending on which fit it is
   switch (gFitType) {
     case kFitLandau:
+      float const Err0 = Obj.Function->GetParError(0) * Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2);
+      float const Err1 = Obj.Function->GetParError(1);
+      float const Err2 = Obj.Function->GetParError(2);
       FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
-      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - Err0, FuncGaus.GetParameter(0) + Err0);
       FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
-      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - Err1, Obj.Function->GetParameter(1) + Err1);
       FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
-      FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
+      FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - Err2, Obj.Function->GetParameter(2) + Err2);
+      //FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
+      //FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      //FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
+      //FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      //FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
+      //FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
       break;
     case kFitExp:
       FuncGaus.SetParameter(0, Obj.Function->GetParameter(0));
@@ -527,6 +537,10 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 
   // Fit the function to the histogram given
   Obj.Hist->Fit("FuncGaus", "QL", "", FuncGaus.GetXmin(), FuncGaus.GetXmax());
+
+
+  Obj.gsigma = FuncGaus.GetParameter(5);
+  Obj.LastChi2 = FuncGaus.GetChisquare();
 
 
   // Right here if you want the total integral no more is needed since the gaussian is normalized
@@ -594,7 +608,13 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
     BGFunc.SetLineStyle(2);
     BGFunc.Draw("same");
     Gaus.SetLineColor(2);
+    if (Gaus.GetParameter(0) < 0) {
+      Gaus.SetParameter(0, -Gaus.GetParameter(0));
+    }
     Gaus.Draw("same");
+    if (Gaus.GetParameter(0) < 0) {
+      Gaus.SetParameter(0, -Gaus.GetParameter(0));
+    }
 
     if (Obj.Section < 0) {
       sprintf(FuncGausHistName, "FuncGaus_%i_Data.eps", (int) Obj.gmean);
@@ -627,7 +647,7 @@ std::pair<float, float> BestFitSigBG (FitObj const& Obj, bool const ReturnTotal)
 
 
 
-float LimitAtMass (FitObj const& Obj)
+float LimitAtMass (FitObj& Obj)
 {
   // Get the 95% limit given the best fit signal and BG.  This uses
   // a poisson likelihood, which is integrated to 95%..
@@ -654,6 +674,7 @@ float LimitAtMass (FitObj const& Obj)
   float mean = 0;
   for ( ; Poisson.Integral(begin, mean) < 0.95; mean += 0.01) {}
 
+  printf("Mass/NSignal/NBG: %12.0f %12.1f %12.1f\n", Obj.gmean, SigBG.first, SigBG.second);
 
 
   if (Obj.IsData) {
@@ -698,10 +719,16 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
 
   // Open the output file
   char OutFileName[200];
+  char Chi2FileName[100];
+  char WidthFileName[100];
   if (Section < 0) {
     sprintf(OutFileName, "LimitPlots_Data.root");
+    sprintf(Chi2FileName, "Chi2Values_Data.dat");
+    sprintf(WidthFileName, "WidthValues_Data.dat");
   } else {
     sprintf(OutFileName, "LimitPlots_%i.root", Section);
+    sprintf(Chi2FileName, "PEChi2Values_%i.dat", Section);
+    sprintf(WidthFileName, "PEWidthValues_%i.dat", Section);
   }
 
   // If you want to save all the plots to a root file
@@ -737,6 +764,20 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
     exit(1);
   }
 
+  // Open file for chi2 s
+  FILE* Chi2File = fopen(Chi2FileName, "w");
+  if (Chi2File == NULL) {
+    std::cerr << "ERROR: cannot open output file: " << Chi2FileName << std::endl;
+    exit(1);
+  }
+
+  // Open file for widths
+  FILE* WidthFile = fopen(WidthFileName, "w");
+  if (WidthFile == NULL) {
+    std::cerr << "ERROR: cannot open output file: " << WidthFileName << std::endl;
+    exit(1);
+  }
+
   // These numbers are what range you want to calculate limits for.
   float const BeginMass = 200;
   float const EndMass   = 500;
@@ -748,8 +789,12 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
   // Print the masses to the text file
   for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
     fprintf(OutFile, "%10.3f ", ThisMass);
+    fprintf(Chi2File, "%20.3f  ", ThisMass);
+    fprintf(WidthFile, "%10.3f ", ThisMass);
   }
   fprintf(OutFile, "\n");
+  fprintf(Chi2File, "\n");
+  fprintf(WidthFile, "\n");
 
 
   // Setup FitObj
@@ -794,6 +839,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
       // Print that out
       printf("MYLimit %9i %12.4f\n", (int) ThisMass, XSecLimit);
       fprintf(OutFile, "%10E ", XSecLimit);
+      fprintf(Chi2File, "%10E %10E  ", XSecLimit, MyFitObj.LastChi2);
+      fprintf(WidthFile, "%10E ", MyFitObj.gsigma);
 
       // Save it to our little friendly vector
       GausMeanNGaus.push_back(std::make_pair<float, float>(ThisMass, XSecLimit));
@@ -861,6 +908,8 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
         // Print that out and save it to file
         printf("MYLimit XSec %9i %9i %12.4f\n", ipe, (int) ThisMass, XSec);
         fprintf(OutFile, "%10E ", XSec);
+        fprintf(Chi2File, "%10E %10E  ", XSec, MyFitObj.LastChi2);
+        fprintf(WidthFile, "%10E ", MyFitObj.gsigma);
 
         // Why not put that in a vector
         GausMeanBestFit.push_back( std::make_pair<float, float>(ThisMass, XSec) );
@@ -869,7 +918,11 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
         delete MyFitObj.Hist;
       }
       fprintf(OutFile, "\n");
+      fprintf(Chi2File, "\n");
+      fprintf(WidthFile, "\n");
       fflush(OutFile);
+      fflush(Chi2File);
+      fflush(WidthFile);
 
       // Every so often output a graph just because
       if (ipe % 1000 == 0) {
@@ -881,8 +934,10 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
     }
   }
 
-  // Nicely close the text output file
+  // Nicely close the text output files
   fclose(OutFile);
+  fclose(Chi2File);
+  fclose(WidthFile);
 
   // Close the out root file if it exists
   if (gOutFile) {
