@@ -489,6 +489,7 @@ std::pair<float, float> BestFitSigBG (FitObj& Obj, bool const ReturnTotal)
   // Set the parameters depending on which fit it is
   switch (gFitType) {
     case kFitLandau:
+      {
       float const Err0 = Obj.Function->GetParError(0) * Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2);
       float const Err1 = Obj.Function->GetParError(1);
       float const Err2 = Obj.Function->GetParError(2);
@@ -504,6 +505,7 @@ std::pair<float, float> BestFitSigBG (FitObj& Obj, bool const ReturnTotal)
       //FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
       //FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
       //FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
+      }
       break;
     case kFitExp:
       FuncGaus.SetParameter(0, Obj.Function->GetParameter(0));
@@ -876,6 +878,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
       // Chec to see that we have a hist
       if (!MyFitObj.Hist) {
         std::cerr << "ERROR: cannot get PE: " << ipe << std::endl;
+        std::cout << MyFitObj.Hist << std::endl;
         exit(1);
       }
 
@@ -902,7 +905,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
         float const ThisAcceptance = MyFitObj.DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
         float const XSec = SigBG.first / (Luminosity() * ThisAcceptance);
         //float const Limit = LimitAtMass(MyFitObj);
-        //float const XSec = Limit / (Luminosity() * Acceptance);
+        //float const XSec = Limit / (Luminosity() * ThisAcceptance);
 
 
         // Print that out and save it to file
