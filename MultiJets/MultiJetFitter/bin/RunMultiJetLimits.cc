@@ -25,6 +25,7 @@
 #include "TStyle.h"
 
 #include "MultiJets/MultiJetFitter/interface/TAnaHist.h"
+#include "MultiJets/MultiJetFitter/interface/cl95cms.h"
 
 
 // Let's maks this self contained and put all function and class declaritions here
@@ -649,6 +650,16 @@ float LimitAtMass (FitObj& Obj)
   // Get the best fir signal and background
   std::pair<float, float> SigBG = BestFitSigBG(Obj);
 
+  // This is a test of the SUSY limit code
+  static FILE* CL95OUT = fopen("CL95.dat", "w");
+  float const CLLimit  = CL95(Luminosity(), 0.11*Luminosity(), GetAcceptanceForMass(Obj.gmean), 0.20*GetAcceptanceForMass(Obj.gmean), SigBG.second, 0.05*SigBG.second, SigBG.first+SigBG.second);
+  float const CLLimitA = CLA(Luminosity(), 0.11*Luminosity(), GetAcceptanceForMass(Obj.gmean), 0.20*GetAcceptanceForMass(Obj.gmean), SigBG.second, 0.05*SigBG.second);
+  fprintf(CL95OUT, "%i %12.3f %12.3f\n", (int) Obj.gmean, CLLimitA, CLLimit);
+  fflush(CL95OUT);
+  printf("CL95 LIMITS: %i %12.3f %12.3f\n", (int) Obj.gmean, CLLimitA, CLLimit);
+  return CLLimit;
+
+
   // Define a poisson likelhood given the best fit parameters
   TF1 Poisson("land", "[0]*TMath::Poisson([1], [2]+x)", begin, end);
   Poisson.FixParameter(0, 1);
@@ -824,6 +835,7 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
       // Technically I guess a cross section//
       float const Acceptance = GetAcceptanceForMass(ThisMass);
       float const XSecLimit = Limit / (Luminosity() * Acceptance);
+
 
       // Print that out
       printf("MYLimit %9i %12.4f\n", (int) ThisMass, XSecLimit);
