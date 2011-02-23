@@ -30,10 +30,10 @@ int PlotWidths (TString const InName, float const Column, float const CutBelow)
 
 
   float Val;
-  float XS, Chi2;
+  float Width;
   std::istringstream InLine;
 
-  TH1F h("Width", "Gaussian Width", 17, 9, 26);
+  TH1F h("Width", "Gaussian Width", 22, 9, 31);
 
   while (!In.eof()) {
     std::getline(In, Line);
@@ -43,10 +43,10 @@ int PlotWidths (TString const InName, float const Column, float const CutBelow)
       InLine >> Val;
     }
 
-    InLine >> XS;
-    printf("Width: %12.1f\n", XS);
+    InLine >> Width;
+    printf("Width: %12.1f\n", Width);
 
-    h.Fill(Chi2);
+    h.Fill(Width);
 
     if (!In.peek()) break;
   }
@@ -54,7 +54,7 @@ int PlotWidths (TString const InName, float const Column, float const CutBelow)
   TCanvas Can;
   Can.cd();
   h.Draw("hist");
-  Can.SaveAs("Chi2.eps");
+  Can.SaveAs("Width.eps");
 
 
 
@@ -69,7 +69,7 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  float const Column   = 0;
+  float const Column   = 10;
   float const CutBelow = 0;
 
   PlotWidths("TestFile", Column, CutBelow);

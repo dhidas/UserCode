@@ -34,7 +34,6 @@ class FitObj;
 
 // In the order they appear in.
 std::pair<float, float> GetGausWidthRange (float const);
-int   GetDiagForMjjj (float const);
 float GetAcceptanceForMass (float const);
 float Luminosity ();
 TH1D* GetPE (FitObj const&);
@@ -172,6 +171,7 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
   // Get the range for the gaussian width you want to use for a given Mjjj
   // This will eventually be a parametrization
 
+  // Take out this statement...to unfix the width
   //return std::make_pair<float, float>(15, 15);
   if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
   if (Mjjj < 350) return std::make_pair<float, float>(10 + 10 * (Mjjj - 250.) / 100., 15 + 10 * (Mjjj - 250.) / 100.);
@@ -179,20 +179,6 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
 }
 
 
-
-int GetDiagForMjjj (float const Mjjj)
-{
-  // Let's say you want to get the diag cut for a given mass..
-  // I was using this to choose which hist to use..
-
-  if (Mjjj < 150)      return 140;
-  else if (Mjjj < 200) return 160;
-  else if (Mjjj < 250) return 180;
-  else if (Mjjj < 300) return 200;
-  else if (Mjjj < 350) return 220;
-  else if (Mjjj < 400) return 240;
-  else                 return 260;
-}
 
 
 
@@ -211,6 +197,7 @@ float GetAcceptanceForMass (float const Mjjj)
   //return AcceptanceFunc.Eval(Mjjj);
 
   float const CorrectionFactor = 0.683;
+
 
   // This is equivalent to the above, but a hell of a lot faster
   if (Mjjj <= 250) {
@@ -340,7 +327,7 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File)
   char BUFF[200];
   if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_6jet");
   else                    sprintf(BUFF,  "Mjjj_45_20_170_6jet");
-  //sprintf(BUFF,  "Mjjj_45_20_170_6jet");
+
 
 
   std::cout << "Getting Hist: " << BUFF << "  for mass " << Mjjj << std::endl;
@@ -490,21 +477,21 @@ std::pair<float, float> BestFitSigBG (FitObj& Obj, bool const ReturnTotal)
   switch (gFitType) {
     case kFitLandau:
       {
-      float const Err0 = Obj.Function->GetParError(0) * Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2);
-      float const Err1 = Obj.Function->GetParError(1);
-      float const Err2 = Obj.Function->GetParError(2);
-      FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
-      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - Err0, FuncGaus.GetParameter(0) + Err0);
-      FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
-      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - Err1, Obj.Function->GetParameter(1) + Err1);
-      FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
-      FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - Err2, Obj.Function->GetParameter(2) + Err2);
+      //float const Err0 = Obj.Function->GetParError(0) * Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2);
+      //float const Err1 = Obj.Function->GetParError(1);
+      //float const Err2 = Obj.Function->GetParError(2);
       //FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
-      //FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      //FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - Err0, FuncGaus.GetParameter(0) + Err0);
       //FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
-      //FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      //FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - Err1, Obj.Function->GetParameter(1) + Err1);
       //FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
-      //FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
+      //FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - Err2, Obj.Function->GetParameter(2) + Err2);
+      FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
+      FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - err, FuncGaus.GetParameter(0) + err);
+      FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
+      FuncGaus.SetParLimits(1, Obj.Function->GetParameter(1) - err, Obj.Function->GetParameter(1) + err);
+      FuncGaus.SetParameter(2, Obj.Function->GetParameter(2));
+      FuncGaus.SetParLimits(2, Obj.Function->GetParameter(2) - err, Obj.Function->GetParameter(2) + err);
       }
       break;
     case kFitExp:
@@ -875,14 +862,6 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
       // Set the PE number and get a PE
       MyFitObj.ipe = ipe;
 
-      // Chec to see that we have a hist
-      if (!MyFitObj.Hist) {
-        std::cerr << "ERROR: cannot get PE: " << ipe << std::endl;
-        std::cout << MyFitObj.Hist << std::endl;
-        exit(1);
-      }
-
-
 
       // Do the masses
       for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
@@ -903,9 +882,9 @@ int RunMultiJetLimits (int const Section, TString const InFileName, TString cons
         // If you're doing acceptance smear do it here.
         float const Acceptance = GetAcceptanceForMass(ThisMass);
         float const ThisAcceptance = MyFitObj.DoAccSmear ? Acceptance * (1.0 + gRandom->Gaus(0, AcceptErr)) : Acceptance;
-        float const XSec = SigBG.first / (Luminosity() * ThisAcceptance);
-        //float const Limit = LimitAtMass(MyFitObj);
-        //float const XSec = Limit / (Luminosity() * ThisAcceptance);
+        //float const XSec = SigBG.first / (Luminosity() * ThisAcceptance);
+        float const Limit = LimitAtMass(MyFitObj);
+        float const XSec = Limit / (Luminosity() * ThisAcceptance);
 
 
         // Print that out and save it to file
