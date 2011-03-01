@@ -173,17 +173,21 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const MININVMASS =    0;
   float const MAXINVMASS = 1500;
 
-  float const LUMINOSITY = 35.0;
+  float const LUMINOSITY = 35.1;
   float const LUMIERROR  = 0.11;
 
   float const JESERROR   = 0.08;
 
   float const ACCERROR   = 0.13;
 
+  float const MINXS      =    0;
   float const MAXXS      = 1000;
 
+
+  // Just a label
   char label[100];
   sprintf(label, "Dean_%i_%i_%i", (int) SignalMass, method, statLevel);
+
 
   // Setup workspace
   RooWorkspace ws("ws");
@@ -207,9 +211,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       Func->GetParameter(0),
       Func->GetParameter(1),
       Func->GetParameter(2),
-      Func->GetParameter(0) * Func->GetParameter(2) / 10.0
+      Func->GetParameter(0) * Func->GetParameter(2) / DataTH1->GetBinWidth(0)
       );
-  float const NBGFromFit = Func->GetParameter(0) * Func->GetParameter(2) / 10.0;
+  float const NBGFromFit = Func->GetParameter(0) * Func->GetParameter(2) / DataTH1->GetBinWidth(0);
 
   // Other fit, Used for syst numbers
   TH1* SystTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "4jetscaled");
@@ -227,10 +231,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   // background and background prior
-  //ws.factory("CEXPR::background('TMath::Landau(mjjj, lmpv, lsigma) ', lmpv[200,0,1000], lsigma[40,0,500], mjjj)");
   ws.factory("RooLandau::background(mjjj, lmpv[200,0,1000], lsigma[40,0,500])");
   ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
-  //ws.factory("RooUniform::nbkg_prior(nbkg[0,60000])");
+
   // Set the background parameters
   ws.var("nbkg")->setVal(NBGFromFit);
   ws.var("nbkg")->setRange(NBGFromFit * (1 - Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + Func->GetParError(0)/Func->GetParameter(0)));
@@ -239,61 +242,83 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("lmpv")->setVal(Func->GetParameter(1));
   ws.var("lsigma")->setVal(Func->GetParameter(2));
 
-  // This is for the signal
+  // Lumi prior
   ws.factory("RooGaussian::lumi_prior(lumi[0], lumiM0[0], lumiS0[0])");
   ws.var("lumi")->setVal(LUMINOSITY);
   ws.var("lumi")->setRange(LUMINOSITY * (1. - 3. * LUMIERROR), LUMINOSITY * (1. + 3. * LUMIERROR));
   ws.var("lumiM0")->setVal(LUMINOSITY);
   ws.var("lumiS0")->setVal(LUMINOSITY * LUMIERROR);
-  ws.factory("RooUniform::xs_prior(xs[-5000,5000])");
+
+  // cross section prior and set the allowed range for the cross section
+  ws.factory("xs[0]");
+  ws.var("xs")->setRange(MINXS, MAXXS);
+  ws.factory("RooUniform::xs_prior(xs)");
+
+  // define number of signal as xs*lumi*acceptance
   ws.factory("prod::nsig(xs, lumi, acceptance[0,1])");
+
+  // Set acceptance value
   ws.var("acceptance")->setVal(GetAcceptanceForMjjj(SignalMass));
   ws.var("acceptance")->setConstant(true);
+
+  // Acceptance prior
   ws.factory("RooGaussian::acceptance_prior(acceptanceDelta[1,0,2], acceptanceDeltaM0[1.0], acceptanceDeltaS0[0.1])");
   ws.var("acceptanceDelta")->setRange(1. - 3. * ACCERROR, 1. + 3. * ACCERROR);
   ws.var("acceptanceDeltaS0")->setVal(ACCERROR);
 
-  ws.var("xs")->setRange(0, MAXXS);
-
-  // Signal
-  ws.factory("sigMass[1000]");
+  // set the signal mass
+  ws.factory("sigMass[0]");
   ws.var("sigMass")->setRange(MININVMASS, MAXINVMASS);
   ws.var("sigMass")->setVal(SignalMass);
+
+  // prior on signal mass delta
   ws.factory("RooGaussian::sigMassDelta_prior(sigMassDelta[1.0,0.0,2.0], sigMassDeltaM0[1.0], sigMassDeltaS0[0.1])");
   ws.var("sigMassDelta")->setRange(1. - 3. * JESERROR, 1. + 3. * JESERROR);
   ws.var("sigMassDelta")->setVal(1);
   ws.var("sigMassDeltaS0")->setVal(JESERROR);
   ws.factory("cexpr::invmassprime('sigMassDelta*mjjj',sigMassDelta,mjjj)");
 
-  // Signal shape
+  // define signal gaussian
   ws.factory("RooGaussian::signal(invmassprime, sigMass, sigWidth[0,50])");
-  //ws.factory("RooGaussian::signal(mjjj, sigMass, sigWidth[0,50])");
   ws.var("sigWidth")->setVal( GetGausWidthRange(SignalMass).first/2. + GetGausWidthRange(SignalMass).second/2.);
   ws.var("sigWidth")->setRange( GetGausWidthRange(SignalMass).first, GetGausWidthRange(SignalMass).second);
 
 
-  // Define model and parameters of interest and so on
+  // Define models (sig+bg, and bg only)
   ws.factory("SUM::model(nsig*signal, nbkg*background)");
   ws.factory("SUM::background_model(nbkg*background)");
+
+  // Observables and parameters or interest
   ws.defineSet("observables","mjjj");
   ws.defineSet("POI","xs");
-  ws.factory("PROD::prior0(xs_prior)");
-  ws.factory("PROD::prior1(xs_prior,nbkg_prior)");
-  ws.factory("PROD::prior2(xs_prior,lumi_prior)");
-  ws.factory("PROD::prior3(xs_prior,acceptance_prior)");
-  ws.factory("PROD::prior4(xs_prior,lumi_prior,nbkg_prior)");
-  ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,sigMassDelta_prior)");
-  ws.factory("PROD::prior6(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
-  ws.defineSet("nuisSet0","");
-  ws.defineSet("nuisSet1","nbkg");
-  ws.defineSet("nuisSet2","lumi");
-  ws.defineSet("nuisSet3","acceptance");
-  ws.defineSet("nuisSet4","lumi,nbkg");
-  ws.defineSet("nuisSet5","nbkg,lumi,sigMassDelta");
-  ws.defineSet("nuisSet6","nbkg,lumi,acceptance");
 
+  // Priors and nuis params
+  ws.factory("PROD::prior0(xs_prior)");
+  ws.defineSet("nuisSet0","");
+
+  ws.factory("PROD::prior1(xs_prior,nbkg_prior)");
+  ws.defineSet("nuisSet1","nbkg");
+
+  ws.factory("PROD::prior2(xs_prior,lumi_prior)");
+  ws.defineSet("nuisSet2","lumi");
+  
+  ws.factory("PROD::prior3(xs_prior,acceptance_prior)");
+  ws.defineSet("nuisSet3","acceptance");
+  
+  ws.factory("PROD::prior4(xs_prior,lumi_prior,nbkg_prior)");
+  ws.defineSet("nuisSet4","lumi,nbkg");
+  
+  ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,sigMassDelta_prior)");
+  ws.defineSet("nuisSet5","nbkg,lumi,sigMassDelta");
+  
+  ws.factory("PROD::prior6(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
+  ws.defineSet("nuisSet6","nbkg,lumi,acceptance");
+  
+
+  // let's not fix the cross section..just to make sure
   ws.var("xs")->setConstant(false);
 
+  //  Fix everything and turn off individually based on what we need later..
   ws.var("lumi")->setConstant(true);
   ws.var("acceptance")->setConstant(true);
   ws.var("lmpv")->setConstant(true);
@@ -310,6 +335,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   modelConfig.SetPdf(*ws.pdf("model"));
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
 
+  // Which prior and nuis are we using
   if (statLevel == 0) {
     modelConfig.SetPriorPdf(*ws.pdf("prior0"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
@@ -337,6 +363,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     modelConfig.SetPriorPdf(*ws.pdf("prior6"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet6"));
   }
+
+  // import the modelconfig
   ws.import(modelConfig);
 
 
@@ -355,6 +383,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   //exit(0);
   */
 
+  // Just some print statements
   ws.Print();
   modelConfig.Print();
   ws.var("nbkg")->Print();
@@ -373,7 +402,11 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("sigWidth")->Print();
 
 
-  double lower=-1, upper=-1;
+
+  // Used for the limits
+  float lower = -1, upper = -1;
+
+  // The different methods
   if(method==0) {
     RooStats::BayesianCalculator bc(*ws.data("data"), modelConfig);
     bc.SetConfidenceLevel(0.95);
@@ -495,7 +528,7 @@ int main (int argc, char* argv[])
   float const StepSize  =  10;
 
   int const Method      = 1;
-  int const Systematics = 0;
+  int const Systematics = 6;
 
   if (Section == -1) {
     std::vector< std::pair<float, float> > MassLimitVec;
