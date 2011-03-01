@@ -340,6 +340,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.import(modelConfig);
 
 
+  /*
   //RooFitResult* Fit = ws.pdf("model")->fitTo(binnedData);
   ws.var("nbkg")->Print();
   TCanvas Can;
@@ -352,6 +353,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   Can.SaveAs(TString("Fit_")+label+".gif");
   ws.var("sigMassDelta")->Print();
   //exit(0);
+  */
 
   ws.Print();
   modelConfig.Print();
@@ -446,28 +448,31 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   //RooStats::UpperLimitMCSModule ULMCS(ws.set("POI"), 0.95);
   //RooDLLSignificanceMCSModule sigModule("xs", 0); // For significance test??
   //MCS->addModule(ULMCS);
-  MCS->generateAndFit(2000);
-  MCS->Print();
-  std::cout << "AFTER" << std::endl;
 
-  TString limitstr("xs");
-  TH1* mcslimit_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr+ws.set("POI")->GetName());
-  //Make a histogram of the upperlimit vs the number of generated events
-  //TString limitstr2("ngen,xs");
-  //TH1* mcslimitvsevt_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr2+ws.set("POI")->GetName());
-  TCanvas* c2 =new TCanvas();
-  c2->cd();
-  c2->Divide(1,2);
-  c2->cd(1);
-  RooPlot* hist = MCS->plotParam(*ws.var("xs"));
-  std::cout << "XXX " << hist->GetNbinsX() << std::endl;
-  hist->Draw();
-  c2->cd(2);
-  mcslimit_histo->Draw();
-  //mcslimitvsevt_histo->Draw();
-  //c2->Draw();
-  c2->SaveAs("plplpl.eps");
-  exit(0);
+  if (MCS) {
+    MCS->generateAndFit(2000);
+    MCS->Print();
+    std::cout << "AFTER" << std::endl;
+
+    TString limitstr("xs");
+    TH1* mcslimit_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr+ws.set("POI")->GetName());
+    //Make a histogram of the upperlimit vs the number of generated events
+    //TString limitstr2("ngen,xs");
+    //TH1* mcslimitvsevt_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr2+ws.set("POI")->GetName());
+    TCanvas* c2 =new TCanvas();
+    c2->cd();
+    c2->Divide(1,2);
+    c2->cd(1);
+    RooPlot* hist = MCS->plotParam(*ws.var("xs"));
+    std::cout << "XXX " << hist->GetNbinsX() << std::endl;
+    hist->Draw();
+    c2->cd(2);
+    mcslimit_histo->Draw();
+    //mcslimitvsevt_histo->Draw();
+    //c2->Draw();
+    c2->SaveAs("plplpl.eps");
+    exit(0);
+  }
 
   return upper;
 }
@@ -480,16 +485,16 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  int const Section = 0;
+  int const Section = -1;
 
-  //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   float const BeginMass = 200;
   float const EndMass   = 500;
   float const StepSize  =  10;
 
-  int const Method      = 0;
+  int const Method      = 1;
   int const Systematics = 0;
 
   if (Section == -1) {
