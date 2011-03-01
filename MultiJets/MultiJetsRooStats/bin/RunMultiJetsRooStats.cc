@@ -215,6 +215,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       );
   float const NBGFromFit = Func->GetParameter(0) * Func->GetParameter(2) / DataTH1->GetBinWidth(0);
 
+  printf("NBG Hist / Fit: %12.1f %12.1f\n", DataTH1->Integral(), NBGFromFit);
+
   // Other fit, Used for syst numbers
   TH1* SystTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "4jetscaled");
   TF1* SystFunc = SystTH1->GetFunction("total");
@@ -230,11 +232,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   Can1.SaveAs(TString("DefaultFit_")+label+".gif");
 
 
-  // background and background prior
+  // background prior
   ws.factory("RooLandau::background(mjjj, lmpv[200,0,1000], lsigma[40,0,500])");
   ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
-
-  // Set the background parameters
   ws.var("nbkg")->setVal(NBGFromFit);
   ws.var("nbkg")->setRange(NBGFromFit * (1 - Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + Func->GetParError(0)/Func->GetParameter(0)));
   ws.var("nbkgM0")->setVal(NBGFromFit);
