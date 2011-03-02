@@ -73,7 +73,6 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File, TString const Suffix)
   char BUFF[200];
   if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_" + Suffix);
   else                    sprintf(BUFF,  "Mjjj_45_20_170_" + Suffix);
-  //sprintf(BUFF,  "Mjjj_45_20_170_6jet");
 
 
   std::cout << "Getting Hist: " << BUFF << "  for mass " << Mjjj << std::endl;
@@ -169,22 +168,24 @@ void MakeGraph (std::vector< std::pair<float, float> > const& P, TString const T
 
 
 
-int DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const label, int const method)
+float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const label, int const method, int const Section)
 {
   // Used for the limits
   float lower = -1, upper = -1;
 
   // The different methods
   if(method==0) {
-    RooStats::BayesianCalculator bc(*ws.data("data"), modelConfig);
+    RooStats::BayesianCalculator bc(*ws.data("DataToFit"), modelConfig);
     bc.SetConfidenceLevel(0.95);
     bc.SetLeftSideTailFraction(0.0);
     RooStats::SimpleInterval* bInt = bc.GetInterval();
-    TCanvas* canvas = new TCanvas("bcPlost","Posterior Distribution",500,500);
-    RooPlot* plot = bc.GetPosteriorPlot();
-    plot->Draw();
-    canvas->SaveAs(TString("BCpost")+label+".gif");
-    lower=bInt->LowerLimit();
+    if (Section == -1) {
+      TCanvas* canvas = new TCanvas("bcPlost","Posterior Distribution",500,500);
+      RooPlot* plot = bc.GetPosteriorPlot();
+      plot->Draw();
+      canvas->SaveAs(TString("BCpost")+label+".eps");
+    }
+    //lower=bInt->LowerLimit();
     upper=bInt->UpperLimit();
 
   } else if(method==1) {
@@ -195,8 +196,8 @@ int DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const l
     //ph.SetCacheSize(100);
     //RooStats::ProposalFunction* pdfProp = ph.GetProposalFunction();
 
-    RooStats::MCMCCalculator mc(*ws.data("data"), modelConfig);
-    mc.SetNumBins(100);
+    RooStats::MCMCCalculator mc(*ws.data("DataToFit"), modelConfig);
+    mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
     mc.SetNumIters(500000);
@@ -204,16 +205,20 @@ int DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const l
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
-    // draw posterior plot
-    TCanvas * c1 = new TCanvas("MCMCpost", "MCMCpost", 500, 500);
-    RooStats::MCMCIntervalPlot mcPlot(*interval);
-    mcPlot.Draw();
-    c1->SaveAs(TString("mcmcPost")+label+".gif");
-    lower=interval->LowerLimit(*ws.var("xs"));
+    // Upper limit
+    //lower=interval->LowerLimit(*ws.var("xs"));
     upper=interval->UpperLimit(*ws.var("xs"));
 
+    // draw posterior plot for data
+    if (Section == -1) {
+      TCanvas * c1 = new TCanvas("MCMCpost", "MCMCpost", 500, 500);
+      RooStats::MCMCIntervalPlot mcPlot(*interval);
+      mcPlot.Draw();
+      c1->SaveAs(TString("mcmcPost")+label+".eps");
+    }
+
   } else if(method==2) {
-    RooStats::ProfileLikelihoodCalculator plc(*ws.data("data"), modelConfig);
+    RooStats::ProfileLikelihoodCalculator plc(*ws.data("DataToFit"), modelConfig);
     plc.SetConfidenceLevel(0.95);
     RooStats::LikelihoodInterval* plInt=plc.GetInterval();
     RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
@@ -222,14 +227,21 @@ int DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const l
     RooMsgService::instance().setGlobalKillBelow(msglevel);
 
     // draw posterior plot
-    TCanvas * c1 = new TCanvas("PLikePost", "PLikePost", 500, 500);
-    RooStats::LikelihoodIntervalPlot* plotInt=new RooStats::LikelihoodIntervalPlot(plInt);
-    plotInt->SetTitle("Profile Likelihood Ratio and Posterior for S");
-    plotInt->Draw();
-    c1->SaveAs(TString("PLikePost")+label+".gif");
-    lower = plInt->LowerLimit(*ws.var("xs"));
+    if (Section == -1) {
+      TCanvas * c1 = new TCanvas("PLikePost", "PLikePost", 500, 500);
+      RooStats::LikelihoodIntervalPlot* plotInt=new RooStats::LikelihoodIntervalPlot(plInt);
+      plotInt->SetTitle("Profile Likelihood Ratio and Posterior for S");
+      plotInt->Draw();
+      c1->SaveAs(TString("PLikePost")+label+".eps");
+    }
+
+    //lower = plInt->LowerLimit(*ws.var("xs"));
     upper = plInt->UpperLimit(*ws.var("xs"));
   }
+  //printf("LOWER LIMIT: %12.3f\n", lower);
+  printf("UPPER LIMIT: %12.3f\n", upper);
+
+  return upper;
 }
 
 
@@ -254,7 +266,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const MAXXS      = 1000;
 
   // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(771723*Section);
+  RooRandom::randomGenerator()->SetSeed(771723*(Section+2));
 
   // Just a label
   char label[100];
@@ -277,6 +289,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   }
   TH1* DataTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "6jet");
   RooDataHist binnedData("data", "dataset with x", *ws.var("mjjj"), DataTH1);
+  RooDataHist fitData("DataToFit", "dataset with x", *ws.var("mjjj"), DataTH1);
   ws.import(binnedData);
   TF1* Func = DataTH1->GetFunction("total");
   printf("Fit parameters: %12.3f %12.3f %12.3f %12.3f\n",
@@ -301,7 +314,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   DataTH1->Draw("ep");
   Func->Draw("samel");
   SystFunc->Draw("lsame");
-  Can1.SaveAs(TString("DefaultFit_")+label+".gif");
+  Can1.SaveAs(TString("DefaultFit_")+label+".eps");
 
 
   // background prior
@@ -310,7 +323,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("nbkg")->setVal(NBGFromFit);
   ws.var("nbkg")->setRange(NBGFromFit * (1 - Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + Func->GetParError(0)/Func->GetParameter(0)));
   ws.var("nbkgM0")->setVal(NBGFromFit);
-  ws.var("nbkgS0")->setVal(TMath::Sqrt(NBGFromFit));
+  //ws.var("nbkgS0")->setVal(TMath::Sqrt(NBGFromFit));
+  ws.var("nbkgS0")->setVal(NBGFromFit * 0.05);
   ws.var("lmpv")->setVal(Func->GetParameter(1));
   ws.var("lsigma")->setVal(Func->GetParameter(2));
 
@@ -330,13 +344,19 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.factory("prod::nsig(xs, lumi, acceptance[0,1])");
 
   // Set acceptance value
-  ws.var("acceptance")->setVal(GetAcceptanceForMjjj(SignalMass));
-  ws.var("acceptance")->setConstant(true);
+  //ws.var("acceptance")->setVal(GetAcceptanceForMjjj(SignalMass));
+  //ws.var("acceptance")->setConstant(true);
 
   // Acceptance prior
-  ws.factory("RooGaussian::acceptance_prior(acceptanceDelta[1,0,2], acceptanceDeltaM0[1.0], acceptanceDeltaS0[0.1])");
-  ws.var("acceptanceDelta")->setRange(1. - 3. * ACCERROR, 1. + 3. * ACCERROR);
-  ws.var("acceptanceDeltaS0")->setVal(ACCERROR);
+  float const Acc = GetAcceptanceForMjjj(SignalMass);
+  ws.factory("RooGaussian::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
+  ws.var("acceptance")->setVal(Acc);
+  ws.var("acceptance")->setRange(Acc * (1. - 3. * ACCERROR), Acc * (1. + 3. * ACCERROR));
+  ws.var("acceptanceM0")->setVal(Acc);
+  ws.var("acceptanceS0")->setVal(Acc * ACCERROR);
+  //ws.factory("RooGaussian::acceptance_prior(acceptanceDelta[1,0,2], acceptanceDeltaM0[1.0], acceptanceDeltaS0[0.1])");
+  //ws.var("acceptanceDelta")->setRange(1. - 3. * ACCERROR, 1. + 3. * ACCERROR);
+  //ws.var("acceptanceDeltaS0")->setVal(ACCERROR);
 
   // set the signal mass
   ws.factory("sigMass[0]");
@@ -450,7 +470,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.pdf("model")->fitTo(*ws.data("data"));
   ws.pdf("model")->plotOn(datafit);
   datafit->Draw();
-  Can.SaveAs(TString("Fit_")+label+".gif");
+  Can.SaveAs(TString("Fit_")+label+".eps");
   ws.var("sigMassDelta")->Print();
   //exit(0);
   */
@@ -475,92 +495,41 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
 
-  // Used for the limits
-  float lower = -1, upper = -1;
 
-  // The different methods
-  if(method==0) {
-    RooStats::BayesianCalculator bc(*ws.data("data"), modelConfig);
-    bc.SetConfidenceLevel(0.95);
-    bc.SetLeftSideTailFraction(0.0);
-    RooStats::SimpleInterval* bInt = bc.GetInterval();
-    TCanvas* canvas = new TCanvas("bcPlost","Posterior Distribution",500,500);
-    RooPlot* plot = bc.GetPosteriorPlot();
-    plot->Draw();
-    canvas->SaveAs(TString("BCpost")+label+".gif");
-    lower=bInt->LowerLimit();
-    upper=bInt->UpperLimit();
 
-  } else if(method==1) {
-    //RooStats::ProposalHelper ph;
-    //ph.SetVariables((RooArgSet&)fit->floatParsFinal());
-    //ph.SetCovMatrix(fit->covarianceMatrix());
-    //ph.SetUpdateProposalParameters(true);
-    //ph.SetCacheSize(100);
-    //RooStats::ProposalFunction* pdfProp = ph.GetProposalFunction();
-
-    if (false){
-    RooStats::MCMCCalculator mc(*ws.data("data"), modelConfig);
-    mc.SetNumBins(100);
-    mc.SetConfidenceLevel(0.95);
-    mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(500000);
-    mc.SetNumBurnInSteps(500);
-    //mc.SetProposalFunction(*pdfProp);
-    RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
-
-    // draw posterior plot
-    TCanvas * c1 = new TCanvas("MCMCpost", "MCMCpost", 500, 500);
-    RooStats::MCMCIntervalPlot mcPlot(*interval);
-    mcPlot.Draw();
-    c1->SaveAs(TString("mcmcPost")+label+".gif");
-    lower=interval->LowerLimit(*ws.var("xs"));
-    upper=interval->UpperLimit(*ws.var("xs"));
-    }
-
-  } else if(method==2) {
-    RooStats::ProfileLikelihoodCalculator plc(*ws.data("data"), modelConfig);
-    plc.SetConfidenceLevel(0.95);
-    RooStats::LikelihoodInterval* plInt=plc.GetInterval();
-    RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
-    RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
-    plInt->LowerLimit( *ws.var("xs") ); // get ugly print out of the way. Fix.
-    RooMsgService::instance().setGlobalKillBelow(msglevel);
-
-    // draw posterior plot
-    TCanvas * c1 = new TCanvas("PLikePost", "PLikePost", 500, 500);
-    RooStats::LikelihoodIntervalPlot* plotInt=new RooStats::LikelihoodIntervalPlot(plInt);
-    plotInt->SetTitle("Profile Likelihood Ratio and Posterior for S");
-    plotInt->Draw();
-    c1->SaveAs(TString("PLikePost")+label+".gif");
-    lower = plInt->LowerLimit(*ws.var("xs"));
-    upper = plInt->UpperLimit(*ws.var("xs"));
-  }
-
-  printf("LOWER LIMIT: %12.3f\n", lower);
-  printf("UPPER LIMIT: %12.3f\n", upper);
-
+  float upper = -1;
   if (Section < 0) {
-    DoFit(ws, modelConfig, label, method);
+    ws.import(fitData);
+    upper = DoFit(ws, modelConfig, label, method, Section);
   } else {
     // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
     // I can get you a toy, believe me.  There are ways, Dude.
+
+    // Grab a toy.  If you can't get a toy there is something wrong
+    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), RooFit::Name("DataToFit"));
+    if (!PE) {
+      std::cout << "ERROR: not filling PE" << std::endl;
+      exit(1);
+    }
+
+    // Just for debug
+    if (false) {
+      TCanvas CanPE;
+      CanPE.cd();
+      RooPlot* PEplot = ws.var("mjjj")->frame();
+      PE->plotOn(PEplot);
+      PEplot->Draw();
+      CanPE.SaveAs(TString("PE_")+label+".eps");
+    }
+
+    ws.import(*PE);
+    upper = DoFit(ws, modelConfig, label, method, Section);
+
+
   }
 
 
 
-
-  RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")));
-  if (!PE) {
-    std::cout << "ERROR: not filling PE" << std::endl;
-    exit(1);
-  }
-  TCanvas CanPE;
-  CanPE.cd();
-  RooPlot* PEplot = ws.var("mjjj")->frame();
-  PE->plotOn(PEplot);
-  PEplot->Draw();
-  CanPE.SaveAs(TString("PE_")+label+".gif");
 
   return upper;
 }
@@ -582,18 +551,25 @@ int main (int argc, char* argv[])
   float const EndMass   = 500;
   float const StepSize  =  10;
 
-  int const Method      = 1;
-  int const Systematics = 6;
+  int const Method      =  1;
+  int const Systematics =  3;
+  int const NPerSection = 10;
 
   if (Section == -1) {
     std::vector< std::pair<float, float> > MassLimitVec;
     for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
       MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, -1)) );
     }
-    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "LimitPlot.gif");
+    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "LimitPlot.eps");
   } else {
-    for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
-      RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, Section);
+    for (int ipe = Section * NPerSection; ipe < (Section+1) * NPerSection; ++ipe) {
+      std::vector< std::pair<float, float> > MassLimitVec;
+      for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
+        MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, Section)) );
+        printf("  %10E", MassLimitVec.back().second);
+      }
+      printf("\n");
+      //flush
     }
   }
 
