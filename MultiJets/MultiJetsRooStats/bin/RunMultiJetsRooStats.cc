@@ -518,16 +518,17 @@ int main (int argc, char* argv[])
 
   int const Section = atoi(argv[1]);
 
-  TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/uscms/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   float const BeginMass = 200;
   float const EndMass   = 500;
   float const StepSize  =  10;
 
   int const Method      =  1;
-  int const Systematics =  6;
-  int const NPerSection = 20;
+  int const Systematics =  5;
+  int const NPerSection =  2;
 
   // Set the roostats random seed based on secton number..fine..
   RooRandom::randomGenerator()->SetSeed(771723*(Section+2));

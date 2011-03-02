@@ -6,10 +6,10 @@ echo 'OUTDIR:  ' $2
 
 
 source /uscmst1/prod/sw/cms/shrc prod
-source /uscmst1/prod/grid/gLite_SL5.sh
+#source /uscmst1/prod/grid/gLite_SL5.sh
 
-cd ~dhidas/CMSSW_3_10_0/src
-cmsenv
+cd /uscms/home/dhidas/CMSSW_3_10_0/src
+eval `scramv1 runtime -sh`
 cd -
 
 
