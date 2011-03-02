@@ -40,6 +40,7 @@
 #include "RooPlot.h"
 #include "RooMCStudy.h"
 #include "RooDLLSignificanceMCSModule.h"
+#include "RooRandom.h"
 
 #include "RooStats/BayesianCalculator.h"
 #include "RooStats/SimpleInterval.h"
@@ -167,6 +168,75 @@ void MakeGraph (std::vector< std::pair<float, float> > const& P, TString const T
 
 
 
+
+int DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const label, int const method)
+{
+  // Used for the limits
+  float lower = -1, upper = -1;
+
+  // The different methods
+  if(method==0) {
+    RooStats::BayesianCalculator bc(*ws.data("data"), modelConfig);
+    bc.SetConfidenceLevel(0.95);
+    bc.SetLeftSideTailFraction(0.0);
+    RooStats::SimpleInterval* bInt = bc.GetInterval();
+    TCanvas* canvas = new TCanvas("bcPlost","Posterior Distribution",500,500);
+    RooPlot* plot = bc.GetPosteriorPlot();
+    plot->Draw();
+    canvas->SaveAs(TString("BCpost")+label+".gif");
+    lower=bInt->LowerLimit();
+    upper=bInt->UpperLimit();
+
+  } else if(method==1) {
+    //RooStats::ProposalHelper ph;
+    //ph.SetVariables((RooArgSet&)fit->floatParsFinal());
+    //ph.SetCovMatrix(fit->covarianceMatrix());
+    //ph.SetUpdateProposalParameters(true);
+    //ph.SetCacheSize(100);
+    //RooStats::ProposalFunction* pdfProp = ph.GetProposalFunction();
+
+    RooStats::MCMCCalculator mc(*ws.data("data"), modelConfig);
+    mc.SetNumBins(100);
+    mc.SetConfidenceLevel(0.95);
+    mc.SetLeftSideTailFraction(0.0);
+    mc.SetNumIters(500000);
+    mc.SetNumBurnInSteps(500);
+    //mc.SetProposalFunction(*pdfProp);
+    RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
+
+    // draw posterior plot
+    TCanvas * c1 = new TCanvas("MCMCpost", "MCMCpost", 500, 500);
+    RooStats::MCMCIntervalPlot mcPlot(*interval);
+    mcPlot.Draw();
+    c1->SaveAs(TString("mcmcPost")+label+".gif");
+    lower=interval->LowerLimit(*ws.var("xs"));
+    upper=interval->UpperLimit(*ws.var("xs"));
+
+  } else if(method==2) {
+    RooStats::ProfileLikelihoodCalculator plc(*ws.data("data"), modelConfig);
+    plc.SetConfidenceLevel(0.95);
+    RooStats::LikelihoodInterval* plInt=plc.GetInterval();
+    RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
+    RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+    plInt->LowerLimit( *ws.var("xs") ); // get ugly print out of the way. Fix.
+    RooMsgService::instance().setGlobalKillBelow(msglevel);
+
+    // draw posterior plot
+    TCanvas * c1 = new TCanvas("PLikePost", "PLikePost", 500, 500);
+    RooStats::LikelihoodIntervalPlot* plotInt=new RooStats::LikelihoodIntervalPlot(plInt);
+    plotInt->SetTitle("Profile Likelihood Ratio and Posterior for S");
+    plotInt->Draw();
+    c1->SaveAs(TString("PLikePost")+label+".gif");
+    lower = plInt->LowerLimit(*ws.var("xs"));
+    upper = plInt->UpperLimit(*ws.var("xs"));
+  }
+}
+
+
+
+
+
+
 float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, int const method, int const statLevel, int const Section)
 {
   // Declare some constants
@@ -183,6 +253,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const MINXS      =    0;
   float const MAXXS      = 1000;
 
+  // Set the roostats random seed based on secton number..fine..
+  RooRandom::randomGenerator()->SetSeed(771723*Section);
 
   // Just a label
   char label[100];
@@ -427,6 +499,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     //ph.SetCacheSize(100);
     //RooStats::ProposalFunction* pdfProp = ph.GetProposalFunction();
 
+    if (false){
     RooStats::MCMCCalculator mc(*ws.data("data"), modelConfig);
     mc.SetNumBins(100);
     mc.SetConfidenceLevel(0.95);
@@ -443,6 +516,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     c1->SaveAs(TString("mcmcPost")+label+".gif");
     lower=interval->LowerLimit(*ws.var("xs"));
     upper=interval->UpperLimit(*ws.var("xs"));
+    }
 
   } else if(method==2) {
     RooStats::ProfileLikelihoodCalculator plc(*ws.data("data"), modelConfig);
@@ -466,46 +540,27 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   printf("LOWER LIMIT: %12.3f\n", lower);
   printf("UPPER LIMIT: %12.3f\n", upper);
 
-  std::cout << "BEFORE" << std::endl;
-  // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
-  // I can get you a toy, believe me.  There are ways, Dude.
-  RooMCStudy* MCS = 0x0;
-  if (Section >= 0) {
-    MCS = new RooMCStudy(*ws.pdf("background_model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()), RooFit::Silence());
-    //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)));
-    //MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)));
-    //MCS = new RooMCStudy(*ws.pdf("model"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(-1)), RooFit::Constrain(*modelConfig.GetNuisanceParameters()));
-    //MCS = new RooMCStudy(*ws.pdf("background"), *ws.var("mjjj"), RooFit::Extended(kTRUE), RooFit::FitModel(*ws.pdf("model")), RooFit::FitOptions( RooFit::Extended(kTRUE), RooFit::PrintEvalErrors(1)) );
+  if (Section < 0) {
+    DoFit(ws, modelConfig, label, method);
+  } else {
+    // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
+    // I can get you a toy, believe me.  There are ways, Dude.
   }
 
-  //RooStats::UpperLimitMCSModule ULMCS(ws.set("POI"), 0.95);
-  //RooDLLSignificanceMCSModule sigModule("xs", 0); // For significance test??
-  //MCS->addModule(ULMCS);
 
-  if (MCS) {
-    MCS->generateAndFit(2000);
-    MCS->Print();
-    std::cout << "AFTER" << std::endl;
 
-    TString limitstr("xs");
-    TH1* mcslimit_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr+ws.set("POI")->GetName());
-    //Make a histogram of the upperlimit vs the number of generated events
-    //TString limitstr2("ngen,xs");
-    //TH1* mcslimitvsevt_histo = (TH1F*) MCS->fitParDataSet().createHistogram(limitstr2+ws.set("POI")->GetName());
-    TCanvas* c2 =new TCanvas();
-    c2->cd();
-    c2->Divide(1,2);
-    c2->cd(1);
-    RooPlot* hist = MCS->plotParam(*ws.var("xs"));
-    std::cout << "XXX " << hist->GetNbinsX() << std::endl;
-    hist->Draw();
-    c2->cd(2);
-    mcslimit_histo->Draw();
-    //mcslimitvsevt_histo->Draw();
-    //c2->Draw();
-    c2->SaveAs("plplpl.eps");
-    exit(0);
+
+  RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")));
+  if (!PE) {
+    std::cout << "ERROR: not filling PE" << std::endl;
+    exit(1);
   }
+  TCanvas CanPE;
+  CanPE.cd();
+  RooPlot* PEplot = ws.var("mjjj")->frame();
+  PE->plotOn(PEplot);
+  PEplot->Draw();
+  CanPE.SaveAs(TString("PE_")+label+".gif");
 
   return upper;
 }
