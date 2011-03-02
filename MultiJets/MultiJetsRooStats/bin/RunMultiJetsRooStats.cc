@@ -343,9 +343,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // define number of signal as xs*lumi*acceptance
   ws.factory("prod::nsig(xs, lumi, acceptance[0,1])");
 
-  // Set acceptance value
-  //ws.var("acceptance")->setVal(GetAcceptanceForMjjj(SignalMass));
-  //ws.var("acceptance")->setConstant(true);
 
   // Acceptance prior
   float const Acc = GetAcceptanceForMjjj(SignalMass);
@@ -354,9 +351,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("acceptance")->setRange(Acc * (1. - 3. * ACCERROR), Acc * (1. + 3. * ACCERROR));
   ws.var("acceptanceM0")->setVal(Acc);
   ws.var("acceptanceS0")->setVal(Acc * ACCERROR);
-  //ws.factory("RooGaussian::acceptance_prior(acceptanceDelta[1,0,2], acceptanceDeltaM0[1.0], acceptanceDeltaS0[0.1])");
-  //ws.var("acceptanceDelta")->setRange(1. - 3. * ACCERROR, 1. + 3. * ACCERROR);
-  //ws.var("acceptanceDeltaS0")->setVal(ACCERROR);
 
   // set the signal mass
   ws.factory("sigMass[0]");
@@ -552,7 +546,7 @@ int main (int argc, char* argv[])
   float const StepSize  =  10;
 
   int const Method      =  1;
-  int const Systematics =  3;
+  int const Systematics =  6;
   int const NPerSection = 10;
 
   if (Section == -1) {
