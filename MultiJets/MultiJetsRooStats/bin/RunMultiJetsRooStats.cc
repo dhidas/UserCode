@@ -171,7 +171,7 @@ void MakeGraph (std::vector< std::pair<float, float> > const& P, TString const T
 float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const label, int const method, int const Section)
 {
   // Used for the limits
-  float lower = -1, upper = -1;
+  float upper = -1;
 
   // The different methods
   if(method==0) {
@@ -185,7 +185,6 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
       plot->Draw();
       canvas->SaveAs(TString("BCpost")+label+".eps");
     }
-    //lower=bInt->LowerLimit();
     upper=bInt->UpperLimit();
 
   } else if(method==1) {
@@ -206,7 +205,6 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
     // Upper limit
-    //lower=interval->LowerLimit(*ws.var("xs"));
     upper=interval->UpperLimit(*ws.var("xs"));
 
     // draw posterior plot for data
@@ -235,10 +233,8 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
       c1->SaveAs(TString("PLikePost")+label+".eps");
     }
 
-    //lower = plInt->LowerLimit(*ws.var("xs"));
     upper = plInt->UpperLimit(*ws.var("xs"));
   }
-  //printf("LOWER LIMIT: %12.3f\n", lower);
   printf("UPPER LIMIT: %12.3f\n", upper);
 
   return upper;
@@ -258,15 +254,10 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const LUMINOSITY = 35.1;
   float const LUMIERROR  = 0.11;
 
-  float const JESERROR   = 0.08;
-
   float const ACCERROR   = 0.13;
 
   float const MINXS      =    0;
   float const MAXXS      = 1000;
-
-  // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(771723*(Section+2));
 
   // Just a label
   char label[100];
@@ -309,12 +300,15 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       SystFunc->GetParameter(0) / Func->GetParameter(0),
       SystFunc->GetParameter(1) / Func->GetParameter(1),
       SystFunc->GetParameter(2) / Func->GetParameter(2));
-  TCanvas Can1;
-  Can1.cd();
-  DataTH1->Draw("ep");
-  Func->Draw("samel");
-  SystFunc->Draw("lsame");
-  Can1.SaveAs(TString("DefaultFit_")+label+".eps");
+
+  if (Section == -1) {
+    TCanvas Can1;
+    Can1.cd();
+    DataTH1->Draw("ep");
+    Func->Draw("samel");
+    SystFunc->Draw("lsame");
+    Can1.SaveAs(TString("DefaultFit_")+label+".eps");
+  }
 
 
   // background prior
@@ -357,15 +351,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("sigMass")->setRange(MININVMASS, MAXINVMASS);
   ws.var("sigMass")->setVal(SignalMass);
 
-  // prior on signal mass delta
-  ws.factory("RooGaussian::sigMassDelta_prior(sigMassDelta[1.0,0.0,2.0], sigMassDeltaM0[1.0], sigMassDeltaS0[0.1])");
-  ws.var("sigMassDelta")->setRange(1. - 3. * JESERROR, 1. + 3. * JESERROR);
-  ws.var("sigMassDelta")->setVal(1);
-  ws.var("sigMassDeltaS0")->setVal(JESERROR);
-  ws.factory("cexpr::invmassprime('sigMassDelta*mjjj',sigMassDelta,mjjj)");
-
   // define signal gaussian
-  ws.factory("RooGaussian::signal(invmassprime, sigMass, sigWidth[0,50])");
+  ws.factory("RooGaussian::signal(mjjj, sigMass, sigWidth[0,50])");
   ws.var("sigWidth")->setVal( GetGausWidthRange(SignalMass).first/2. + GetGausWidthRange(SignalMass).second/2.);
   ws.var("sigWidth")->setRange( GetGausWidthRange(SignalMass).first, GetGausWidthRange(SignalMass).second);
 
@@ -394,11 +381,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.factory("PROD::prior4(xs_prior,lumi_prior,nbkg_prior)");
   ws.defineSet("nuisSet4","lumi,nbkg");
   
-  ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,sigMassDelta_prior)");
-  ws.defineSet("nuisSet5","nbkg,lumi,sigMassDelta");
-  
-  ws.factory("PROD::prior6(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
-  ws.defineSet("nuisSet6","nbkg,lumi,acceptance");
+  ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
+  ws.defineSet("nuisSet5","nbkg,lumi,acceptance");
   
 
   // let's not fix the cross section..just to make sure
@@ -411,9 +395,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("lsigma")->setConstant(true);
   ws.var("nbkg")->setConstant(true);
   ws.var("sigWidth")->setConstant(true);
-  ws.var("sigMassDelta")->setConstant(true);
-  ws.var("sigMassDeltaM0")->setConstant(true);
-  ws.var("sigMassDeltaS0")->setConstant(true);
 
   // setup model config
   RooStats::ModelConfig modelConfig("modelConfig");
@@ -442,12 +423,12 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     ws.var("lumi")->setConstant(false);
     modelConfig.SetPriorPdf(*ws.pdf("prior4"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet4"));
-  } else if (statLevel == 6) {
+  } else if (statLevel == 5) {
     ws.var("nbkg")->setConstant(false);
     ws.var("lumi")->setConstant(false);
     ws.var("acceptance")->setConstant(false);
-    modelConfig.SetPriorPdf(*ws.pdf("prior6"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet6"));
+    modelConfig.SetPriorPdf(*ws.pdf("prior5"));
+    modelConfig.SetNuisanceParameters(*ws.set("nuisSet5"));
   }
 
   // import the modelconfig
@@ -465,7 +446,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.pdf("model")->plotOn(datafit);
   datafit->Draw();
   Can.SaveAs(TString("Fit_")+label+".eps");
-  ws.var("sigMassDelta")->Print();
   //exit(0);
   */
 
@@ -483,8 +463,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("acceptance")->Print();
   ws.var("xs")->Print();
   ws.var("sigMass")->Print();
-  ws.var("sigMassDeltaM0")->Print();
-  ws.var("sigMassDeltaS0")->Print();
   ws.var("sigWidth")->Print();
 
 
@@ -492,7 +470,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   float upper = -1;
-  if (Section < 0) {
+  if (Section == -1) {
     ws.import(fitData);
     upper = DoFit(ws, modelConfig, label, method, Section);
   } else {
@@ -500,23 +478,25 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     // I can get you a toy, believe me.  There are ways, Dude.
 
     // Grab a toy.  If you can't get a toy there is something wrong
-    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), RooFit::Name("DataToFit"));
+    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), RooFit::Name("DataToFit_unbinned"));
     if (!PE) {
       std::cout << "ERROR: not filling PE" << std::endl;
       exit(1);
     }
+
+    RooDataHist* hPE = PE->binnedClone("DataToFit");
 
     // Just for debug
     if (false) {
       TCanvas CanPE;
       CanPE.cd();
       RooPlot* PEplot = ws.var("mjjj")->frame();
-      PE->plotOn(PEplot);
+      hPE->plotOn(PEplot);
       PEplot->Draw();
       CanPE.SaveAs(TString("PE_")+label+".eps");
     }
 
-    ws.import(*PE);
+    ws.import(*hPE);
     upper = DoFit(ws, modelConfig, label, method, Section);
 
 
@@ -531,12 +511,12 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 int main (int argc, char* argv[])
 {
-  if (argc != 1) {
-    std::cerr << "Usage: " << argv[0] << " " << std::endl;
+  if (argc != 2) {
+    std::cerr << "Usage: " << argv[0] << " [Section]" << std::endl;
     return 1;
   }
 
-  int const Section = -1;
+  int const Section = atoi(argv[1]);
 
   TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
@@ -549,21 +529,50 @@ int main (int argc, char* argv[])
   int const Systematics =  6;
   int const NPerSection = 10;
 
+  // Set the roostats random seed based on secton number..fine..
+  RooRandom::randomGenerator()->SetSeed(771723*(Section+2));
+
+
+  // Setup output file
+  char OutName[150];
+  if (Section == -1) {
+    sprintf(OutName, "Limits_Data.dat");
+  } else {
+    sprintf(OutName, "PELimits_%i.dat", Section);
+  }
+  FILE* Out = fopen(OutName, "w");
+  if (Out == NULL) {
+    std::cerr << "ERROR: cannot open output file: " << OutName << std::endl;
+    exit(1);
+  }
+  for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
+    fprintf(Out, "%10.3f ", ThisMass);
+  }
+  fprintf(Out, "\n");
+
+
+
+  // Print header to outfile
+
+
   if (Section == -1) {
     std::vector< std::pair<float, float> > MassLimitVec;
     for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
       MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, -1)) );
+      fprintf(Out, "%10E ", MassLimitVec.back().second);
     }
-    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "LimitPlot.eps");
+    fprintf(Out, "\n");
+    fflush(Out);
+    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "Limits_Data.eps");
   } else {
     for (int ipe = Section * NPerSection; ipe < (Section+1) * NPerSection; ++ipe) {
       std::vector< std::pair<float, float> > MassLimitVec;
       for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
         MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, Section)) );
-        printf("  %10E", MassLimitVec.back().second);
+        fprintf(Out, "%10E ", MassLimitVec.back().second);
       }
-      printf("\n");
-      //flush
+      fprintf(Out, "\n");
+      fflush(Out);
     }
   }
 
