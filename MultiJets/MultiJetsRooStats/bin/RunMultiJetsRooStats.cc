@@ -527,7 +527,7 @@ int main (int argc, char* argv[])
 
   int const Method      =  1;
   int const Systematics =  6;
-  int const NPerSection = 10;
+  int const NPerSection = 20;
 
   // Set the roostats random seed based on secton number..fine..
   RooRandom::randomGenerator()->SetSeed(771723*(Section+2));
