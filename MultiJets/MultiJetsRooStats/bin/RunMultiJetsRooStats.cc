@@ -315,10 +315,11 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.factory("RooLandau::background(mjjj, lmpv[200,0,1000], lsigma[40,0,500])");
   ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
   ws.var("nbkg")->setVal(NBGFromFit);
-  ws.var("nbkg")->setRange(NBGFromFit * (1 - Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + Func->GetParError(0)/Func->GetParameter(0)));
+  ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + 3*Func->GetParError(0)/Func->GetParameter(0)));
   ws.var("nbkgM0")->setVal(NBGFromFit);
   //ws.var("nbkgS0")->setVal(TMath::Sqrt(NBGFromFit));
-  ws.var("nbkgS0")->setVal(NBGFromFit * 0.05);
+  //ws.var("nbkgS0")->setVal(NBGFromFit * 0.05);
+  ws.var("nbkgS0")->setVal(NBGFromFit *  Func->GetParError(0)/Func->GetParameter(0));
   ws.var("lmpv")->setVal(Func->GetParameter(1));
   ws.var("lsigma")->setVal(Func->GetParameter(2));
 
@@ -358,7 +359,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   // Define models (sig+bg, and bg only)
-  ws.factory("SUM::model(nsig*signal, nbkg*background)");
+  ws.factory("SUM::model_noprior(nsig*signal, nbkg*background)");
   ws.factory("SUM::background_model(nbkg*background)");
 
   // Observables and parameters or interest
@@ -399,8 +400,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // setup model config
   RooStats::ModelConfig modelConfig("modelConfig");
   modelConfig.SetWorkspace(ws);
-  modelConfig.SetPdf(*ws.pdf("model"));
-  modelConfig.SetParametersOfInterest(*ws.set("POI"));
 
   // Which prior and nuis are we using
   if (statLevel == 0) {
@@ -424,12 +423,21 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     modelConfig.SetPriorPdf(*ws.pdf("prior4"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet4"));
   } else if (statLevel == 5) {
+    ws.factory("PROD::model(model_noprior)");
     ws.var("nbkg")->setConstant(false);
     ws.var("lumi")->setConstant(false);
     ws.var("acceptance")->setConstant(false);
     modelConfig.SetPriorPdf(*ws.pdf("prior5"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet5"));
+  } else if (statLevel == 6) {
+    ws.factory("PROD::model(model_noprior,prior5)");
+    ws.var("nbkg")->setConstant(false);
+    ws.var("lumi")->setConstant(false);
+    ws.var("acceptance")->setConstant(false);
+    modelConfig.SetNuisanceParameters(*ws.set("nuisSet5"));
   }
+  modelConfig.SetPdf(*ws.pdf("model"));
+  modelConfig.SetParametersOfInterest(*ws.set("POI"));
 
   // import the modelconfig
   ws.import(modelConfig);
@@ -478,7 +486,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     // I can get you a toy, believe me.  There are ways, Dude.
 
     // Grab a toy.  If you can't get a toy there is something wrong
-    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), RooFit::Name("DataToFit_unbinned"));
+    int const NBGThisPE = gRandom->Poisson(NBGFromFit);
+    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned"));
     if (!PE) {
       std::cout << "ERROR: not filling PE" << std::endl;
       exit(1);
@@ -527,7 +536,7 @@ int main (int argc, char* argv[])
   float const StepSize  =  10;
 
   int const Method      =  1;
-  int const Systematics =  5;
+  int const Systematics =  6;
   int const NPerSection =  2;
 
   // Set the roostats random seed based on secton number..fine..
