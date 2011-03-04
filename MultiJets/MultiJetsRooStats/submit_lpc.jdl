@@ -1,4 +1,4 @@
-OutDir = /uscms_data/d2/dhidas/MultiJets/RooStats/Test
+OutDir = /uscms_data/d2/dhidas/MultiJets/RooStats/March4_ExplicitVars
 Executable = run_lpc.sh
 
 universe = vanilla

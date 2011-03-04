@@ -30,7 +30,7 @@ export PATH=${PWD}:${PATH}
 
 
 INPUTFILE=/uscms/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root
-EXE=/uscms/home/dhidas/UserCode/dhidas/MultiJets/MultiJetsRooStats/RunMultiJetsRooStats
+EXE=/uscms/home/dhidas/UserCode/dhidas/MultiJets/New_ExplicitVar/RunMultiJetsRooStats
 
 mkdir -pv $2
 cd $2

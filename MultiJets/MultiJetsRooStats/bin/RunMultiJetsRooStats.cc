@@ -71,8 +71,9 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File, TString const Suffix)
   // on the go.. so this may or may not be used for more than data..
 
   char BUFF[200];
-  if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_" + Suffix);
-  else                    sprintf(BUFF,  "Mjjj_45_20_170_" + Suffix);
+  sprintf(BUFF,  "Mjjj_45_20_130_" + Suffix);
+  //if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_" + Suffix);
+  //else                    sprintf(BUFF,  "Mjjj_45_20_170_" + Suffix);
 
 
   std::cout << "Getting Hist: " << BUFF << "  for mass " << Mjjj << std::endl;
@@ -102,11 +103,12 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //return AcceptanceFunc.Eval(Mjjj);
 
   // This is equivalent to the above, but a hell of a lot faster
-  if (Mjjj <= 250) {
-    return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
-  } else {
-    return 1.93282628706596682e-03 - 3.61649088607910918e-05 * Mjjj + 1.84254776396677824e-07 * Mjjj * Mjjj;
-  }
+  return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
+  //if (Mjjj <= 250) {
+  //  return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
+  //} else {
+  //  return 1.93282628706596682e-03 - 3.61649088607910918e-05 * Mjjj + 1.84254776396677824e-07 * Mjjj * Mjjj;
+  //}
 
 }
 
@@ -314,14 +316,23 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // background prior
   ws.factory("RooLandau::background(mjjj, lmpv[200,0,1000], lsigma[40,0,500])");
   ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
+  ws.factory("RooGaussian::lmpv_prior(lmpv, lmpvM0[0], lmpvS0[0])");
+  ws.factory("RooGaussian::lsigma_prior(lsigma, lsigmaM0[0], lsigmaS0[0])");
   ws.var("nbkg")->setVal(NBGFromFit);
   ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + 3*Func->GetParError(0)/Func->GetParameter(0)));
   ws.var("nbkgM0")->setVal(NBGFromFit);
+  ws.var("nbkgS0")->setVal(NBGFromFit *  Func->GetParError(0)/Func->GetParameter(0));
   //ws.var("nbkgS0")->setVal(TMath::Sqrt(NBGFromFit));
   //ws.var("nbkgS0")->setVal(NBGFromFit * 0.05);
-  ws.var("nbkgS0")->setVal(NBGFromFit *  Func->GetParError(0)/Func->GetParameter(0));
   ws.var("lmpv")->setVal(Func->GetParameter(1));
+  ws.var("lmpv")->setRange(Func->GetParameter(1)-3*Func->GetParError(1), Func->GetParameter(1)+3*Func->GetParError(1));
+  ws.var("lmpvM0")->setVal(Func->GetParameter(1));
+  ws.var("lmpvS0")->setVal(Func->GetParError(1));
   ws.var("lsigma")->setVal(Func->GetParameter(2));
+  ws.var("lsigma")->setRange(Func->GetParameter(2)-3*Func->GetParError(2), Func->GetParameter(2)+3*Func->GetParError(2));
+  ws.var("lsigmaM0")->setVal(Func->GetParameter(2));
+  ws.var("lsigmaS0")->setVal(Func->GetParError(2));
+
 
   // Lumi prior
   ws.factory("RooGaussian::lumi_prior(lumi[0], lumiM0[0], lumiS0[0])");
@@ -360,7 +371,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // Define models (sig+bg, and bg only)
   ws.factory("SUM::model_noprior(nsig*signal, nbkg*background)");
-  ws.factory("SUM::background_model(nbkg*background)");
+  ws.factory("SUM::background_noprior(nbkg*background)");
 
   // Observables and parameters or interest
   ws.defineSet("observables","mjjj");
@@ -382,8 +393,13 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.factory("PROD::prior4(xs_prior,lumi_prior,nbkg_prior)");
   ws.defineSet("nuisSet4","lumi,nbkg");
   
+  //ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
   ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
   ws.defineSet("nuisSet5","nbkg,lumi,acceptance");
+  
+  // use this one
+  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,lmpv_prior,lsigma_prior,lumi_prior,acceptance_prior)");
+  ws.defineSet("nuisSet5b","nbkg,lmpv,lsigma,lumi,acceptance,sigWidth");
   
 
   // let's not fix the cross section..just to make sure
@@ -391,11 +407,21 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   //  Fix everything and turn off individually based on what we need later..
   ws.var("lumi")->setConstant(true);
+  ws.var("lumiM0")->setConstant(true);
+  ws.var("lumiS0")->setConstant(true);
   ws.var("acceptance")->setConstant(true);
+  ws.var("acceptanceM0")->setConstant(true);
+  ws.var("acceptanceS0")->setConstant(true);
   ws.var("lmpv")->setConstant(true);
+  ws.var("lmpvM0")->setConstant(true);
+  ws.var("lmpvS0")->setConstant(true);
   ws.var("lsigma")->setConstant(true);
+  ws.var("lsigmaM0")->setConstant(true);
+  ws.var("lsigmaS0")->setConstant(true);
   ws.var("nbkg")->setConstant(true);
-  ws.var("sigWidth")->setConstant(true);
+  ws.var("nbkgM0")->setConstant(true);
+  ws.var("nbkgS0")->setConstant(true);
+  ws.var("sigMass")->setConstant(true);
 
   // setup model config
   RooStats::ModelConfig modelConfig("modelConfig");
@@ -403,21 +429,26 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // Which prior and nuis are we using
   if (statLevel == 0) {
+    ws.factory("PROD::model(model_noprior)");
     modelConfig.SetPriorPdf(*ws.pdf("prior0"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
   } else if (statLevel == 1) {
+    ws.factory("PROD::model(model_noprior)");
     ws.var("nbkg")->setConstant(false);
     modelConfig.SetPriorPdf(*ws.pdf("prior1"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet1"));
   } else if (statLevel == 2) {
+    ws.factory("PROD::model(model_noprior)");
     ws.var("lumi")->setConstant(false);
     modelConfig.SetPriorPdf(*ws.pdf("prior2"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet2"));
   } else if (statLevel == 3) {
+    ws.factory("PROD::model(model_noprior)");
     ws.var("acceptance")->setConstant(false);
     modelConfig.SetPriorPdf(*ws.pdf("prior3"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet3"));
   } else if (statLevel == 4) {
+    ws.factory("PROD::model(model_noprior)");
     ws.var("nbkg")->setConstant(false);
     ws.var("lumi")->setConstant(false);
     modelConfig.SetPriorPdf(*ws.pdf("prior4"));
@@ -430,11 +461,15 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     modelConfig.SetPriorPdf(*ws.pdf("prior5"));
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet5"));
   } else if (statLevel == 6) {
-    ws.factory("PROD::model(model_noprior,prior5)");
+    ws.factory("PROD::model(model_noprior,prior5b)");
+    ws.factory("PROD::background_model(background_noprior,prior5b)");
+    ws.var("sigWidth")->setConstant(false);
     ws.var("nbkg")->setConstant(false);
+    ws.var("lmpv")->setConstant(false);
+    ws.var("lsigma")->setConstant(false);
     ws.var("lumi")->setConstant(false);
     ws.var("acceptance")->setConstant(false);
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet5"));
+    modelConfig.SetNuisanceParameters(*ws.set("nuisSet5b"));
   }
   modelConfig.SetPdf(*ws.pdf("model"));
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
@@ -486,8 +521,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     // I can get you a toy, believe me.  There are ways, Dude.
 
     // Grab a toy.  If you can't get a toy there is something wrong
-    int const NBGThisPE = gRandom->Poisson(NBGFromFit);
-    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned"));
+    int const NBGThisPE = RooRandom::randomGenerator()->Poisson(NBGFromFit);
+    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned"), RooFit::Extended(kFALSE));
     if (!PE) {
       std::cout << "ERROR: not filling PE" << std::endl;
       exit(1);
