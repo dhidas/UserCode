@@ -240,7 +240,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grMedian->SetMarkerStyle(0);
     if (ifile == 0) {
       grMedian->Draw("l");
-      MyLegend.AddEntry(grMedian, (MyLabel+" Expectation").c_str(), "l");
+      MyLegend.AddEntry(grMedian, (MyLabel+" Expected").c_str(), "l");
     }
 
     // Draw the Observed

@@ -29,7 +29,7 @@ export PATH=${PWD}:${PATH}
 
 
 
-EXE=/uscms/home/dhidas/Expo/RunMultiJetsRooStats
+EXE=/uscms/home/dhidas/Expo_Try_2/RunMultiJetsRooStats
 
 mkdir -pv $2
 cd $2

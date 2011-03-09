@@ -200,7 +200,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(5000000);
+    mc.SetNumIters(500000);
     mc.SetNumBurnInSteps(500);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
@@ -318,7 +318,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   int   const BINSMJJJ   = (int) (XMAX - XMIN) / 10;
   ws.var("mjjj")->setBins(BINSMJJJ);
   printf("Fit Min/Max: %12.2f %12.2f\n", XMIN, XMAX);
-  float const NBGFromFit = Func->Integral(XMIN, XMAX) / DataTH1->GetBinWidth(0);
+  //float const NBGFromFit = Func->Integral(XMIN, XMAX) / DataTH1->GetBinWidth(0);
+  float const NBGFromFit = DataTH1->Integral();
+  printf("Data vs fit: %12.1f %12.1f\n", DataTH1->Integral(), Func->Integral(XMIN, XMAX) / DataTH1->GetBinWidth(0));
 
   mjjj->setRange(XMIN, XMAX);
 
@@ -340,7 +342,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   // background prior
-  ws.factory("RooExponential::background(mjjj, cexp[0])");
+  ws.factory("RooExponential::background(mjjj, cexp[-1,1])");
   ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
   ws.factory("RooGaussian::cexp_prior(cexp, cexpM0[0], cexpS0[0])");
   ws.var("nbkg")->setVal(NBGFromFit);
@@ -353,7 +355,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   //ws.var("cexp")->setRange(Func->GetParameter(1)-3*Func->GetParError(1), Func->GetParameter(1)+3*Func->GetParError(1));
   ws.var("cexp")->setRange(Func->GetParameter(1)*(1+3*0.05), Func->GetParameter(1)*(1-3*0.05));
   ws.var("cexpM0")->setVal(Func->GetParameter(1));
-  ws.var("cexpS0")->setVal(Func->GetParameter(1)*0.05);
+  ws.var("cexpS0")->setVal(TMath::Abs(Func->GetParameter(1)*0.05));
   //ws.var("cexpS0")->setVal(Func->GetParError(1));
 
 
@@ -492,29 +494,28 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
     // I can get you a toy, believe me.  There are ways, Dude.
 
+
+    float const rand_NBGThisPE = NBGFromFit + ws.var("nbkgS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1);
+
     // Grab a toy.  If you can't get a toy there is something wrong
-    int const NBGThisPE = RooRandom::randomGenerator()->Poisson(NBGFromFit);
-    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned"));
-    if (!PE) {
-      std::cout << "ERROR: not filling PE" << std::endl;
-      exit(1);
-    }
+    int const NBGThisPE = RooRandom::randomGenerator()->Poisson(rand_NBGThisPE);
+    ws.var("nbkg")->setVal(NBGThisPE);
 
+    float rand_cexp = 999;
+    while (rand_cexp < ws.var("cexp")->getMin() || rand_cexp > ws.var("cexp")->getMax()) {
+      rand_cexp = ws.var("cexp")->getVal() + ws.var("cexpS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1);
+      std::cout << "rand_cexp:  " << rand_cexp << std::endl;
+    } 
+    ws.var("cexp")->setVal(rand_cexp);
 
-
-    // GENERATE WITH SYST
-    ws.defineSet("allvars","nbkg,cexp,lumi,acceptance,sigWidth,mjjj");
-    RooArgSet args(RooArgSet(*ws.set("allvars")));
-    RooAbsPdf::GenSpec* spec = ws.pdf("background_model")->prepareMultiGen(args, RooFit::Name("DataToFit_unbinned_all"), RooFit::NumEvents(NBGThisPE), RooFit::Extended(kFALSE), RooFit::Verbose(kFALSE));
-    RooDataSet* toy = ws.pdf("background_model")->generate(*spec);
-    RooDataSet* toyred = (RooDataSet*) toy->reduce(*ws.var("mjjj"));
-    RooDataHist* hPE2 = ((RooDataSet*) toyred)->binnedClone("DataToFit2");
+    RooDataSet* toy = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned_2"));
+    std::cout << "LUMI: " << ws.var("cexp")->getVal() << std::endl;
+    RooDataHist* hPE = toy->binnedClone("DataToFit");
     std::cout << "Done generating PE" << std::endl;
-    std::cout << "LUMI: " << ws.var("lumi")->getVal() << std::endl;
-    //return 123;
 
 
-    RooDataHist* hPE = PE->binnedClone("DataToFit");
+    //RooDataHist* hPE = PE->binnedClone("DataToFit");
+    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE->sum(false));
 
 
     // Just for debug
@@ -528,7 +529,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     }
 
 
-    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE->sum(false));
 
     ws.import(*hPE);
     if (false) {
