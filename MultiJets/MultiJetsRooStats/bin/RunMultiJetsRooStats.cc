@@ -121,7 +121,6 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
 
   if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
   if (Mjjj < 350) return std::make_pair<float, float>(10 + 10 * (Mjjj - 250.) / 100., 15 + 10 * (Mjjj - 250.) / 100.);
-  //if (Mjjj < 350) return std::make_pair<float, float>(15, 20);
   return std::make_pair<float, float>(20, 25);
 }
 
@@ -201,7 +200,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(500000);
+    mc.SetNumIters(5000000);
     mc.SetNumBurnInSteps(500);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
@@ -244,6 +243,29 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
 
 
 
+TH1F* GetMeAHist (TH1F* h)
+{
+  TH1F* g = new TH1F("MyNewHist", "MyNewHist", 64, 160, 800);
+
+  for (int i = 16; i != 80; ++i) {
+    for (int j = 0; j != h->GetBinContent(i); ++j) {
+      g->Fill(10*i - 0.5);
+    }
+  }
+
+  if (false) {
+    TCanvas* c = new TCanvas();
+    c->cd();
+    h->Draw();
+    g->SetLineColor(6);
+    g->Draw("same");
+    c->SaveAs("NewHist.eps");
+  }
+  return g;
+}
+
+
+
 
 
 
@@ -256,7 +278,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const LUMINOSITY = 35.1;
   float const LUMIERROR  = 0.11;
 
-  float const ACCERROR   = 0.13;
+  //float const ACCERROR   = 0.13; // Old
+  float const ACCERROR   = 0.18; // Include MC stat pileup
 
   float const MINXS      =    0;
   float const MAXXS      = 1000;
@@ -272,7 +295,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // Observable
   ws.factory("mjjj[0]");
   RooRealVar* mjjj = ws.var("mjjj");
-  mjjj->setRange(MININVMASS, MAXINVMASS);
 
   // Get the data hist and import it to the workspace
   TFile InFile(InFileName, "read");
@@ -280,28 +302,32 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     std::cerr << "ERROR: cannot open input file: " << InFileName << std::endl;
     exit(1);
   }
-  TH1* DataTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "6jet");
+  TH1F* DataTH1F = (TH1F*) GetHistForMjjj(SignalMass, &InFile, "6jet");
+  TH1* DataTH1 = (TH1*) GetMeAHist(DataTH1F);
+  //TH1* DataTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "6jet");
   RooDataHist binnedData("data", "dataset with x", *ws.var("mjjj"), DataTH1);
   RooDataHist fitData("DataToFit", "dataset with x", *ws.var("mjjj"), DataTH1);
   ws.import(binnedData);
-  TF1* Func = DataTH1->GetFunction("total");
-  printf("Fit parameters: %12.3f %12.3f %12.3f %12.3f\n",
+  TF1* Func = DataTH1F->GetFunction("total");
+  printf("Fit parameters: %12.3f %12.3f\n",
       Func->GetParameter(0),
-      Func->GetParameter(1),
-      Func->GetParameter(2),
-      Func->GetParameter(0) * Func->GetParameter(2) / DataTH1->GetBinWidth(0)
+      Func->GetParameter(1)
       );
-  float const NBGFromFit = Func->GetParameter(0) * Func->GetParameter(2) / DataTH1->GetBinWidth(0);
+  float const XMIN = 160;//Func->GetXmin();
+  float const XMAX = Func->GetXmax();
+  int   const BINSMJJJ   = (int) (XMAX - XMIN) / 10;
+  ws.var("mjjj")->setBins(BINSMJJJ);
+  printf("Fit Min/Max: %12.2f %12.2f\n", XMIN, XMAX);
+  float const NBGFromFit = Func->Integral(XMIN, XMAX) / DataTH1->GetBinWidth(0);
 
-  printf("NBG Hist / Fit: %12.1f %12.1f\n", DataTH1->Integral(), NBGFromFit);
+  mjjj->setRange(XMIN, XMAX);
 
   // Other fit, Used for syst numbers
   TH1* SystTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "4jetscaled");
   TF1* SystFunc = SystTH1->GetFunction("total");
-  printf("Syst Numbers: %12.3f %12.3f %12.3f\n",
+  printf("Syst Numbers: %12.3f %12.3ff\n",
       SystFunc->GetParameter(0) / Func->GetParameter(0),
-      SystFunc->GetParameter(1) / Func->GetParameter(1),
-      SystFunc->GetParameter(2) / Func->GetParameter(2));
+      SystFunc->GetParameter(1) / Func->GetParameter(1));
 
   if (Section == -1) {
     TCanvas Can1;
@@ -314,24 +340,21 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   // background prior
-  ws.factory("RooLandau::background(mjjj, lmpv[200,0,1000], lsigma[40,0,500])");
+  ws.factory("RooExponential::background(mjjj, cexp[0])");
   ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
-  ws.factory("RooGaussian::lmpv_prior(lmpv, lmpvM0[0], lmpvS0[0])");
-  ws.factory("RooGaussian::lsigma_prior(lsigma, lsigmaM0[0], lsigmaS0[0])");
+  ws.factory("RooGaussian::cexp_prior(cexp, cexpM0[0], cexpS0[0])");
   ws.var("nbkg")->setVal(NBGFromFit);
-  ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + 3*Func->GetParError(0)/Func->GetParameter(0)));
+  ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*0.03), NBGFromFit * (1 + 3*0.03));
+  //ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + 3*Func->GetParError(0)/Func->GetParameter(0)));
   ws.var("nbkgM0")->setVal(NBGFromFit);
-  ws.var("nbkgS0")->setVal(NBGFromFit *  Func->GetParError(0)/Func->GetParameter(0));
-  //ws.var("nbkgS0")->setVal(TMath::Sqrt(NBGFromFit));
-  //ws.var("nbkgS0")->setVal(NBGFromFit * 0.05);
-  ws.var("lmpv")->setVal(Func->GetParameter(1));
-  ws.var("lmpv")->setRange(Func->GetParameter(1)-3*Func->GetParError(1), Func->GetParameter(1)+3*Func->GetParError(1));
-  ws.var("lmpvM0")->setVal(Func->GetParameter(1));
-  ws.var("lmpvS0")->setVal(Func->GetParError(1));
-  ws.var("lsigma")->setVal(Func->GetParameter(2));
-  ws.var("lsigma")->setRange(Func->GetParameter(2)-3*Func->GetParError(2), Func->GetParameter(2)+3*Func->GetParError(2));
-  ws.var("lsigmaM0")->setVal(Func->GetParameter(2));
-  ws.var("lsigmaS0")->setVal(Func->GetParError(2));
+  //ws.var("nbkgS0")->setVal(NBGFromFit * Func->GetParError(0)/Func->GetParameter(0));
+  ws.var("nbkgS0")->setVal(NBGFromFit * 0.03);
+  ws.var("cexp")->setVal(Func->GetParameter(1));
+  //ws.var("cexp")->setRange(Func->GetParameter(1)-3*Func->GetParError(1), Func->GetParameter(1)+3*Func->GetParError(1));
+  ws.var("cexp")->setRange(Func->GetParameter(1)*(1+3*0.05), Func->GetParameter(1)*(1-3*0.05));
+  ws.var("cexpM0")->setVal(Func->GetParameter(1));
+  ws.var("cexpS0")->setVal(Func->GetParameter(1)*0.05);
+  //ws.var("cexpS0")->setVal(Func->GetParError(1));
 
 
   // Lumi prior
@@ -378,28 +401,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.defineSet("POI","xs");
 
   // Priors and nuis params
-  ws.factory("PROD::prior0(xs_prior)");
-  ws.defineSet("nuisSet0","");
-
-  ws.factory("PROD::prior1(xs_prior,nbkg_prior)");
-  ws.defineSet("nuisSet1","nbkg");
-
-  ws.factory("PROD::prior2(xs_prior,lumi_prior)");
-  ws.defineSet("nuisSet2","lumi");
-  
-  ws.factory("PROD::prior3(xs_prior,acceptance_prior)");
-  ws.defineSet("nuisSet3","acceptance");
-  
-  ws.factory("PROD::prior4(xs_prior,lumi_prior,nbkg_prior)");
-  ws.defineSet("nuisSet4","lumi,nbkg");
-  
-  //ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
-  ws.factory("PROD::prior5(xs_prior,nbkg_prior,lumi_prior,acceptance_prior)");
-  ws.defineSet("nuisSet5","nbkg,lumi,acceptance");
-  
   // use this one
-  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,lmpv_prior,lsigma_prior,lumi_prior,acceptance_prior)");
-  ws.defineSet("nuisSet5b","nbkg,lmpv,lsigma,lumi,acceptance,sigWidth");
+  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,cexp_prior,lumi_prior,acceptance_prior)");
+  ws.defineSet("nuisSet5b","nbkg,cexp,lumi,acceptance,sigWidth");
   
 
   // let's not fix the cross section..just to make sure
@@ -412,12 +416,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("acceptance")->setConstant(true);
   ws.var("acceptanceM0")->setConstant(true);
   ws.var("acceptanceS0")->setConstant(true);
-  ws.var("lmpv")->setConstant(true);
-  ws.var("lmpvM0")->setConstant(true);
-  ws.var("lmpvS0")->setConstant(true);
-  ws.var("lsigma")->setConstant(true);
-  ws.var("lsigmaM0")->setConstant(true);
-  ws.var("lsigmaS0")->setConstant(true);
+  ws.var("cexp")->setConstant(true);
+  ws.var("cexpM0")->setConstant(true);
+  ws.var("cexpS0")->setConstant(true);
   ws.var("nbkg")->setConstant(true);
   ws.var("nbkgM0")->setConstant(true);
   ws.var("nbkgS0")->setConstant(true);
@@ -428,49 +429,20 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   modelConfig.SetWorkspace(ws);
 
   // Which prior and nuis are we using
-  if (statLevel == 0) {
-    ws.factory("PROD::model(model_noprior)");
-    modelConfig.SetPriorPdf(*ws.pdf("prior0"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
-  } else if (statLevel == 1) {
-    ws.factory("PROD::model(model_noprior)");
-    ws.var("nbkg")->setConstant(false);
-    modelConfig.SetPriorPdf(*ws.pdf("prior1"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet1"));
-  } else if (statLevel == 2) {
-    ws.factory("PROD::model(model_noprior)");
-    ws.var("lumi")->setConstant(false);
-    modelConfig.SetPriorPdf(*ws.pdf("prior2"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet2"));
-  } else if (statLevel == 3) {
-    ws.factory("PROD::model(model_noprior)");
-    ws.var("acceptance")->setConstant(false);
-    modelConfig.SetPriorPdf(*ws.pdf("prior3"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet3"));
-  } else if (statLevel == 4) {
-    ws.factory("PROD::model(model_noprior)");
-    ws.var("nbkg")->setConstant(false);
-    ws.var("lumi")->setConstant(false);
-    modelConfig.SetPriorPdf(*ws.pdf("prior4"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet4"));
-  } else if (statLevel == 5) {
-    ws.factory("PROD::model(model_noprior)");
-    ws.var("nbkg")->setConstant(false);
-    ws.var("lumi")->setConstant(false);
-    ws.var("acceptance")->setConstant(false);
-    modelConfig.SetPriorPdf(*ws.pdf("prior5"));
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet5"));
-  } else if (statLevel == 6) {
+  if (statLevel == 6) {
     ws.factory("PROD::model(model_noprior,prior5b)");
     ws.factory("PROD::background_model(background_noprior,prior5b)");
     ws.var("sigWidth")->setConstant(false);
     ws.var("nbkg")->setConstant(false);
-    ws.var("lmpv")->setConstant(false);
-    ws.var("lsigma")->setConstant(false);
+    ws.var("cexp")->setConstant(false);
     ws.var("lumi")->setConstant(false);
     ws.var("acceptance")->setConstant(false);
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet5b"));
+  } else {
+    std::cerr << "HELP!" << std::endl;
+    exit(1);
   }
+
   modelConfig.SetPdf(*ws.pdf("model"));
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
 
@@ -478,19 +450,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.import(modelConfig);
 
 
-  /*
-  //RooFitResult* Fit = ws.pdf("model")->fitTo(binnedData);
-  ws.var("nbkg")->Print();
-  TCanvas Can;
-  Can.cd();
-  RooPlot* datafit = ws.var("mjjj")->frame();
-  ws.data("data")->plotOn(datafit);
-  ws.pdf("model")->fitTo(*ws.data("data"));
-  ws.pdf("model")->plotOn(datafit);
-  datafit->Draw();
-  Can.SaveAs(TString("Fit_")+label+".eps");
-  //exit(0);
-  */
 
   // Just some print statements
   ws.Print();
@@ -498,8 +457,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("nbkg")->Print();
   ws.var("nbkgM0")->Print();
   ws.var("nbkgS0")->Print();
-  ws.var("lmpv")->Print();
-  ws.var("lsigma")->Print();
+  ws.var("cexp")->Print();
+  ws.var("cexpM0")->Print();
+  ws.var("cexpS0")->Print();
   ws.var("lumi")->Print();
   ws.var("lumiM0")->Print();
   ws.var("lumiS0")->Print();
@@ -515,6 +475,18 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float upper = -1;
   if (Section == -1) {
     ws.import(fitData);
+    ws.var("nbkg")->Print();
+
+    TCanvas Can;
+    Can.cd();
+    RooPlot* datafit = ws.var("mjjj")->frame();
+    ws.data("DataToFit")->plotOn(datafit);
+    ws.pdf("model")->fitTo(*ws.data("DataToFit"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+    ws.pdf("model")->plotOn(datafit);
+    datafit->Draw();
+    Can.SaveAs(TString("Fit_")+label+".eps");
+    ws.var("nbkg")->Print();
+
     upper = DoFit(ws, modelConfig, label, method, Section);
   } else {
     // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
@@ -522,13 +494,28 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
     // Grab a toy.  If you can't get a toy there is something wrong
     int const NBGThisPE = RooRandom::randomGenerator()->Poisson(NBGFromFit);
-    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned"), RooFit::Extended(kFALSE));
+    RooDataSet* PE = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned"));
     if (!PE) {
       std::cout << "ERROR: not filling PE" << std::endl;
       exit(1);
     }
 
+
+
+    // GENERATE WITH SYST
+    ws.defineSet("allvars","nbkg,cexp,lumi,acceptance,sigWidth,mjjj");
+    RooArgSet args(RooArgSet(*ws.set("allvars")));
+    RooAbsPdf::GenSpec* spec = ws.pdf("background_model")->prepareMultiGen(args, RooFit::Name("DataToFit_unbinned_all"), RooFit::NumEvents(NBGThisPE), RooFit::Extended(kFALSE), RooFit::Verbose(kFALSE));
+    RooDataSet* toy = ws.pdf("background_model")->generate(*spec);
+    RooDataSet* toyred = (RooDataSet*) toy->reduce(*ws.var("mjjj"));
+    RooDataHist* hPE2 = ((RooDataSet*) toyred)->binnedClone("DataToFit2");
+    std::cout << "Done generating PE" << std::endl;
+    std::cout << "LUMI: " << ws.var("lumi")->getVal() << std::endl;
+    return 123;
+
+
     RooDataHist* hPE = PE->binnedClone("DataToFit");
+
 
     // Just for debug
     if (false) {
@@ -540,7 +527,22 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       CanPE.SaveAs(TString("PE_")+label+".eps");
     }
 
+
+    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE->sum(false));
+
     ws.import(*hPE);
+    if (false) {
+      ws.var("nbkg")->Print();
+      TCanvas Can;
+      Can.cd();
+      RooPlot* datafit = ws.var("mjjj")->frame();
+      ws.data("DataToFit")->plotOn(datafit);
+      ws.pdf("model")->fitTo(*ws.data("DataToFit"));
+      ws.pdf("model")->plotOn(datafit);
+      datafit->Draw();
+      Can.SaveAs(TString("Fit_")+label+".eps");
+      ws.var("nbkg")->Print();
+    }
     upper = DoFit(ws, modelConfig, label, method, Section);
 
 
@@ -555,20 +557,25 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 int main (int argc, char* argv[])
 {
-  if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " [Section]" << std::endl;
+  if (argc != 2 && argc != 3) {
+    std::cerr << "Usage: " << argv[0] << " [Section] (if -1, mass)" << std::endl;
     return 1;
   }
 
+  float const StepSize  =  10;
+
   int const Section = atoi(argv[1]);
+  float const BeginMass = argc == 3 ?  200 + atof(argv[2])*StepSize : 200;
+  float const EndMass   = argc == 3 ?  200 + atof(argv[2])*StepSize : 500;
+  std::cout << BeginMass << "  " << EndMass << std::endl;
 
   //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/uscms/home/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
-  float const BeginMass = 200;
-  float const EndMass   = 500;
-  float const StepSize  =  10;
+  //float const BeginMass = 200;
+  //float const EndMass   = 500;
 
   int const Method      =  1;
   int const Systematics =  6;
@@ -581,7 +588,11 @@ int main (int argc, char* argv[])
   // Setup output file
   char OutName[150];
   if (Section == -1) {
-    sprintf(OutName, "Limits_Data.dat");
+    if (argc == 2) {
+      sprintf(OutName, "Limits_Data.dat");
+    } else if (argc == 3) {
+      sprintf(OutName, "Limits_Data_%i.dat", (int) BeginMass);
+    }
   } else {
     sprintf(OutName, "PELimits_%i.dat", Section);
   }

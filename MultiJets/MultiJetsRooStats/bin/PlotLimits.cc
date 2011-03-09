@@ -57,10 +57,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (false) {
-    HiggsLimits.DrawFrame(200,0.1,500,420);
+    HiggsLimits.DrawFrame(200,0.1,500,650);
     HiggsLimits.SetLogy(0);
   } else {
-    HiggsLimits.DrawFrame(200,0,500,420);
+    HiggsLimits.DrawFrame(200,0,500,650);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
@@ -282,7 +282,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   grModel.Draw("samec");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
-  HMassLabel->SetLabel("Tri-jet Mass [GeV/c^{2}]");
+  HMassLabel->SetLabel("Three jet Mass [GeV/c^{2}]");
   HMassLabel->SetX1NDC(0.60);
   HMassLabel->SetX2NDC(0.90);
   HMassLabel->SetY1NDC(0.01);
@@ -292,7 +292,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   HMassLabel->Draw("same");
 
   TPaveLabel *YLabel = new TPaveLabel();
-  YLabel->SetLabel("95\% CL Limit #sigma (pb)");
+  YLabel->SetLabel("95\% CL Limit #sigma #times BR (pb)");
   YLabel->SetX1NDC(0.00);
   YLabel->SetX2NDC(0.05);
   YLabel->SetY1NDC(0.10);
@@ -316,7 +316,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   TPaveLabel *RunII = new TPaveLabel();
   //RunII->SetLabel("CDF Run II Preliminary");
-  RunII->SetLabel("CMS MultiJets");
+  RunII->SetLabel("CMS Preliminary");
   RunII->SetX1NDC(0.1);
   RunII->SetX2NDC(0.5);
   RunII->SetY1NDC(0.92);
@@ -327,7 +327,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
-  Lumi->SetLabel("#int L = 35.0 pb^{-1}");
+  Lumi->SetLabel("#int L = 35.1 pb^{-1}");
   Lumi->SetX1NDC(0.5);
   Lumi->SetX2NDC(0.9);
   Lumi->SetY1NDC(0.92);
