@@ -511,7 +511,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     RooDataHist* hPE2 = ((RooDataSet*) toyred)->binnedClone("DataToFit2");
     std::cout << "Done generating PE" << std::endl;
     std::cout << "LUMI: " << ws.var("lumi")->getVal() << std::endl;
-    return 123;
+    //return 123;
 
 
     RooDataHist* hPE = PE->binnedClone("DataToFit");
