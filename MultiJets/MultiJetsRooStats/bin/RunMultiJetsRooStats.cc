@@ -64,6 +64,40 @@
 
 
 // Utility functions
+
+
+TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
+{
+  TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
+
+  TF1 f("myexp", "[0]*TMath::Exp([1]*x)", 170, 800);
+  f.SetParameter(0, 1);
+  f.SetParameter(1, cexp);
+  f.SetParameter(0, 1.0/f.Integral(170,800));
+  std::cout << cexp << "  " << f.Integral(170,800) << std::endl;
+
+  for (int i = 0; i < N; ++i) {
+    h->Fill(f.GetRandom());
+  }
+
+  TF1 ff("myexp1", "[0]*TMath::Exp([1]*x)", 170, 800);
+  ff.SetParameter(0, 1);
+  ff.SetParameter(1, cexp);
+  ff.SetParameter(0, 10*N/ff.Integral(170,800));
+  std::cout << N << "  " << ff.Integral(170,800) << std::endl;
+
+  if (false) {
+    TCanvas c;
+    c.cd();
+    h->Draw();
+    ff.Draw("same");
+    c.SaveAs(TString("MyPE_")+label+".eps");
+  }
+
+  return h;
+}
+
+
 TH1D* GetHistForMjjj (float const Mjjj, TFile* File, TString const Suffix)
 {
   // This function will return a histogram
@@ -245,9 +279,9 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
 
 TH1F* GetMeAHist (TH1F* h)
 {
-  TH1F* g = new TH1F("MyNewHist", "MyNewHist", 64, 160, 800);
+  TH1F* g = new TH1F("MyNewHist", "MyNewHist", 64, 170, 800);
 
-  for (int i = 16; i != 80; ++i) {
+  for (int i = 17; i != 80; ++i) {
     for (int j = 0; j != h->GetBinContent(i); ++j) {
       g->Fill(10*i - 0.5);
     }
@@ -313,7 +347,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       Func->GetParameter(0),
       Func->GetParameter(1)
       );
-  float const XMIN = 160;//Func->GetXmin();
+  float const XMIN = 170;//Func->GetXmin();
   float const XMAX = Func->GetXmax();
   int   const BINSMJJJ   = (int) (XMAX - XMIN) / 10;
   ws.var("mjjj")->setBins(BINSMJJJ);
@@ -505,17 +539,32 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     while (rand_cexp < ws.var("cexp")->getMin() || rand_cexp > ws.var("cexp")->getMax()) {
       rand_cexp = ws.var("cexp")->getVal() + ws.var("cexpS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1);
       std::cout << "rand_cexp:  " << rand_cexp << std::endl;
-    } 
-    ws.var("cexp")->setVal(rand_cexp);
+    }
 
-    RooDataSet* toy = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned_2"));
-    std::cout << "LUMI: " << ws.var("cexp")->getVal() << std::endl;
-    RooDataHist* hPE = toy->binnedClone("DataToFit");
-    std::cout << "Done generating PE" << std::endl;
+    int NTest = RooRandom::randomGenerator()->Poisson(
+      1.*(NBGFromFit + ws.var("nbkgS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1))
+        );
+    TH1F* hPEF = GetPEExpo(NTest, rand_cexp, label);
+    //TH1F* hPEF = GetPEExpo(NBGThisPE, rand_cexp, label);
+    RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEF);
 
+    //ws.var("cexp")->setVal(rand_cexp);
+
+    //RooDataSet* toy = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned_2"));
+    //std::cout << "LUMI: " << ws.var("cexp")->getVal() << std::endl;
+    //RooDataHist* hPE = toy->binnedClone("DataToFit");
+    //std::cout << "Done generating PE" << std::endl;
+
+    //ws.var("cexp")->setVal(-0.0066666);
+    //ws.defineSet("myvar", "cexp,lumi");
+    //RooArgSet args( *ws.set("myvar") );
+    //RooAbsPdf::GenSpec* spec = ws.pdf("background_noprior")->prepareMultiGen(args, RooFit::Name("whatever"), RooFit::NumEvents(100));
+    //RooDataSet* test = ws.pdf("background_model")->generate(*spec);
+    //printf("README: %12E   %12E\n", ws.var("lumi")->getVal(), ws.var("cexp")->getVal());
+    //return(0);
 
     //RooDataHist* hPE = PE->binnedClone("DataToFit");
-    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE->sum(false));
+    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE.sum(false));
 
 
     // Just for debug
@@ -523,14 +572,14 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       TCanvas CanPE;
       CanPE.cd();
       RooPlot* PEplot = ws.var("mjjj")->frame();
-      hPE->plotOn(PEplot);
+      hPE.plotOn(PEplot);
       PEplot->Draw();
       CanPE.SaveAs(TString("PE_")+label+".eps");
     }
 
 
 
-    ws.import(*hPE);
+    ws.import(hPE);
     if (false) {
       ws.var("nbkg")->Print();
       TCanvas Can;
@@ -545,9 +594,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     }
     upper = DoFit(ws, modelConfig, label, method, Section);
 
+    delete hPEF;
 
   }
-
 
 
 
@@ -583,6 +632,7 @@ int main (int argc, char* argv[])
 
   // Set the roostats random seed based on secton number..fine..
   RooRandom::randomGenerator()->SetSeed(771723*(Section+2));
+  gRandom->SetSeed(791723*(Section+2));
 
 
   // Setup output file
