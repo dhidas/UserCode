@@ -234,8 +234,8 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(500000);
-    mc.SetNumBurnInSteps(500);
+    mc.SetNumIters(100000000);
+    mc.SetNumBurnInSteps(5000);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
@@ -279,7 +279,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
 
 TH1F* GetMeAHist (TH1F* h)
 {
-  TH1F* g = new TH1F("MyNewHist", "MyNewHist", 64, 170, 800);
+  TH1F* g = new TH1F("MyNewHist", "MyNewHist", 63, 170, 800);
 
   for (int i = 17; i != 80; ++i) {
     for (int j = 0; j != h->GetBinContent(i); ++j) {
@@ -438,6 +438,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // Priors and nuis params
   // use this one
+  ws.factory("PROD::prior0(xs_prior)");
+  ws.defineSet("nuisSet0","sigWidth");
   ws.factory("PROD::prior5b(xs_prior,nbkg_prior,cexp_prior,lumi_prior,acceptance_prior)");
   ws.defineSet("nuisSet5b","nbkg,cexp,lumi,acceptance,sigWidth");
   
@@ -465,7 +467,12 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   modelConfig.SetWorkspace(ws);
 
   // Which prior and nuis are we using
-  if (statLevel == 6) {
+  if (statLevel == 0) {
+    ws.factory("PROD::model(model_noprior,prior0)");
+    ws.factory("PROD::background_model(background_noprior,prior0)");
+    ws.var("sigWidth")->setConstant(false);
+    modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
+  } else if (statLevel == 6) {
     ws.factory("PROD::model(model_noprior,prior5b)");
     ws.factory("PROD::background_model(background_noprior,prior5b)");
     ws.var("sigWidth")->setConstant(false);
@@ -619,8 +626,8 @@ int main (int argc, char* argv[])
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
   //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   //float const BeginMass = 200;
