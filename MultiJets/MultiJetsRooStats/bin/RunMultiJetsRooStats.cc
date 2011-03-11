@@ -234,8 +234,8 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(100000000);
-    mc.SetNumBurnInSteps(5000);
+    mc.SetNumIters(10000000);
+    mc.SetNumBurnInSteps(500);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
@@ -634,7 +634,7 @@ int main (int argc, char* argv[])
   //float const EndMass   = 500;
 
   int const Method      =  1;
-  int const Systematics =  6;
+  int const Systematics =  0;
   int const NPerSection =  2;
 
   // Set the roostats random seed based on secton number..fine..

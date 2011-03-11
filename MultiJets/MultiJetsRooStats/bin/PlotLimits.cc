@@ -56,8 +56,8 @@ void DrawLimits (std::vector<TString> const& FileNames)
   // Make the canvas!
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
-  if (false) {
-    HiggsLimits.DrawFrame(200,10,500,650);
+  if (true) {
+    HiggsLimits.DrawFrame(200,1,500,650);
     HiggsLimits.SetLogy(1);
   } else {
     HiggsLimits.DrawFrame(200,0,500,650);
@@ -226,8 +226,8 @@ void DrawLimits (std::vector<TString> const& FileNames)
       std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
       UseShade2S = grShade2S;
       UseShade1S = grShade1S;
-      UseShade2S->Draw("f");
-      UseShade1S->Draw("f");
+      //UseShade2S->Draw("f");
+      //UseShade1S->Draw("f");
       ShadeLabel = MyLabel;
     }
 
