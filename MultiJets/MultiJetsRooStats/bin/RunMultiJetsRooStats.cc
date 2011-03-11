@@ -626,15 +626,15 @@ int main (int argc, char* argv[])
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
   //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   //float const BeginMass = 200;
   //float const EndMass   = 500;
 
   int const Method      =  1;
-  int const Systematics =  0;
+  int const Systematics =  6;
   int const NPerSection =  2;
 
   // Set the roostats random seed based on secton number..fine..

@@ -226,8 +226,8 @@ void DrawLimits (std::vector<TString> const& FileNames)
       std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
       UseShade2S = grShade2S;
       UseShade1S = grShade1S;
-      //UseShade2S->Draw("f");
-      //UseShade1S->Draw("f");
+      UseShade2S->Draw("f");
+      UseShade1S->Draw("f");
       ShadeLabel = MyLabel;
     }
 
