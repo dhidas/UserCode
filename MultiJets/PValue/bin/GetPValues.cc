@@ -40,7 +40,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 
   float tmp;
   for (size_t im = 0; im != NMasses; ++im) {
-    InDataFile >> tmp;
+    InLine >> tmp;
     printf("%7E  ", tmp);
     DataXS.push_back(tmp);
   }
@@ -75,7 +75,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   }
 
   for (size_t i = 0; i != NMasses; ++i) {
-    printf("Mass: %4i Pass/Fail %10i  %10i  p-value: %12E\n", (int) Masses[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
+    printf("Mass: %4i DataXS: %6.2f  Pass/Fail %10i  %10i  p-value: %12E\n", (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
         ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second));
   }
 
