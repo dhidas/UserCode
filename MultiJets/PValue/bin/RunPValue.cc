@@ -135,7 +135,7 @@ float DoFit (int const Section, int const ipe, float const SignalMass, TH1F* hPE
   fSigBG.SetParameter(3, fFunc->GetParameter(3));
   fSigBG.SetParameter(4, fFunc->GetParameter(4));
 
-  hPE->Fit(&fSigBG, "", "", 170, 800);
+  hPE->Fit(&fSigBG, "LPQ", "", 170, 800);
 
   // return -9999 if the fit did not converge
   if (!gMinuit->fCstatu.Contains("CONVERGED")) {
@@ -183,7 +183,7 @@ int RunPValue (TString const InFileName, int const Section)
   float const StepSize    =  10;
   float const BeginMass   = 200;
   float const EndMass     = 500;
-  int   const NPerSection = 100;
+  int   const NPerSection = 1000;
 
 
   // Set the randome seed based on section number
@@ -272,7 +272,8 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
   RunPValue(InFileName, Section);

@@ -9,7 +9,7 @@ export LD_LIBRARY_PATH=/cms/data15/dhidas/CernRoot/root_v5.28.00/root/lib
 . /cms/data15/dhidas/CernRoot/root_v5.28.00/root/bin/thisroot.sh
 
 
-EXE=/users/h2/dhidas/Expo/RunMultiJetsRooStats
+EXE=/users/h2/dhidas/UserCode/dhidas/MultiJets/PValue/RunPValue
 
 mkdir -pv $2
 cd $2
