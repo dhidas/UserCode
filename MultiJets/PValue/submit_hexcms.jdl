@@ -1,0 +1,13 @@
+universe = vanilla
++AccountingGroup = "group_rutgers.dhidas"
+Executable = run_hexcms.sh
+OutDir = /cms/data16/dhidas/Mar12_PValue
+
+Should_Transfer_Files = NO
+Output = $(OutDir)/Log/Log_$(Process).stdout
+Error =  $(OutDir)/Log/Log_$(Process).stderr
+Log =    $(OutDir)/Log/Log_$(Process).log
+notify_user = dhidas@FNAL.GOV
+Arguments = $(Process) $(OutDir)
+Queue 500
+
