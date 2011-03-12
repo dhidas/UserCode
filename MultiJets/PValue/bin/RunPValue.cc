@@ -180,6 +180,7 @@ float DoFit (int const Section, int const ipe, float const SignalMass, TH1F* hPE
 
 int RunPValue (TString const InFileName, int const Section)
 {
+  // Some basic parameters
   float const StepSize    =  10;
   float const BeginMass   = 200;
   float const EndMass     = 500;
@@ -193,7 +194,7 @@ int RunPValue (TString const InFileName, int const Section)
   // Setup output file
   char OutName[150];
   if (Section == -1) {
-    sprintf(OutName, "CrossSection_Data.dat");
+    sprintf(OutName, "Data_CrossSection.dat");
   } else {
     sprintf(OutName, "CrossSection_%i.dat", Section);
   }
@@ -224,7 +225,11 @@ int RunPValue (TString const InFileName, int const Section)
 
   if (Section == -1) {
     // Do some Data Fit
+
+    // In order to do this correctly you need a clone...ya I know..
     TH1F* DataClone = (TH1F*) DataTH1F->Clone("DataClone");
+
+    // Loop over all masses
     for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
       float const CrossSection = DoFit(Section, 0, SignalMass, DataClone, fFunc);
       printf("ipe: %12i Mass: %5i  xs:%15.2f\n", 0, (int) SignalMass, CrossSection);
@@ -236,6 +241,7 @@ int RunPValue (TString const InFileName, int const Section)
     delete DataClone;
   } else {
 
+    // Loop over all PEs
     for (int ipe = 0; ipe != NPerSection; ++ipe) {
 
       // Number in PE
@@ -244,15 +250,16 @@ int RunPValue (TString const InFileName, int const Section)
       // Get PE
       TH1F* hPE = GetPEExpo(NPE, fFunc->GetParameter(1));
 
+      // Loop over signal masses
       for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
         float const CrossSection = DoFit(Section, ipe, SignalMass, hPE, fFunc);
         printf("ipe: %12i Mass: %5i  xs:%15.2f\n", ipe, (int) SignalMass, CrossSection);
         fprintf(Out, "%12E ", CrossSection);
       }
-    fprintf(Out, "\n");
-    fflush(Out);
+      fprintf(Out, "\n");
+      fflush(Out);
 
-
+      // Better delete that PE
       delete hPE;
     }
 
