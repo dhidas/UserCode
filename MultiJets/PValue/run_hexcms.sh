@@ -14,6 +14,6 @@ EXE=/users/h2/dhidas/Expo/RunMultiJetsRooStats
 mkdir -pv $2
 cd $2
 
-echo "$EXE -1 $1"
-$EXE -1 $1
+echo "$EXE $1"
+$EXE $1
 
