@@ -47,7 +47,7 @@ int PlotWidths (TString const InName, float const Column, float const CutBelow)
 
     if (XS > CutBelow) {
       // Fill Hist
-      printf("XS/Chi2: %12.1f %12.1f\n", XS, Chi2);
+      printf("XS/Chi2: %12.1f %12.1f %12.3f\n", XS, Chi2, Chi2/50.);
       h.Fill(Chi2);
     }
 

@@ -226,7 +226,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
       std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
       UseShade2S = grShade2S;
       UseShade1S = grShade1S;
-      UseShade2S->Draw("f");
+      //UseShade2S->Draw("f");
       UseShade1S->Draw("f");
       ShadeLabel = MyLabel;
     }
@@ -316,7 +316,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   TPaveLabel *RunII = new TPaveLabel();
   //RunII->SetLabel("CDF Run II Preliminary");
-  RunII->SetLabel("CMS MultiJets");
+  RunII->SetLabel("CMS Preliminary");
   RunII->SetX1NDC(0.1);
   RunII->SetX2NDC(0.5);
   RunII->SetY1NDC(0.92);
@@ -327,7 +327,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
-  Lumi->SetLabel("#int L = 35.0 pb^{-1}");
+  Lumi->SetLabel("#int L = 35.1 pb^{-1}");
   Lumi->SetX1NDC(0.5);
   Lumi->SetX2NDC(0.9);
   Lumi->SetY1NDC(0.92);
