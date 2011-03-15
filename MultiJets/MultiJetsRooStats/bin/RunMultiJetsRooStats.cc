@@ -687,9 +687,9 @@ int main (int argc, char* argv[])
   float const EndMass   = argc == 3 ?  200 + atof(argv[2])*StepSize : 500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
-  //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   //float const BeginMass = 200;
   //float const EndMass   = 500;
@@ -705,7 +705,7 @@ int main (int argc, char* argv[])
 
   // Setup output file
   char OutName[150];
-  if (Section == -1) {
+  if (Section == -1 || Section == -2) {
     if (argc == 2) {
       sprintf(OutName, "Limits_Data.dat");
     } else if (argc == 3) {
@@ -729,10 +729,10 @@ int main (int argc, char* argv[])
   // Print header to outfile
 
 
-  if (Section == -1) {
+  if (Section == -1 || Section == -2) {
     std::vector< std::pair<float, float> > MassLimitVec;
     for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
-      MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, -1)) );
+      MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, Section)) );
       fprintf(Out, "%10E ", MassLimitVec.back().second);
     }
     fprintf(Out, "\n");
