@@ -98,6 +98,46 @@ TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
 }
 
 
+
+TH1F* GetPEExpoWithBump (int const NBG, float const cexp, int const NSig, float const gMean, float const gSigma, TString const label = "blah")
+{
+  TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
+
+  TF1 f("myexpgaus", "[0]*TMath::Exp([1]*x) + [2]*TMath::Gaus(x, [3], [4], 1)", 170, 800);
+  // The order of this is very specific...
+  f.SetParameter(0, 1);
+  f.SetParameter(1, cexp);
+  f.SetParameter(2, 0);
+  f.SetParameter(3, gMean);
+  f.SetParameter(4, gSigma);
+  f.SetParameter(0, 10*NBG/f.Integral(170,800));
+  f.SetParameter(2, NSig*10);
+
+  for (int i = 1; i <= h->GetNbinsX(); ++i) {
+    int const NThisBin = (int) f.Integral( h->GetBinLowEdge(i), h->GetBinLowEdge(i) + h->GetBinWidth(i)) / 10.;
+    printf("PEExpoWithBump ibin/N %3i %5i\n", i, NThisBin);
+    for (int ie = 0; ie < NThisBin; ++ie) {
+      h->Fill( h->GetBinCenter(i) );
+    }
+  }
+
+  if (true) {
+    TF1 fE("myexp", "[0]*TMath::Exp([1]*x)", 170, 800);
+    fE.SetParameter(0, f.GetParameter(0));
+    fE.SetParameter(1, f.GetParameter(1));
+    TCanvas c;
+    c.cd();
+    h->Draw("ep");
+    fE.Draw("same");
+    c.SaveAs("TestPEWithSig.eps");
+  }
+
+  return h;
+}
+
+
+
+
 TH1D* GetHistForMjjj (float const Mjjj, TFile* File, TString const Suffix)
 {
   // This function will return a histogram
@@ -516,7 +556,48 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   float upper = -1;
-  if (Section == -1) {
+  if (Section == -2) {
+    // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
+    // I can get you a toy, believe me.  There are ways, Dude.
+
+
+    float const MyNBG  = Func->Integral(170, 800) / 10.;
+    float const MyCEXP = Func->GetParameter(1);
+    ws.var("nbkg")->setVal(MyNBG);
+
+    TH1F* hPEWithBump = GetPEExpoWithBump(MyNBG, MyCEXP, 379.995/10., 380, 22.681);
+    RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEWithBump);
+
+    //RooDataHist* hPE = PE->binnedClone("DataToFit");
+    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE.sum(false));
+
+    // Just for debug
+    if (false) {
+      TCanvas CanPE;
+      CanPE.cd();
+      RooPlot* PEplot = ws.var("mjjj")->frame();
+      hPE.plotOn(PEplot);
+      PEplot->Draw();
+      CanPE.SaveAs(TString("PE_")+label+".eps");
+    }
+
+    ws.import(hPE);
+    if (false) {
+      ws.var("nbkg")->Print();
+      TCanvas Can;
+      Can.cd();
+      RooPlot* datafit = ws.var("mjjj")->frame();
+      ws.data("DataToFit")->plotOn(datafit);
+      ws.pdf("model")->fitTo(*ws.data("DataToFit"));
+      ws.pdf("model")->plotOn(datafit);
+      datafit->Draw();
+      Can.SaveAs(TString("Fit_")+label+".eps");
+      ws.var("nbkg")->Print();
+    }
+    upper = DoFit(ws, modelConfig, label, method, Section);
+
+    delete hPEWithBump;
+  } else if (Section == -1) {
     ws.import(fitData);
     ws.var("nbkg")->Print();
 
@@ -552,27 +633,10 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       1.*(NBGFromFit + ws.var("nbkgS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1))
         );
     TH1F* hPEF = GetPEExpo(NTest, rand_cexp, label);
-    //TH1F* hPEF = GetPEExpo(NBGThisPE, rand_cexp, label);
     RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEF);
-
-    //ws.var("cexp")->setVal(rand_cexp);
-
-    //RooDataSet* toy = ws.pdf("background_model")->generate(RooArgSet(*ws.var("mjjj")), NBGThisPE, RooFit::Name("DataToFit_unbinned_2"));
-    //std::cout << "LUMI: " << ws.var("cexp")->getVal() << std::endl;
-    //RooDataHist* hPE = toy->binnedClone("DataToFit");
-    //std::cout << "Done generating PE" << std::endl;
-
-    //ws.var("cexp")->setVal(-0.0066666);
-    //ws.defineSet("myvar", "cexp,lumi");
-    //RooArgSet args( *ws.set("myvar") );
-    //RooAbsPdf::GenSpec* spec = ws.pdf("background_noprior")->prepareMultiGen(args, RooFit::Name("whatever"), RooFit::NumEvents(100));
-    //RooDataSet* test = ws.pdf("background_model")->generate(*spec);
-    //printf("README: %12E   %12E\n", ws.var("lumi")->getVal(), ws.var("cexp")->getVal());
-    //return(0);
 
     //RooDataHist* hPE = PE->binnedClone("DataToFit");
     printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE.sum(false));
-
 
     // Just for debug
     if (false) {
@@ -583,8 +647,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       PEplot->Draw();
       CanPE.SaveAs(TString("PE_")+label+".eps");
     }
-
-
 
     ws.import(hPE);
     if (false) {
@@ -625,10 +687,9 @@ int main (int argc, char* argv[])
   float const EndMass   = argc == 3 ?  200 + atof(argv[2])*StepSize : 500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
-  //TString const InFileName = "/Users/dhidas/Data35pb/LandauFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   //float const BeginMass = 200;
   //float const EndMass   = 500;
