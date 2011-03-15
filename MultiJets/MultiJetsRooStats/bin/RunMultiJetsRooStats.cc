@@ -565,7 +565,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     float const MyCEXP = Func->GetParameter(1);
     ws.var("nbkg")->setVal(MyNBG);
 
-    TH1F* hPEWithBump = GetPEExpoWithBump(MyNBG, MyCEXP, 379.995/10., 380, 22.681);
+    TH1F* hPEWithBump = GetPEExpoWithBump(DataTH1->Integral(), MyCEXP, 379.995/10., 380, 22.681);
     RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEWithBump);
 
     //RooDataHist* hPE = PE->binnedClone("DataToFit");
