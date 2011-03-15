@@ -481,9 +481,10 @@ std::pair<float, float> BestFitSigBG (FitObj& Obj, bool const ReturnTotal)
   switch (gFitType) {
     case kFitLandau:
       {
-      float const Err0 = Obj.Function->GetParError(0) * Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2);
+      float const Err0 = Obj.Function->GetParError(0) * Obj.Function->GetParameter(0) / Obj.Function->GetParameter(2);
       float const Err1 = Obj.Function->GetParError(1);
       float const Err2 = Obj.Function->GetParError(2);
+
       FuncGaus.SetParameter(0, Obj.Function->GetParameter(0) * Obj.Function->GetParameter(2));
       FuncGaus.SetParLimits(0, FuncGaus.GetParameter(0) - Err0, FuncGaus.GetParameter(0) + Err0);
       FuncGaus.SetParameter(1, Obj.Function->GetParameter(1));
