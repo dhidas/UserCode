@@ -152,6 +152,8 @@ float DoFit (int const Section, int const ipe, float const SignalMass, TH1F* hPE
     hPE->Draw();
     fSigBG.Draw("same");
     c.SaveAs(BUFF);
+
+    printf("Gaus Params: %8i %12.3f %12.3F %12.3f\n", (int) SignalMass, fSigBG.GetParameter(0), fSigBG.GetParameter(1), fSigBG.GetParameter(2));
   }
 
 
