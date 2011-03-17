@@ -42,13 +42,13 @@ Double_t Func_data(Double_t* x, Double_t* par)
 
 
 
-void  CMS_significance(){
+void  CMS_significance(TString const OutName = "CMS_significance_DEFAULT.root"){
   //gRandom->SetSeed(std::fmod( (double) time(NULL),(double) 100000.));
   gRandom->SetSeed(1234567);
 
   ///////////////////////////////////////////////////////////
   //defining outputfile
-  TFile *outputfile=new TFile("CMS_significance_allsmear_nobgfix.root","recreate");
+  TFile *outputfile=new TFile(OutName,"recreate");
   outputfile->mkdir("numevt");
   outputfile->mkdir("not_converged");
 
@@ -143,7 +143,7 @@ void  CMS_significance(){
       //fixin the expo values to the nominal values without wiggle
       float err=0.000000001;
       //comment in the next lines for floating bg parameters
-      //	fit_dataexpo->SetParameter(0,expo0);	
+      //fit_dataexpo->SetParameter(0,expo0);	
       //fit_dataexpo->SetParLimits(0,expo0-expo0err,expo0+expo0err);
       //fit_dataexpo->SetParameter(1,expo1);	
       //fit_dataexpo->SetParLimits(1, expo1-expo1err,expo1+expo1err); 
@@ -291,7 +291,13 @@ void  CMS_significance(){
 
 
 int main (int argc, char* argv[]) {
-  CMS_significance();
+  if (argc != 2) {
+    std::cerr << "Usage: " << argv[0] << " [OutName]" << std::endl;
+    return 1;
+  }
+
+  TString const OutName = argv[1];
+  CMS_significance(OutName);
 
   return 0;
 }

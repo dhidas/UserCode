@@ -19,6 +19,7 @@
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
 #include "TMinuit.h"
+#include "TMath.h"
 
 
 
@@ -81,30 +82,100 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
   return std::make_pair<float, float>(20, 25);
 }
 
+template <class T> double KahanSummation(T begin, T end)
+{
+  // You should be careful how you sum a lot of things...
 
-//TMinuit* MyMinuit;
+  double result = 0.f;
+
+  double c = 0.f;
+  double y, t;
+  for ( ; begin != end; ++begin) {
+    y = *begin - c;
+    t = result + y;
+    c = (t - result) - y;
+    result = t;
+  }
+  return result;
+}
+
+
+
+
+
+long double LogFactorial (int const in)
+{
+  // Get the log of the factorial.
+  // The reason for this function is that we're computationally limited to
+  // i <= 170 for the machine (and TMath::Factorial)
+
+  std::vector<float> Logs;
+  Logs.reserve(in);
+  long double LogSum = 0.0;
+  for (int i=1; i <= in; ++i) {
+    Logs.push_back(TMath::Log(i));
+  }
+
+  // Are you really asking for the log factorial of such a large number?
+  // Shame on you.
+  LogSum = KahanSummation(Logs.begin(), Logs.end());
+
+  // Fine, I'll give it to you anyway.
+  return LogSum;
+}
+
+
+
+
+
+TMinuit* MyMinuit;
 TH1F* hToFit;
 TF1* fToFit;
+float ParC[5];
+float ParE[5];
 
-void NegativeLogLikelihood2D (int& NParameters, double* gin, double& f, double* Par, int iflag)
+void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Par, int iflag)
 {
   // Function we want to minimize!
+  //for (int i = 0; i != 5; ++i) {
+  //  printf("Par: %i %7E %7E %7E\n", i, Par[i], ParC[i], ParE[i]);
+  //}
 
+
+  // These are the parameters of the fit...
+  // TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
+  // Systematics: start on the 5.  should be gaussian centered at 0 width one
+  fToFit->SetParameter(0, Par[0]);
+  fToFit->SetParameter(1, Par[1]);
+  fToFit->SetParameter(2, Par[2]);
+  fToFit->SetParameter(3, Par[3]);
+  fToFit->SetParameter(4, Par[4]);
 
   // Number of bins
   int const NBinsX = hToFit->GetNbinsX();
 
-  double LogLikelihood = 0.0;
+  long double LogLikelihood = 0.0;
 
   // Loop over all bins in histogram
   for (int ibinX=1; ibinX <= NBinsX; ++ibinX) {
 
-      double mu = 0.0;
+    double mu = 0.0;
 
-      //std::cout << "Likelihood: " << ibinX << " " << ibinY << " " << -LogLikelihood << std::endl;
+    mu += fToFit->Integral( hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX)) / hToFit->GetBinWidth(ibinX);
+    if (mu > 0) {
+      LogLikelihood += (hToFit->GetBinContent(ibinX) * TMath::Log(mu)
+          - mu - LogFactorial((int) hToFit->GetBinContent(ibinX)  ) );
+    }
   }
 
-  f = 0;
+  for (int i = 0; i < 5; ++i) {
+    if (ParE[i] != -999) {
+      LogLikelihood *= TMath::Gaus(Par[i], ParC[i], ParE[i], 1);
+    }
+  }
+
+
+  f = -LogLikelihood;
 
   return;
 }
@@ -114,11 +185,84 @@ void NegativeLogLikelihood2D (int& NParameters, double* gin, double& f, double* 
 
 
 
+void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc)
+{
+  int const N = 5;
+  double ArgList[10];
+  int ErrorFlag;
+
+  ArgList[0] = 1;
+
+  MyMinuit = new TMinuit(N);
+  MyMinuit->SetPrintLevel(1);
+
+
+  float const gMean = 380.;
+  std::pair<float, float> gWidth = GetGausWidthRange(gMean);
+  float const NBG = TMath::Exp(fFunc->GetParameter(3));
+  float const NBG_min = 0;
+  float const NBG_max = 10000;
+  float const BGExp = fFunc->GetParameter(4);
+  float const BGExp_min = -1;
+  float const BGExp_max =  0;
+
+  float const eNBG = NBG * 0.03;
+  float const eBGExp = fFunc->GetParError(3);
+
+  // TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
+  MyMinuit->DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
+  MyMinuit->DefineParameter(1, "GausMean",  gMean, 0.01, gMean, gMean);
+  MyMinuit->DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
+  MyMinuit->DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
+  MyMinuit->DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
+
+  ParC[0] = -999;
+  ParC[1] = gMean;
+  ParC[2] = (gWidth.first+gWidth.second)/2;
+  ParC[3] = NBG;
+  ParC[4] = BGExp;
+
+  ParE[0] = -999;
+  ParE[1] = -999;
+  ParE[2] = -999;
+  ParE[3] = eNBG;
+  ParE[4] = eBGExp;;
+
+  // Set error definition
+  // 1 for Chi squared
+  // 0.5 for nagative log likelihood
+  MyMinuit->SetErrorDef(0.5);
+
+  // Set Minimization strategy
+  // 1 standard 
+  // 2 try to improve minimum (slower) 
+  ArgList[0]=2;
+  MyMinuit->SetFCN(NegativeLogLikelihood);
+  MyMinuit->mnexcm("SET STR", ArgList, 1, ErrorFlag);
+
+  // Set the maximum number of iterations
+  MyMinuit->SetMaxIterations(1000);
+
+  // Actual call to do minimimazation
+  MyMinuit->Migrad();
+  TString FitStatus = MyMinuit->fCstatu;
+  if (!FitStatus.Contains("CONVERGED")) {
+    std::cerr << "WARNING: Fit did not converge" << std::endl;
+  }
+  //std::cout << MyMinuit->fCstatu << " " << MyMinuit->GetStatus() << std::endl;
+
+  // Call for minos error analysis
+  //MyMinuit->mnmnos();
+
+  return;
+}
+
+
 
 
 float DoFit (int const Section, int const ipe, float const SignalMass, TH1F* hPE, TF1* fFunc)
 {
-
+  MinimizeNLL(Section, ipe, SignalMass, fFunc);
   std::pair<float, float> SignalMassRange = GetGausWidthRange(SignalMass);
 
   TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + expo(3)",  170, 800);
@@ -224,16 +368,19 @@ int RunPValue (TString const InFileName, int const Section)
 
   int const NFromData = DataTH1F->Integral(17, 80);
 
+  fToFit = new TF1("FitFunction", "[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)", 170, 800);
 
   if (Section == -1) {
     // Do some Data Fit
 
     // In order to do this correctly you need a clone...ya I know..
     TH1F* DataClone = (TH1F*) DataTH1F->Clone("DataClone");
+    hToFit = DataClone;
 
     // Loop over all masses
     for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
       float const CrossSection = DoFit(Section, 0, SignalMass, DataClone, fFunc);
+      //float const CrossSection = DoFitNLL(Section, 0, SignalMass, DataClone, fFunc);
       printf("ipe: %12i Mass: %5i  xs:%15.2f\n", 0, (int) SignalMass, CrossSection);
       fprintf(Out, "%12E ", CrossSection);
     }
@@ -281,8 +428,8 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
   RunPValue(InFileName, Section);
