@@ -271,6 +271,7 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     char BUFF[100];
     sprintf(BUFF, "Fit_Data_%i.eps", (int) SignalMass);
     TCanvas c;
+    hToFit->SetAxisRange(170, 800, "X");
     hToFit->Draw("hist");
     fToFit->Draw("same");
     c.SaveAs(BUFF);
