@@ -199,7 +199,7 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
 
 
 
-void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc)
+float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc)
 {
   int const N = 5;
   double ArgList[10];
@@ -208,7 +208,7 @@ void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1*
   ArgList[0] = 1;
 
   MyMinuit = new TMinuit(N);
-  MyMinuit->SetPrintLevel(1);
+  MyMinuit->SetPrintLevel(-2);
 
 
   std::pair<float, float> gWidth = GetGausWidthRange(SignalMass);
@@ -267,23 +267,28 @@ void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1*
     std::cerr << "WARNING: Fit did not converge" << std::endl;
   }
   std::cout << MyMinuit->fCstatu << " " << MyMinuit->GetStatus() << std::endl;
-  if (true) {
+  if (Section == -1 || false) {
+    char BUFF[100];
+    sprintf(BUFF, "Fit_Data_%i.eps", (int) SignalMass);
     TCanvas c;
     hToFit->Draw("hist");
     fToFit->Draw("same");
-    c.SaveAs("Test.eps");
+    c.SaveAs(BUFF);
   }
+
   // Call for minos error analysis
   MyMinuit->mnmnos();
+
+  // Grab parameters from minuit
   double OPar[N], OEPar[N];
   for (int i = 0; i < N; ++i) {
     MyMinuit->GetParameter(i, OPar[i], OEPar[i]);
     printf("Fitted Param: %i %9E  +/-  %9E\n", i, OPar[i], OEPar[i]);
   }
 
-  exit(0);
 
-  return;
+  printf("Mass / CrossSection: %4i  %9E\n", (int) SignalMass, (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1);
+  return (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1;
 }
 
 
@@ -291,7 +296,6 @@ void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1*
 
 float DoFit (int const Section, int const ipe, float const SignalMass, TH1F* hPE, TF1* fFunc)
 {
-  MinimizeNLL(Section, ipe, SignalMass, fFunc);
   std::pair<float, float> SignalMassRange = GetGausWidthRange(SignalMass);
 
   TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + expo(3)",  170, 800);
@@ -408,7 +412,8 @@ int RunPValue (TString const InFileName, int const Section)
 
     // Loop over all masses
     for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
-      float const CrossSection = DoFit(Section, 0, SignalMass, DataClone, fFunc);
+      //float const CrossSection = DoFit(Section, 0, SignalMass, DataClone, fFunc);
+      float const CrossSection = MinimizeNLL(Section, 0, SignalMass, fFunc);
       //float const CrossSection = DoFitNLL(Section, 0, SignalMass, DataClone, fFunc);
       printf("ipe: %12i Mass: %5i  xs:%15.2f\n", 0, (int) SignalMass, CrossSection);
       fprintf(Out, "%12E ", CrossSection);
@@ -431,7 +436,8 @@ int RunPValue (TString const InFileName, int const Section)
 
       // Loop over signal masses
       for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
-        float const CrossSection = DoFit(Section, ipe, SignalMass, hPE, fFunc);
+        //float const CrossSection = DoFit(Section, ipe, SignalMass, hPE, fFunc);
+        float const CrossSection = MinimizeNLL(Section, ipe, SignalMass, fFunc);
         printf("ipe: %12i Mass: %5i  xs:%15.2f\n", ipe, (int) SignalMass, CrossSection);
         fprintf(Out, "%12E ", CrossSection);
       }
