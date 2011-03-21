@@ -150,7 +150,7 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
   // add the correct factors.  Makes no difference for minimization though...so to save
   // a few cycles they have been ignored.
   // Also, take care when using bins with a very large number of data points.  I've taken a bit
-  // of care here using a Kalman Summation, but one should know what that is and how useful it
+  // of care here using a Kahan Summation, but one should know what that is and how useful it
   // is if one should go beyond this
 
   // You should not print anything in this function save for debug time
