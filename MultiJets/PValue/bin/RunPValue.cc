@@ -287,6 +287,12 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     printf("Fitted Param: %i %9E  +/-  %9E\n", i, OPar[i], OEPar[i]);
   }
 
+  double Result_WithSig = 0;
+  double Blank[5];
+  int NPar = 5;
+  NegativeLogLikelihood(NPar, Blank, Result_WithSig, OPar, 0);
+  std::cout << Result_WithSig << std::endl;
+  exit(0);
 
   printf("Mass / CrossSection: %4i  %9E\n", (int) SignalMass, (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1);
   return (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1;
@@ -465,8 +471,8 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
   RunPValue(InFileName, Section);
