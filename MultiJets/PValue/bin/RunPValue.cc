@@ -128,6 +128,7 @@ long double LogFactorial (int const in)
 
 
 
+// I'm using these as globals just for ease.
 TMinuit* MyMinuit;
 TH1F* hToFit;
 TF1* fToFit;
@@ -136,14 +137,22 @@ float ParE[5];
 
 void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Par, int iflag)
 {
-  // Function we want to minimize!
+  // Function we want to minimize!  This function is given as is and no attention has been paid
+  // to the normalization.  ie if you care about what the likelihood actually is, you'll have to
+  // add the correct factors.  Makes no difference for minimization though...so to save
+  // a few cycles they have been ignored.
+  // Also, take care when using bins with a very large number of data points.  I've taken a bit
+  // of care here using a Kalman Summation, but one should know what that is and how useful it
+  // is if one should go beyond this
+
+  // You should not print anything in this function save for debug time
   //for (int i = 0; i != 5; ++i) {
   //  printf("Par: %i %7E %7E %7E\n", i, Par[i], ParC[i], ParE[i]);
   //}
 
 
   // These are the parameters of the fit...
-  // TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
+  // ("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
   // Systematics: start on the 5.  should be gaussian centered at 0 width one
   fToFit->SetParameter(0, Par[0]);
   fToFit->SetParameter(1, Par[1]);
@@ -152,16 +161,20 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
   fToFit->SetParameter(4, Par[4]);
 
   // Number of bins
-  int const NBinsX = hToFit->GetNbinsX();
+  static int const NBinsX = hToFit->GetNbinsX();
 
-  long double LogLikelihood = 0.0;
+  static long double LogLikelihood;
+  LogLikelihood = 0.0;
+  static long double mu = 0.0;
 
   // Loop over all bins in histogram
-  for (int ibinX=1; ibinX <= NBinsX; ++ibinX) {
+  static int const iStart = hToFit->FindBin(170);
+  static int const iStop  = hToFit->FindBin(800);
+  for (int ibinX = iStart; ibinX <= iStop; ++ibinX) {
 
-    double mu = 0.0;
+    mu = fToFit->Integral( hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX)) / hToFit->GetBinWidth(ibinX);
+    //printf("Bin X mu: %4i %9.1f %9E\n", ibinX, hToFit->GetBinLowEdge(ibinX), mu);
 
-    mu += fToFit->Integral( hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX)) / hToFit->GetBinWidth(ibinX);
     if (mu > 0) {
       LogLikelihood += (hToFit->GetBinContent(ibinX) * TMath::Log(mu)
           - mu - LogFactorial((int) hToFit->GetBinContent(ibinX)  ) );
@@ -170,12 +183,13 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
 
   for (int i = 0; i < 5; ++i) {
     if (ParE[i] != -999) {
-      LogLikelihood *= TMath::Gaus(Par[i], ParC[i], ParE[i], 1);
+      LogLikelihood -= TMath::Power((Par[i] - ParC[i])/ParE[i], 2);
     }
   }
 
 
-  f = -LogLikelihood;
+  f = -1.0*LogLikelihood;
+  //printf("%15E\n", f);
 
   return;
 }
@@ -197,27 +211,29 @@ void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1*
   MyMinuit->SetPrintLevel(1);
 
 
-  float const gMean = 380.;
-  std::pair<float, float> gWidth = GetGausWidthRange(gMean);
-  float const NBG = TMath::Exp(fFunc->GetParameter(3));
+  std::pair<float, float> gWidth = GetGausWidthRange(SignalMass);
+  float const NBG = TMath::Exp(fFunc->GetParameter(0));
   float const NBG_min = 0;
-  float const NBG_max = 10000;
-  float const BGExp = fFunc->GetParameter(4);
-  float const BGExp_min = -1;
+  float const NBG_max = 1000;
+  float const BGExp = fFunc->GetParameter(1);
+  float const BGExp_min = -0.1;
   float const BGExp_max =  0;
 
   float const eNBG = NBG * 0.03;
-  float const eBGExp = fFunc->GetParError(3);
+  float const eBGExp = fFunc->GetParError(1);
 
   // TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
   MyMinuit->DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
-  MyMinuit->DefineParameter(1, "GausMean",  gMean, 0.01, gMean, gMean);
+  MyMinuit->DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
   MyMinuit->DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
   MyMinuit->DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
   MyMinuit->DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
+  MyMinuit->FixParameter(1);
+  //MyMinuit->FixParameter(3);
+  //MyMinuit->FixParameter(4);
 
   ParC[0] = -999;
-  ParC[1] = gMean;
+  ParC[1] = SignalMass;
   ParC[2] = (gWidth.first+gWidth.second)/2;
   ParC[3] = NBG;
   ParC[4] = BGExp;
@@ -245,14 +261,27 @@ void MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1*
 
   // Actual call to do minimimazation
   MyMinuit->Migrad();
+
   TString FitStatus = MyMinuit->fCstatu;
   if (!FitStatus.Contains("CONVERGED")) {
     std::cerr << "WARNING: Fit did not converge" << std::endl;
   }
-  //std::cout << MyMinuit->fCstatu << " " << MyMinuit->GetStatus() << std::endl;
-
+  std::cout << MyMinuit->fCstatu << " " << MyMinuit->GetStatus() << std::endl;
+  if (true) {
+    TCanvas c;
+    hToFit->Draw("hist");
+    fToFit->Draw("same");
+    c.SaveAs("Test.eps");
+  }
   // Call for minos error analysis
-  //MyMinuit->mnmnos();
+  MyMinuit->mnmnos();
+  double OPar[N], OEPar[N];
+  for (int i = 0; i < N; ++i) {
+    MyMinuit->GetParameter(i, OPar[i], OEPar[i]);
+    printf("Fitted Param: %i %9E  +/-  %9E\n", i, OPar[i], OEPar[i]);
+  }
+
+  exit(0);
 
   return;
 }
@@ -398,6 +427,7 @@ int RunPValue (TString const InFileName, int const Section)
 
       // Get PE
       TH1F* hPE = GetPEExpo(NPE, fFunc->GetParameter(1));
+      hToFit = hPE;
 
       // Loop over signal masses
       for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
