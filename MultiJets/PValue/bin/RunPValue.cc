@@ -58,7 +58,6 @@ TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
     ff.SetParameter(0, 1);
     ff.SetParameter(1, cexp);
     ff.SetParameter(0, 10*N/ff.Integral(170,800));
-    std::cout << N << "  " << ff.Integral(170,800) << std::endl;
 
     // Plot it and the PE
     TCanvas c;
@@ -214,7 +213,6 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
 
   // These are for Minuit
   double ArgList[10];
-  ArgList[0] = 1;
   int ErrorFlag;
 
   // Grab a new instance of Minuit with NParams
@@ -293,7 +291,7 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   // Set Minimization strategy
   // 1 standard 
   // 2 try to improve minimum (slower) 
-  ArgList[0]=2;
+  ArgList[0] = 1;
   MyMinuit.mnexcm("SET STR", ArgList, 1, ErrorFlag);
 
   // Set the function to minimize and maximum number of iterations
@@ -308,9 +306,8 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   TString FitStatus = MyMinuit.fCstatu;
   if (!FitStatus.Contains("CONVERGED")) {
     std::cerr << "ERROR: Fit did not converge" << std::endl;
-    return 999;
+    return 9999;
   }
-  std::cout << MyMinuit.fCstatu << " " << MyMinuit.GetStatus() << std::endl;
 
   // Save a plot if you like!
   if (Section == -1 || false) {
@@ -345,8 +342,6 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   int NPar = NParams;
   NegativeLogLikelihood(NPar, Blank, NLL, OPar, 0);
 
-  //printf("Mass / CrossSection: %4i  %9E\n", (int) SignalMass, (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1);
-  //(OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1;
   return NLL;
 }
 
@@ -438,7 +433,7 @@ int RunPValue (TString const InFileName, int const Section)
       float const TestStatistic = -2.0 * (BGLL - MyLL);
 
       // Print out and file!
-      printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", 0, (int) SignalMass, BGLL, MyLL, TestStatistic);
+      printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", -1, (int) SignalMass, BGLL, MyLL, TestStatistic);
       fprintf(Out, "%12E ", TestStatistic);
     }
     fprintf(Out, "\n");
@@ -469,7 +464,7 @@ int RunPValue (TString const InFileName, int const Section)
         float const TestStatistic = -2.0 * (BGLL - MyLL);
 
       // Print out and file!
-        printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", 0, (int) SignalMass, BGLL, MyLL, TestStatistic);
+        printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", ipe, (int) SignalMass, BGLL, MyLL, TestStatistic);
         fprintf(Out, "%12E ", TestStatistic);
       }
       fprintf(Out, "\n");

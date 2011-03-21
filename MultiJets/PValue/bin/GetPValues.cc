@@ -36,7 +36,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   InLine.str(Line.Data());
 
   size_t const NMasses = Masses.size();
-  printf("NMasses %i\n", NMasses);
+  printf("NMasses %i\n", (int) NMasses);
 
   float tmp;
   for (size_t im = 0; im != NMasses; ++im) {
@@ -58,7 +58,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 
     while (Line.ReadLine(InDataFile)) {
       InLine.str(Line.Data());
-      for (int i = 0; i != NMasses; ++i) {
+      for (size_t i = 0; i != NMasses; ++i) {
         InLine >> tmp;
         if (tmp <= -9999) {
           continue;
