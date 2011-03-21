@@ -23,30 +23,44 @@
 
 
 
+// I'm using these as globals just for ease.
+TH1F* hToFit;  // Histogram to fit
+TF1* fToFit;   // Function used in fitting
+float ParC[5]; // Parameter central value
+float ParE[5]; // Parameter error
+
 
 
 
 TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
 {
+  // This function gets a PE in any way you tell it to!  ha!
+
+  // New histogram we'll return later on..  you will own this, not me!!
   TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
 
+  // Define normalized BG function in the range
   TF1 f("myexp", "[0]*TMath::Exp([1]*x)", 170, 800);
   f.SetParameter(0, 1);
   f.SetParameter(1, cexp);
   f.SetParameter(0, 1.0/f.Integral(170,800));
-  std::cout << cexp << "  " << f.Integral(170,800) << std::endl;
 
+  // Fill the new histogram based on the BG pdf defined above
   for (int i = 0; i < N; ++i) {
     h->Fill(f.GetRandom());
   }
 
-  TF1 ff("myexp1", "[0]*TMath::Exp([1]*x)", 170, 800);
-  ff.SetParameter(0, 1);
-  ff.SetParameter(1, cexp);
-  ff.SetParameter(0, 10*N/ff.Integral(170,800));
-  std::cout << N << "  " << ff.Integral(170,800) << std::endl;
-
+  // This is a test so that I know that I have the normalizaton correct
+  // In general, don't run this..
   if (false) {
+    // Define the function..
+    TF1 ff("myexp1", "[0]*TMath::Exp([1]*x)", 170, 800);
+    ff.SetParameter(0, 1);
+    ff.SetParameter(1, cexp);
+    ff.SetParameter(0, 10*N/ff.Integral(170,800));
+    std::cout << N << "  " << ff.Integral(170,800) << std::endl;
+
+    // Plot it and the PE
     TCanvas c;
     c.cd();
     h->Draw();
@@ -54,6 +68,7 @@ TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
     c.SaveAs(TString("MyPE_")+label+".eps");
   }
 
+  // YOU own h, not me!!  remember to delete it
   return h;
 }
 
@@ -63,9 +78,9 @@ TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
 
 float GetAcceptanceForMjjj (float const Mjjj)
 {
-  // Get the acceptance for a given mass
+  // Get the acceptance for a given mass.  Thanks Dan!
 
-  // This is equivalent to the above, but a hell of a lot faster
+  // Hell of a lot faster
   return -5.56179969055969892e-03 - 4.01623842089755741e-06 * Mjjj + 2.49580149009780901e-07 * Mjjj * Mjjj;
 
 }
@@ -111,7 +126,7 @@ long double LogFactorial (int const in)
 
   std::vector<float> Logs;
   Logs.reserve(in);
-  long double LogSum = 0.0;
+  double LogSum = 0.0;
   for (int i=1; i <= in; ++i) {
     Logs.push_back(TMath::Log(i));
   }
@@ -127,13 +142,6 @@ long double LogFactorial (int const in)
 
 
 
-
-// I'm using these as globals just for ease.
-TMinuit* MyMinuit;
-TH1F* hToFit;
-TF1* fToFit;
-float ParC[5];
-float ParE[5];
 
 void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Par, int iflag)
 {
@@ -160,9 +168,7 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
   fToFit->SetParameter(3, Par[3]);
   fToFit->SetParameter(4, Par[4]);
 
-  // Number of bins
-  static int const NBinsX = hToFit->GetNbinsX();
-
+  // LL variable
   static long double LogLikelihood;
   LogLikelihood = 0.0;
   static long double mu = 0.0;
@@ -199,18 +205,27 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
 
 
 
-float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc)
+float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc, bool const IsBGOnly)
 {
-  int const N = 5;
+  // This function will setup Minuit and call the minimization routine.
+
+  // Number of minuit parameters
+  int const NParams = 5;
+
+  // These are for Minuit
   double ArgList[10];
+  ArgList[0] = 1;
   int ErrorFlag;
 
-  ArgList[0] = 1;
+  // Grab a new instance of Minuit with NParams
+  TMinuit MyMinuit(NParams);
 
-  MyMinuit = new TMinuit(N);
-  MyMinuit->SetPrintLevel(-2);
+  // Set the printlevel -2 minimum, higher for more junk
+  MyMinuit.SetPrintLevel(-2);
 
-
+  // Get the Expected numbers from the input function and other params and limits
+  // NOTE: You should always stay AWAY from the limits... ie the fit should NOT
+  // hit the limit
   std::pair<float, float> gWidth = GetGausWidthRange(SignalMass);
   float const NBG = TMath::Exp(fFunc->GetParameter(0));
   float const NBG_min = 0;
@@ -218,58 +233,93 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   float const BGExp = fFunc->GetParameter(1);
   float const BGExp_min = -0.1;
   float const BGExp_max =  0;
-
+  // Errors...
   float const eNBG = NBG * 0.03;
   float const eBGExp = fFunc->GetParError(1);
 
-  // TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
-  MyMinuit->DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
-  MyMinuit->DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
-  MyMinuit->DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
-  MyMinuit->DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
-  MyMinuit->DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
-  MyMinuit->FixParameter(1);
-  //MyMinuit->FixParameter(3);
-  //MyMinuit->FixParameter(4);
 
-  ParC[0] = -999;
-  ParC[1] = SignalMass;
-  ParC[2] = (gWidth.first+gWidth.second)/2;
-  ParC[3] = NBG;
-  ParC[4] = BGExp;
+  // This is the function we're working with
+  // TF1 ("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)",  170, 800);
+  if (IsBGOnly) {
+    // This is for BG only fits
+    ParC[0] = -999;
+    ParC[1] = SignalMass;
+    ParC[2] = (gWidth.first+gWidth.second)/2;
+    ParC[3] = NBG;
+    ParC[4] = BGExp;
 
-  ParE[0] = -999;
-  ParE[1] = -999;
-  ParE[2] = -999;
-  ParE[3] = eNBG;
-  ParE[4] = eBGExp;;
+    ParE[0] = -999;
+    ParE[1] = -999;
+    ParE[2] = -999;
+    ParE[3] = eNBG;
+    ParE[4] = eBGExp;
+
+    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
+    MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
+    MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
+    MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
+    MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
+    MyMinuit.FixParameter(0);
+    MyMinuit.FixParameter(1);
+    MyMinuit.FixParameter(2);
+  } else {
+    // This is for Signal+BG fits
+    ParC[0] = -999;
+    ParC[1] = SignalMass;
+    ParC[2] = (gWidth.first+gWidth.second)/2;
+    ParC[3] = NBG;
+    ParC[4] = BGExp;
+
+    ParE[0] = -999;
+    ParE[1] = -999;
+    ParE[2] = -999;
+    ParE[3] = eNBG;
+    ParE[4] = eBGExp;
+
+    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
+    MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
+    MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
+    MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
+    MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
+    MyMinuit.FixParameter(1);
+
+  }
 
   // Set error definition
   // 1 for Chi squared
   // 0.5 for nagative log likelihood
-  MyMinuit->SetErrorDef(0.5);
+  MyMinuit.SetErrorDef(0.5);
 
   // Set Minimization strategy
   // 1 standard 
   // 2 try to improve minimum (slower) 
   ArgList[0]=2;
-  MyMinuit->SetFCN(NegativeLogLikelihood);
-  MyMinuit->mnexcm("SET STR", ArgList, 1, ErrorFlag);
+  MyMinuit.mnexcm("SET STR", ArgList, 1, ErrorFlag);
 
-  // Set the maximum number of iterations
-  MyMinuit->SetMaxIterations(1000);
+  // Set the function to minimize and maximum number of iterations
+  MyMinuit.SetFCN(NegativeLogLikelihood);
+  MyMinuit.SetMaxIterations(1000);
 
   // Actual call to do minimimazation
-  MyMinuit->Migrad();
+  MyMinuit.Migrad();
 
-  TString FitStatus = MyMinuit->fCstatu;
+  // Grab the status of the fit.  If the fit does not converge we better return
+  // some positive value...
+  TString FitStatus = MyMinuit.fCstatu;
   if (!FitStatus.Contains("CONVERGED")) {
-    std::cerr << "WARNING: Fit did not converge" << std::endl;
+    std::cerr << "ERROR: Fit did not converge" << std::endl;
+    return 999;
   }
-  std::cout << MyMinuit->fCstatu << " " << MyMinuit->GetStatus() << std::endl;
+  std::cout << MyMinuit.fCstatu << " " << MyMinuit.GetStatus() << std::endl;
+
+  // Save a plot if you like!
   if (Section == -1 || false) {
     char BUFF[100];
-    sprintf(BUFF, "Fit_Data_%i.eps", (int) SignalMass);
+    if (SignalMass > 0) {
+      sprintf(BUFF, "Fit_Data_%i.eps", (int) SignalMass);
+    } else {
+      sprintf(BUFF, "Fit_Data_BG.eps");
+    }
     TCanvas c;
     hToFit->SetAxisRange(170, 800, "X");
     hToFit->Draw("hist");
@@ -278,71 +328,26 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   }
 
   // Call for minos error analysis
-  MyMinuit->mnmnos();
+  // nah, screw that
+  // MyMinuit.mnmnos();
 
   // Grab parameters from minuit
-  double OPar[N], OEPar[N];
-  for (int i = 0; i < N; ++i) {
-    MyMinuit->GetParameter(i, OPar[i], OEPar[i]);
+  double OPar[NParams], OEPar[NParams];
+  for (int i = 0; i < NParams; ++i) {
+    MyMinuit.GetParameter(i, OPar[i], OEPar[i]);
     printf("Fitted Param: %i %9E  +/-  %9E\n", i, OPar[i], OEPar[i]);
   }
 
-  double Result_WithSig = 0;
-  double Blank[5];
-  int NPar = 5;
-  NegativeLogLikelihood(NPar, Blank, Result_WithSig, OPar, 0);
-  std::cout << Result_WithSig << std::endl;
-  exit(0);
 
-  printf("Mass / CrossSection: %4i  %9E\n", (int) SignalMass, (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1);
-  return (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1;
-}
+  // For the parameters which minimize the NLL, lets get the NLL value and return it
+  double NLL = 0;
+  double* Blank;
+  int NPar = NParams;
+  NegativeLogLikelihood(NPar, Blank, NLL, OPar, 0);
 
-
-
-
-float DoFit (int const Section, int const ipe, float const SignalMass, TH1F* hPE, TF1* fFunc)
-{
-  std::pair<float, float> SignalMassRange = GetGausWidthRange(SignalMass);
-
-  TF1 fSigBG("fSigBG","[0]*TMath::Gaus(x, [1], [2], 1) + expo(3)",  170, 800);
-  fSigBG.SetParLimits(0, -1000, 1000);
-  fSigBG.SetParLimits(1, SignalMass, SignalMass);
-  fSigBG.SetParLimits(2, SignalMassRange.first, SignalMassRange.second);
-  //fSigBG.SetParLimits(2, SignalMassRange.first, SignalMassRange.first);
-  fSigBG.SetParLimits(3, fFunc->GetParameter(3), fFunc->GetParameter(3));
-  fSigBG.SetParLimits(4, fFunc->GetParameter(4), fFunc->GetParameter(4));
-  fSigBG.SetParameter(0, 0);
-  fSigBG.SetParameter(1, SignalMass);
-  fSigBG.SetParameter(2, (SignalMassRange.first + SignalMassRange.second)/2);
-  //fSigBG.SetParameter(2, SignalMassRange.first);
-  fSigBG.SetParameter(3, fFunc->GetParameter(3));
-  fSigBG.SetParameter(4, fFunc->GetParameter(4));
-
-  hPE->Fit(&fSigBG, "LPQ", "", 170, 800);
-
-  // return -9999 if the fit did not converge
-  if (!gMinuit->fCstatu.Contains("CONVERGED")) {
-    return -9999;
-  }
-
-
-
-  if (Section == -1) {
-    char BUFF[200];
-    sprintf(BUFF, "Fit_Data_%i.eps", (int) SignalMass);
-    TCanvas c;
-    c.cd();
-    hPE->Draw();
-    fSigBG.Draw("same");
-    c.SaveAs(BUFF);
-
-    printf("Gaus Params: %8i %12.3f %12.3f\n", (int) SignalMass, fSigBG.GetParameter(0), fSigBG.GetParameter(2));
-  }
-
-
-  float const CrossSection = (fSigBG.GetParameter(0) / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1;
-  return CrossSection;
+  //printf("Mass / CrossSection: %4i  %9E\n", (int) SignalMass, (OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1);
+  //(OPar[0] / 10.) * GetAcceptanceForMjjj(SignalMass) * 35.1;
+  return NLL;
 }
 
 
@@ -374,15 +379,15 @@ int RunPValue (TString const InFileName, int const Section)
 
 
   // Set the randome seed based on section number
-  gRandom->SetSeed(12332 * (Section + 2));
+  gRandom->SetSeed(923437 * (Section + 2));
 
 
   // Setup output file
   char OutName[150];
   if (Section == -1) {
-    sprintf(OutName, "Data_CrossSection.dat");
+    sprintf(OutName, "Data_TestStatistic.dat");
   } else {
-    sprintf(OutName, "CrossSection_%i.dat", Section);
+    sprintf(OutName, "TestStatistic_%i.dat", Section);
   }
   FILE* Out = fopen(OutName, "w");
   if (Out == NULL) {
@@ -397,7 +402,7 @@ int RunPValue (TString const InFileName, int const Section)
 
 
 
-  // Get the data hist and import it to the workspace
+  // Get the data hist and fit function
   TFile InFile(InFileName, "read");
   if (!InFile.IsOpen()) {
     std::cerr << "ERROR: cannot open input file: " << InFileName << std::endl;
@@ -406,8 +411,11 @@ int RunPValue (TString const InFileName, int const Section)
   TH1F* DataTH1F = (TH1F*) InFile.Get("Mjjj_45_20_130_6jet");
   TF1* fFunc = DataTH1F->GetFunction("total");
 
+  // Number of events from data
   int const NFromData = DataTH1F->Integral(17, 80);
 
+  // Set the functino to fit.  Be VERY careful if oyu change this... you need to change a lot
+  // of other things too...
   fToFit = new TF1("FitFunction", "[0]*TMath::Gaus(x, [1], [2], 1) + [3]*TMath::Exp([4]*x)", 170, 800);
 
   if (Section == -1) {
@@ -417,13 +425,21 @@ int RunPValue (TString const InFileName, int const Section)
     TH1F* DataClone = (TH1F*) DataTH1F->Clone("DataClone");
     hToFit = DataClone;
 
+    // Grab the background only LL
+    float const BGLL = -1.0 * MinimizeNLL(Section, -1, -999, fFunc, true);
+
     // Loop over all masses
     for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
-      //float const CrossSection = DoFit(Section, 0, SignalMass, DataClone, fFunc);
-      float const CrossSection = MinimizeNLL(Section, 0, SignalMass, fFunc);
-      //float const CrossSection = DoFitNLL(Section, 0, SignalMass, DataClone, fFunc);
-      printf("ipe: %12i Mass: %5i  xs:%15.2f\n", 0, (int) SignalMass, CrossSection);
-      fprintf(Out, "%12E ", CrossSection);
+
+      // Get LL for this mass..
+      float const MyLL = -1.0 * MinimizeNLL(Section, -1, SignalMass, fFunc, false);
+
+      // Get the test statistic
+      float const TestStatistic = -2.0 * (BGLL - MyLL);
+
+      // Print out and file!
+      printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", 0, (int) SignalMass, BGLL, MyLL, TestStatistic);
+      fprintf(Out, "%12E ", TestStatistic);
     }
     fprintf(Out, "\n");
     fflush(Out);
@@ -438,21 +454,29 @@ int RunPValue (TString const InFileName, int const Section)
       int const NPE = gRandom->Poisson(NFromData);
 
       // Get PE
-      TH1F* hPE = GetPEExpo(NPE, fFunc->GetParameter(1));
-      hToFit = hPE;
+      hToFit = GetPEExpo(NPE, fFunc->GetParameter(1));
+
+      // Grab the background only LL
+      float const BGLL = -1.0 * MinimizeNLL(Section, ipe, -999, fFunc, true);
 
       // Loop over signal masses
       for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
-        //float const CrossSection = DoFit(Section, ipe, SignalMass, hPE, fFunc);
-        float const CrossSection = MinimizeNLL(Section, ipe, SignalMass, fFunc);
-        printf("ipe: %12i Mass: %5i  xs:%15.2f\n", ipe, (int) SignalMass, CrossSection);
-        fprintf(Out, "%12E ", CrossSection);
+
+        // Get LL for this mass..
+        float const MyLL = -1.0 * MinimizeNLL(Section, ipe, SignalMass, fFunc, false);
+
+        // Get the test statistic
+        float const TestStatistic = -2.0 * (BGLL - MyLL);
+
+      // Print out and file!
+        printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", 0, (int) SignalMass, BGLL, MyLL, TestStatistic);
+        fprintf(Out, "%12E ", TestStatistic);
       }
       fprintf(Out, "\n");
       fflush(Out);
 
       // Better delete that PE
-      delete hPE;
+      delete hToFit;
     }
 
 
@@ -471,8 +495,8 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
   RunPValue(InFileName, Section);
