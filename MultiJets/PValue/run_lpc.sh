@@ -29,7 +29,7 @@ export PATH=${PWD}:${PATH}
 
 
 
-EXE=/uscms/home/dhidas/UserCode/dhidas/MultiJets/RunPValue
+EXE=/uscms/home/dhidas/UserCode/dhidas/MultiJets/PValue/RunPValue
 
 mkdir -pv $2
 cd $2

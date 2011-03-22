@@ -252,11 +252,11 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     ParE[3] = eNBG;
     ParE[4] = eBGExp;
 
-    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
+    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, 0, 1000);
     MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
-    MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
-    MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
-    MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
+    MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.001, gWidth.first, gWidth.second);
+    MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.001, NBG_min, NBG_max);
+    MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.000001, BGExp_min, BGExp_max);
     MyMinuit.FixParameter(0);
     MyMinuit.FixParameter(1);
     MyMinuit.FixParameter(2);
@@ -274,11 +274,11 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     ParE[3] = eNBG;
     ParE[4] = eBGExp;
 
-    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.01, 0, 1000);
+    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, 0, 1000);
     MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
-    MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.01, gWidth.first, gWidth.second);
-    MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.01, NBG_min, NBG_max);
-    MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.0001, BGExp_min, BGExp_max);
+    MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.001, gWidth.first, gWidth.second);
+    MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.001, NBG_min, NBG_max);
+    MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.000001, BGExp_min, BGExp_max);
     MyMinuit.FixParameter(1);
 
   }
@@ -490,7 +490,8 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
