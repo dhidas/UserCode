@@ -57,9 +57,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
     std::ifstream InDataFile(PEFileNames[ifile].Data());
     Line.ReadLine(InDataFile);
 
-    while (Line.ReadLine(InDataFile)) {
-      InLine.str(Line.Data());
-      while(InLine >> tmp) {
+    while (InDataFile >> tmp) {
       if (tmp == -9999.) {
         continue;
       }
@@ -70,7 +68,6 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
         } else {
           ++PassFail[Masses[i]].second;
         }
-      }
       }
     }
   }
