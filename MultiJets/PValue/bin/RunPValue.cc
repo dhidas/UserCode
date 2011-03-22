@@ -252,7 +252,7 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     ParE[3] = eNBG;
     ParE[4] = eBGExp;
 
-    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, 0, 1000);
+    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, -1000, 1000);
     MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
     MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.001, gWidth.first, gWidth.second);
     MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.001, NBG_min, NBG_max);
@@ -274,7 +274,7 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     ParE[3] = eNBG;
     ParE[4] = eBGExp;
 
-    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, 0, 1000);
+    MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, -1000, 1000);
     MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
     MyMinuit.DefineParameter(2, "GausWidth", (gWidth.first+gWidth.second)/2., 0.001, gWidth.first, gWidth.second);
     MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.001, NBG_min, NBG_max);
@@ -370,11 +370,11 @@ int RunPValue (TString const InFileName, int const Section)
   float const StepSize    =  10;
   float const BeginMass   = 200;
   float const EndMass     = 500;
-  int   const NPerSection = 1000;
+  int   const NPerSection =  50;
 
 
   // Set the randome seed based on section number
-  gRandom->SetSeed(923437 * (Section + 2));
+  gRandom->SetSeed(943437 * (Section + 2));
 
 
   // Setup output file

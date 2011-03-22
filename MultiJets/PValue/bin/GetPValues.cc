@@ -14,6 +14,7 @@
 #include <map>
 
 #include "TString.h"
+#include "TMath.h"
 
 int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 {
@@ -75,8 +76,11 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   }
 
   for (size_t i = 0; i != NMasses; ++i) {
-    printf("Mass: %4i DataXS: %6.2f  Pass/Fail %10i  %10i  p-value: %12E\n", (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
-        ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second));
+    float const PVal = ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second);
+    printf("Mass: %4i DataXS: %6.2f  Pass/Fail %10i  %10i  p-value: %12E  Sigma: %8.2f\n",
+        (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
+        PVal,
+        TMath::Sqrt(2)*TMath::ErfcInverse(PVal));
   }
 
   return 0;
