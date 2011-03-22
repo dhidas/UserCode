@@ -475,7 +475,8 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
 
       // Number in PE
       //float const NPE = (float) NFromData;
-      float const NPE = TMath::Exp(fFunc->GetParameter(0)) / 10.;
+      float const NPE = fFunc->Integral(170, 800) / 10.;
+      printf("iep: %i NPE: %12.2f\n", ipe, NPE);
 
       // Get PE
       hToFit = GetPEExpo(NPE, fFunc->GetParameter(1), ipe, DoSyst);
@@ -527,8 +528,8 @@ int main (int argc, char* argv[])
   }
 
   //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
   // Run Systematics?
