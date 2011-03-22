@@ -156,7 +156,6 @@ void  CMS_significance(TString const OutName = "CMS_significance_DEFAULT.root"){
       float amp=15;
       fit_dataexpo->SetParameters(2,amp);
       fit_dataexpo->SetParLimits(2,-1000,1000);
-      float mass=380;
       fit_dataexpo->SetParameters(3,Mjjj);
       //mass fixed
       fit_dataexpo->SetParLimits(3,Mjjj-0.1,Mjjj+0.1);
@@ -238,7 +237,6 @@ void  CMS_significance(TString const OutName = "CMS_significance_DEFAULT.root"){
   //sorting the cross sections
   std::sort(vec_numobs_1sigma.begin(), vec_numobs_1sigma.end());
   //find length of the array
-  float num=vec_numobs_1sigma.size();
   float fxsec=vec_numobs_1sigma[(int)(nps*0.5-1)];
 
   //pushing everything back to save it for a graph
@@ -269,7 +267,6 @@ void  CMS_significance(TString const OutName = "CMS_significance_DEFAULT.root"){
   graph_median_1sigma->SetTitle("xsec with insec0 of observed events median _1sigma");
   graph_median_1sigma->SetName("median_1sigma");
   graph_median_1sigma->Write();
-  float significance=0;
 
   TH1D *h_significance = new TH1D("significance","signifiance",2,0,2); 
   h_significance->Fill(1.,(float) count_pes_pass);
