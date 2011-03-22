@@ -32,9 +32,15 @@ float ParE[5]; // Parameter error
 
 
 
-TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
+TH1F* GetPEExpo (float const inN, float const incexp, int const ipe,  bool const DoSyst)
 {
   // This function gets a PE in any way you tell it to!  ha!
+
+  // Systematics in PEs or not??
+  float const cexp = DoSyst ? incexp * (1. + 0.05 * gRandom->Gaus(0, 1)) : cexp;
+  int   const N    = DoSyst ? gRandom->Poisson(inN * (1. + 0.03 * gRandom->Gaus(0, 1))) : gRandom->Poisson(inN);
+  printf("PE cexp/N: %12E  %9i\n", cexp, N);
+
 
   // New histogram we'll return later on..  you will own this, not me!!
   TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
@@ -52,7 +58,7 @@ TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
 
   // This is a test so that I know that I have the normalizaton correct
   // In general, don't run this..
-  if (false) {
+  if (true) {
     // Define the function..
     TF1 ff("myexp1", "[0]*TMath::Exp([1]*x)", 170, 800);
     ff.SetParameter(0, 1);
@@ -64,7 +70,9 @@ TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
     c.cd();
     h->Draw();
     ff.Draw("same");
-    c.SaveAs(TString("MyPE_")+label+".eps");
+    char BUFF[100];
+    sprintf(BUFF, "PE_%i.eps", ipe);
+    c.SaveAs(BUFF);
   }
 
   // YOU own h, not me!!  remember to delete it
@@ -204,7 +212,7 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
 
 
 
-float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc, bool const IsBGOnly)
+float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1* fFunc, bool const IsBGOnly, bool const DoSyst)
 {
   // This function will setup Minuit and call the minimization routine.
 
@@ -251,6 +259,10 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     ParE[2] = -999;
     ParE[3] = eNBG;
     ParE[4] = eBGExp;
+    if (!DoSyst) {
+      ParE[3] = -999;
+      ParE[4] = -999;
+    }
 
     MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, -1000, 1000);
     MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
@@ -260,6 +272,10 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     MyMinuit.FixParameter(0);
     MyMinuit.FixParameter(1);
     MyMinuit.FixParameter(2);
+    if (!DoSyst) {
+      MyMinuit.FixParameter(3);
+      MyMinuit.FixParameter(4);
+    }
   } else {
     // This is for Signal+BG fits
     ParC[0] = -999;
@@ -273,6 +289,10 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     ParE[2] = -999;
     ParE[3] = eNBG;
     ParE[4] = eBGExp;
+    if (!DoSyst) {
+      ParE[3] = -999;
+      ParE[4] = -999;
+    }
 
     MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, -1000, 1000);
     MyMinuit.DefineParameter(1, "GausMean",  SignalMass, 0.01, SignalMass-1, SignalMass+1);
@@ -280,6 +300,10 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     MyMinuit.DefineParameter(3, "BGNorm", NBG, 0.001, NBG_min, NBG_max);
     MyMinuit.DefineParameter(4, "BGExp", BGExp, 0.000001, BGExp_min, BGExp_max);
     MyMinuit.FixParameter(1);
+    if (!DoSyst) {
+      MyMinuit.FixParameter(3);
+      MyMinuit.FixParameter(4);
+    }
 
   }
 
@@ -364,7 +388,7 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
 
 
 
-int RunPValue (TString const InFileName, int const Section)
+int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
 {
   // Some basic parameters
   float const StepSize    =  10;
@@ -421,20 +445,24 @@ int RunPValue (TString const InFileName, int const Section)
     hToFit = DataClone;
 
     // Grab the background only LL
-    float const BGLL = -1.0 * MinimizeNLL(Section, -1, -999, fFunc, true);
+    float const BGLL = -1.0 * MinimizeNLL(Section, -1, -999, fFunc, true, DoSyst);
+    if (BGLL == -9999) {
+      std::cerr << "ERROR: bad BG only fit for data.  This is a real problem..." << std::endl;
+      throw;
+    }
 
     // Loop over all masses
     for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
 
       // Get LL for this mass..
-      float const MyLL = -1.0 * MinimizeNLL(Section, -1, SignalMass, fFunc, false);
+      float const MyLL = -1.0 * MinimizeNLL(Section, -1, SignalMass, fFunc, false, DoSyst);
 
       // Get the test statistic
-      float const TestStatistic = -2.0 * (BGLL - MyLL);
+      float const TestStatistic = MyLL != -9999 ? -2.0 * (BGLL - MyLL) : -9999.;
 
       // Print out and file!
       printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", -1, (int) SignalMass, BGLL, MyLL, TestStatistic);
-      fprintf(Out, "%12E ", TestStatistic);
+        fprintf(Out, "%12E ", TestStatistic);
     }
     fprintf(Out, "\n");
     fflush(Out);
@@ -446,22 +474,28 @@ int RunPValue (TString const InFileName, int const Section)
     for (int ipe = 0; ipe != NPerSection; ++ipe) {
 
       // Number in PE
-      int const NPE = gRandom->Poisson(NFromData);
+      //float const NPE = (float) NFromData;
+      float const NPE = TMath::Exp(fFunc->GetParameter(0)) / 10.;
 
       // Get PE
-      hToFit = GetPEExpo(NPE, fFunc->GetParameter(1));
+      hToFit = GetPEExpo(NPE, fFunc->GetParameter(1), ipe, DoSyst);
 
       // Grab the background only LL
-      float const BGLL = -1.0 * MinimizeNLL(Section, ipe, -999, fFunc, true);
+      float const BGLL = -1.0 * MinimizeNLL(Section, ipe, -999, fFunc, true, DoSyst);
+      if (BGLL == -9999) {
+        std::cerr << "skipping this PE... it's bad!" << std::endl;
+        --ipe;
+        continue;
+      }
 
       // Loop over signal masses
       for (float SignalMass = BeginMass; SignalMass <= EndMass; SignalMass += StepSize) {
 
         // Get LL for this mass..
-        float const MyLL = -1.0 * MinimizeNLL(Section, ipe, SignalMass, fFunc, false);
+        float const MyLL = -1.0 * MinimizeNLL(Section, ipe, SignalMass, fFunc, false, DoSyst);
 
         // Get the test statistic
-        float const TestStatistic = -2.0 * (BGLL - MyLL);
+        float const TestStatistic = MyLL != -9999 ? -2.0 * (BGLL - MyLL) : -9999.;
 
       // Print out and file!
         printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", ipe, (int) SignalMass, BGLL, MyLL, TestStatistic);
@@ -477,6 +511,8 @@ int RunPValue (TString const InFileName, int const Section)
 
   }
 
+  delete fToFit;
+
 
 
   return 0;
@@ -490,12 +526,15 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
 
-  RunPValue(InFileName, Section);
+  // Run Systematics?
+  bool const DoSyst = true;
+
+  RunPValue(InFileName, Section, DoSyst);
 
   return 0;
 }

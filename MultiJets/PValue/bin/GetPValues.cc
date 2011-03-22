@@ -61,7 +61,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
       InLine.str(Line.Data());
       for (size_t i = 0; i != NMasses; ++i) {
         InLine >> tmp;
-        if (tmp <= -9999) {
+        if (tmp == -9999) {
           continue;
         }
 
