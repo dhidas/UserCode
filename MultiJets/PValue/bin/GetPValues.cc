@@ -15,6 +15,10 @@
 
 #include "TString.h"
 #include "TMath.h"
+#include "TH1F.h"
+#include "TCanvas.h"
+#include "TLine.h"
+#include "TPaveLabel.h"
 
 int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 {
@@ -48,6 +52,13 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   printf("\n");
 
 
+  std::vector<TH1F*> hD;
+  for (size_t imass = 0; imass < NMasses; ++imass) {
+    char BUFF[100];
+    sprintf(BUFF, "D_%i", (int) Masses[imass]);
+    TH1F* h = new TH1F(BUFF, BUFF, 100, 0, 20);
+    hD.push_back(h);
+  }
   std::map<float, std::pair<int, int> > PassFail;
 
 
@@ -65,6 +76,8 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
           continue;
         }
 
+        hD[i]->Fill(tmp);
+
         if (tmp >= DataXS[i]) {
           ++PassFail[Masses[i]].first;
         } else {
@@ -81,6 +94,34 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
         (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
         PVal,
         TMath::Sqrt(2)*TMath::ErfcInverse(PVal));
+  }
+
+
+  for (size_t im = 0; im != NMasses; ++im) {
+    TCanvas Can;
+    Can.cd();
+    hD[im]->Draw("hist");
+    TLine MyLine(DataXS[im], 0, DataXS[im], hD[im]->GetMaximum());
+    MyLine.SetLineColor(2);
+    MyLine.SetLineWidth(2);
+    MyLine.Draw("same");
+    //Can.SetLogy(true);
+    char BUFF[100];
+
+    float const PVal = ((float) PassFail[ Masses[im] ].first) / ((float) PassFail[ Masses[im] ].first + PassFail[ Masses[im] ].second);
+    sprintf(BUFF, "p-value: %10E = %5.2f#sigma", PVal, (float) TMath::Sqrt(2)*TMath::ErfcInverse(PVal));
+    std::cout << BUFF << std::endl;
+    TPaveLabel PLabel;
+    PLabel.SetLabel(BUFF);
+    PLabel.SetX1NDC(0.40);
+    PLabel.SetX2NDC(0.90);
+    PLabel.SetY1NDC(0.51);
+    PLabel.SetY2NDC(0.55);
+    PLabel.SetTextSize();
+    PLabel.Draw("same");
+
+    sprintf(BUFF, "TestStatisticDist_%i.eps", (int) Masses[im]);
+    Can.SaveAs(BUFF);
   }
 
   return 0;

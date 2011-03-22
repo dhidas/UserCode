@@ -18,6 +18,7 @@
 #include "TH1F.h"
 #include "TCanvas.h"
 #include "TLine.h"
+#include "TPaveLabel.h"
 
 int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 {
@@ -50,7 +51,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   }
   printf("\n");
 
-  TH1F hD("D", "Distribution of Test Statistic", 100, 0, 10);
+  TH1F hD("D", "Distribution of Highest Test Statistic per PE", 100, 0, 20);
 
   std::map<float, std::pair<int, int> > PassFail;
 
@@ -94,11 +95,15 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   }
 
   float HighestDataD = -9999;
+  float HighestDataP = -9999;
+  float HighestDataS = -9999;
   for (size_t i = 0; i != NMasses; ++i) {
+    float const PVal = ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second);
     if (DataXS[i] > HighestDataD) {
       HighestDataD = DataXS[i];
+      HighestDataP = PVal;
+      HighestDataS = TMath::Sqrt(2)*TMath::ErfcInverse(PVal);
     }
-    float const PVal = ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second);
     printf("Mass: %4i DataXS: %6.2f  Pass/Fail %10i  %10i  p-value: %12E  Sigma: %8.2f\n",
         (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
         PVal,
@@ -109,7 +114,23 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   Can.cd();
   hD.Draw("hist");
   TLine MyLine(HighestDataD, 0, HighestDataD, hD.GetMaximum());
+  MyLine.SetLineColor(2);
+  MyLine.SetLineWidth(2);
   MyLine.Draw("same");
+    char BUFF[100];
+
+    sprintf(BUFF, "p-value: %10E = %5.2f#sigma", HighestDataP, HighestDataS);
+    std::cout << BUFF << std::endl;
+    TPaveLabel PLabel;
+    PLabel.SetLabel(BUFF);
+    PLabel.SetX1NDC(0.40);
+    PLabel.SetX2NDC(0.90);
+    PLabel.SetY1NDC(0.51);
+    PLabel.SetY2NDC(0.55);
+    PLabel.SetTextSize();
+    PLabel.Draw("same");
+
+
   Can.SaveAs("HighestD.eps");
 
   return 0;

@@ -1,4 +1,4 @@
-OutDir = /uscms_data/d2/dhidas/MultiJets/PValue/PValue_20110322_NegAllowed
+OutDir = /uscms_data/d2/dhidas/MultiJets/PValue/PValue_20110322_Syst_Neg
 Executable = run_lpc.sh
 
 universe = vanilla
