@@ -407,7 +407,7 @@ int RunPValue (TString const InFileName, int const Section)
   TF1* fFunc = DataTH1F->GetFunction("total");
 
   // Number of events from data
-  int const NFromData = DataTH1F->Integral(17, 80);
+  int const NFromData = (int) DataTH1F->Integral(17, 80);
 
   // Set the functino to fit.  Be VERY careful if oyu change this... you need to change a lot
   // of other things too...
