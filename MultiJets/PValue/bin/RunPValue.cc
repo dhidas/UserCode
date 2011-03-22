@@ -37,7 +37,7 @@ TH1F* GetPEExpo (float const inN, float const incexp, int const ipe,  bool const
   // This function gets a PE in any way you tell it to!  ha!
 
   // Systematics in PEs or not??
-  float const cexp = DoSyst ? incexp * (1. + 0.05 * gRandom->Gaus(0, 1)) : cexp;
+  float const cexp = DoSyst ? incexp * (1. + 0.05 * gRandom->Gaus(0, 1)) : incexp;
   int   const N    = DoSyst ? gRandom->Poisson(inN * (1. + 0.03 * gRandom->Gaus(0, 1))) : gRandom->Poisson(inN);
   printf("PE cexp/N: %12E  %9i\n", cexp, N);
 
@@ -68,7 +68,7 @@ TH1F* GetPEExpo (float const inN, float const incexp, int const ipe,  bool const
     // Plot it and the PE
     TCanvas c;
     c.cd();
-    h->Draw();
+    h->Draw("ep");
     ff.Draw("same");
     char BUFF[100];
     sprintf(BUFF, "PE_%i.eps", ipe);
@@ -262,6 +262,14 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
     if (!DoSyst) {
       ParE[3] = -999;
       ParE[4] = -999;
+
+      int NPar = NParams;
+      double Pars[5] = {ParC[0], ParC[1], ParC[2], ParC[3], ParC[4]};
+      double *Blank;
+      double NLL = 0;
+
+      NegativeLogLikelihood(NPar, Blank, NLL, Pars, 0);
+      return NLL;
     }
 
     MyMinuit.DefineParameter(0, "GausNorm", 0, 0.001, -1000, 1000);
@@ -533,7 +541,7 @@ int main (int argc, char* argv[])
   int const Section = atoi(argv[1]);
 
   // Run Systematics?
-  bool const DoSyst = true;
+  bool const DoSyst = false;
 
   RunPValue(InFileName, Section, DoSyst);
 
