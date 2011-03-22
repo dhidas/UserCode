@@ -59,8 +59,8 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 
     while (Line.ReadLine(InDataFile)) {
       InLine.str(Line.Data());
-      InLine >> tmp;
-      if (tmp == 9999) {
+      while(InLine >> tmp) {
+      if (tmp == -9999.) {
         continue;
       }
       for (size_t i = 0; i != NMasses; ++i) {
@@ -71,7 +71,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
           ++PassFail[Masses[i]].second;
         }
       }
-
+      }
     }
   }
 
