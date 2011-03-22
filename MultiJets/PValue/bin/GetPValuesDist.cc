@@ -15,6 +15,9 @@
 
 #include "TString.h"
 #include "TMath.h"
+#include "TH1F.h"
+#include "TCanvas.h"
+#include "TLine.h"
 
 int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 {
@@ -47,6 +50,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   }
   printf("\n");
 
+  TH1F hD("D", "Distribution of Test Statistic", 100, 0, 10);
 
   std::map<float, std::pair<int, int> > PassFail;
 
@@ -59,6 +63,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
     Line.ReadLine(InDataFile);
 
     while (Line.ReadLine(InDataFile)) {
+      HighestDThisPE = -9999;
       InLine.str(Line.Data());
       for (size_t i = 0; i != NMasses; ++i) {
         InLine >> tmp;
@@ -74,6 +79,8 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
       if (HighestDThisPE == -9999) {
         continue;
       }
+      //printf("HighestDThisPE: %12E\n", HighestDThisPE);
+      hD.Fill(HighestDThisPE);
 
       for (size_t i = 0; i != NMasses; ++i) {
         if (HighestDThisPE >= DataXS[i]) {
@@ -86,13 +93,24 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
     }
   }
 
+  float HighestDataD = -9999;
   for (size_t i = 0; i != NMasses; ++i) {
+    if (DataXS[i] > HighestDataD) {
+      HighestDataD = DataXS[i];
+    }
     float const PVal = ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second);
     printf("Mass: %4i DataXS: %6.2f  Pass/Fail %10i  %10i  p-value: %12E  Sigma: %8.2f\n",
         (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
         PVal,
         TMath::Sqrt(2)*TMath::ErfcInverse(PVal));
   }
+
+  TCanvas Can;
+  Can.cd();
+  hD.Draw("hist");
+  TLine MyLine(HighestDataD, 0, HighestDataD, hD.GetMaximum());
+  MyLine.Draw("same");
+  Can.SaveAs("HighestD.eps");
 
   return 0;
 }
