@@ -26,7 +26,6 @@ int IntegrateGaussian (float const PVal)
   // Calculate the sigma from -inf (-min)
   float Sigma = 0;
   for ( ;  f.Integral(Min,  Sigma) < 1.0 - PVal; Sigma += 0.01) {
-    std::cout << f.Integral(Min, Sigma) << std::endl;
   }
   float const FromInfinity = Sigma;
 
