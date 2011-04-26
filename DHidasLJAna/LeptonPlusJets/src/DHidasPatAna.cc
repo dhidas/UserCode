@@ -68,6 +68,11 @@ void DHidasPatAna::beginJob()
     throw;
   }
 
+  std::cout << fEvtFormat << std::endl;
+  fTree = new TTree("d", "Simple event tree");
+  SetBranches(fTree);
+  fTree->SetDirectory(fOutFile);
+
   //////////////////
   /// JSON FILE for DATA
   //////////////////
@@ -159,6 +164,8 @@ void DHidasPatAna::analyze (const edm::Event& iEvent, const edm::EventSetup& iSe
   PlotObjects();
   PlotDileptonEvents();
   PlotMultiJetLeptonEvents();
+
+  FillTree();
 
   // MET
   TVector2 const MET = MetColl->empty() ? TVector2(0,0) : TVector2((*MetColl)[0].px(), (*MetColl)[0].py());
@@ -422,7 +429,7 @@ void DHidasPatAna::PlotMultiJetLeptonEvents ()
   size_t const NJets = fCleanJets.size();
   std::vector<TLorentzVector> Jet(NJets);
   for (size_t i = 0; i != NJets; ++i) {
-    Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->px(), fCleanJets[i]->px(), fCleanJets[i]->energy());
+    Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->py(), fCleanJets[i]->py(), fCleanJets[i]->energy());
   }
   for (size_t i = 0; i < NJets - 2; ++i) {
     for (size_t j = i+1; j < NJets - 1; ++j) {
@@ -486,6 +493,94 @@ void DHidasPatAna::PlotDileptonEvents ()
 
   return;
 }
+
+
+
+
+
+
+
+
+void DHidasPatAna::FillTree ()
+{
+  ClearDtuple();
+
+  fEvt.Run = fRun;
+  fEvt.Event = fEvent;
+  fEvt.LumiSection = fLumiSection;
+
+  fEvt.NLeptons = 0;
+  for (size_t i = 0; i != fCleanMuons.size(); ++i) {
+    if (fEvt.NLeptons >= Dtuple::kMaxLeptons) {
+      std::cerr << "WARNING: Over the lepton limit for dtuple" << std::endl;
+      break;
+    }
+    fEvt.LeptonPx[fEvt.NLeptons] = fCleanMuons[i]->px();
+    fEvt.LeptonPy[fEvt.NLeptons] = fCleanMuons[i]->py();
+    fEvt.LeptonPz[fEvt.NLeptons] = fCleanMuons[i]->pz();
+    fEvt.LeptonPt[fEvt.NLeptons] = fCleanMuons[i]->pt();
+    fEvt.LeptonType[fEvt.NLeptons] = Dtuple::kMuon;
+    ++fEvt.NLeptons;
+  }
+
+  for (size_t i = 0; i != fCleanElectrons.size(); ++i) {
+    if (fEvt.NLeptons >= Dtuple::kMaxLeptons) {
+      std::cerr << "WARNING: Over the lepton limit for dtuple" << std::endl;
+      break;
+    }
+    fEvt.LeptonPx[fEvt.NLeptons] = fCleanElectrons[i]->px();
+    fEvt.LeptonPy[fEvt.NLeptons] = fCleanElectrons[i]->py();
+    fEvt.LeptonPz[fEvt.NLeptons] = fCleanElectrons[i]->pz();
+    fEvt.LeptonPt[fEvt.NLeptons] = fCleanElectrons[i]->pt();
+    fEvt.LeptonType[fEvt.NLeptons] = Dtuple::kElectron;
+    ++fEvt.NLeptons;
+  }
+
+
+  fEvt.NJets = 0;
+  fEvt.SumPtJets = 0;
+  for (size_t i = 0; i != fCleanJets.size(); ++i) {
+    if (fEvt.NJets >= Dtuple::kMaxJets) {
+      std::cerr << "WARNING: Over the lepton limit for dtuple" << std::endl;
+      break;
+    }
+    fEvt.JetPx[fEvt.NJets] = fCleanJets[i]->px();
+    fEvt.JetPy[fEvt.NJets] = fCleanJets[i]->py();
+    fEvt.JetPz[fEvt.NJets] = fCleanJets[i]->pz();
+    fEvt.JetPt[fEvt.NJets] = fCleanJets[i]->pt();
+    fEvt.SumPtJets += fCleanJets[i]->pt();
+    ++fEvt.NJets;
+  }
+
+
+  size_t const NJets = fCleanJets.size();
+  if (NJets >= 3) {
+    std::vector<TLorentzVector> Jet(NJets);
+    for (size_t i = 0; i != NJets; ++i) {
+      Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->py(), fCleanJets[i]->py(), fCleanJets[i]->energy());
+    }
+    int iCombination = 0;
+    for (size_t i = 0; i < NJets - 2; ++i) {
+      for (size_t j = i+1; j < NJets - 1; ++j) {
+        for (size_t k = j+1; k < NJets; ++k) {
+          if (iCombination >= Dtuple::kMaxCombinations) {
+            std::cerr << "WARNING: More combinations than I can deal with!" << std::endl;
+            break;
+          }
+          fEvt.TriJetMasses[iCombination] = (Jet[i]+Jet[j]+Jet[k]).M();
+          fEvt.TriJetSumPt[iCombination] = Jet[i].Perp() + Jet[j].Perp() + Jet[k].Perp();
+          ++iCombination;
+        }
+      }
+    }
+  }
+
+
+  fTree->Fill();
+
+  return;
+}
+
 
 
 

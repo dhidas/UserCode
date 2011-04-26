@@ -28,8 +28,10 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
+#include "DHidasLJAna/LeptonPlusJets/interface/Dtuple.h"
 
-class DHidasPatAna : public edm::EDAnalyzer
+
+class DHidasPatAna : public edm::EDAnalyzer, public Dtuple
 {
   public:
     explicit DHidasPatAna (const edm::ParameterSet&);
@@ -49,6 +51,8 @@ class DHidasPatAna : public edm::EDAnalyzer
     void PlotDileptonEvents ();
     void PlotMultiJetLeptonEvents ();
 
+    void FillTree ();
+
 
     // Declaration of leaf types
     Int_t           fRun;
@@ -58,6 +62,7 @@ class DHidasPatAna : public edm::EDAnalyzer
 
     // For output
     TFile* fOutFile;
+    TTree* fTree;
     TString fOutFileName;
 
     // For JSON
