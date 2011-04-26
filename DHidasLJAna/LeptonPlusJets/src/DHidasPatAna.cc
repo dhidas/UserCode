@@ -38,6 +38,7 @@ DHidasPatAna::DHidasPatAna(const edm::ParameterSet& iConfig)
 
 
   fIsData  = iConfig.getUntrackedParameter<bool>("IsData",false);
+  fMakeDtuple  = iConfig.getUntrackedParameter<bool>("MakeDtuple",false);
   fOutFileName = iConfig.getUntrackedParameter<std::string>("OutFileName", "OutFile.root");
   fJSONFilename  = iConfig.getUntrackedParameter<std::string>("JSONFilename","test.txt");
 
@@ -68,10 +69,11 @@ void DHidasPatAna::beginJob()
     throw;
   }
 
-  std::cout << fEvtFormat << std::endl;
+  if (fMakeDtuple) {
   fTree = new TTree("d", "Simple event tree");
-  SetBranches(fTree);
-  fTree->SetDirectory(fOutFile);
+    SetBranches(fTree);
+    fTree->SetDirectory(fOutFile);
+  }
 
   //////////////////
   /// JSON FILE for DATA
@@ -165,7 +167,9 @@ void DHidasPatAna::analyze (const edm::Event& iEvent, const edm::EventSetup& iSe
   PlotDileptonEvents();
   PlotMultiJetLeptonEvents();
 
-  FillTree();
+  if (fTree) {
+    FillTree();
+  }
 
   // MET
   TVector2 const MET = MetColl->empty() ? TVector2(0,0) : TVector2((*MetColl)[0].px(), (*MetColl)[0].py());

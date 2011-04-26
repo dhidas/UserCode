@@ -59,5 +59,4 @@ class Dtuple
     };
 
     SimpleEvent fEvt;
-    TString fEvtFormat; 
 };

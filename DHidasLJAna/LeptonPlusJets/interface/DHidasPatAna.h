@@ -59,6 +59,7 @@ class DHidasPatAna : public edm::EDAnalyzer, public Dtuple
     Int_t           fEvent;
     Int_t           fLumiSection;
     bool            fIsData;
+    bool            fMakeDtuple;
 
     // For output
     TFile* fOutFile;

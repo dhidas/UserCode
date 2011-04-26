@@ -20,7 +20,8 @@ process.source = cms.Source("PoolSource",
 process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
   OutFileName = cms.untracked.string('RunOnSkim_El27_vX.root'),
-  IsData = cms.untracked.bool(False)
+  IsData = cms.untracked.bool(False),
+  MakeDtuple = cms.untracked.bool(True)
 )                               
 
 process.p = cms.Path(process.patana)
