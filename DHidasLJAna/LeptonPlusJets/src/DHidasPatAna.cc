@@ -1,10 +1,3 @@
-// Package: myPatLayer2s
-// Class: myPatAna MyAnalysis/myPatLayer2s/src/myPatAna.cc
-// Description: <one line class summary>
-// Implementation: <notes on implementation>
-// Original Author: Shan-Huei Chuang
-// Created: Mon Jan 26 21:58:01 CET 2009 $Id$
-
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
@@ -30,8 +23,8 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
 #include "TTree.h"
-#include "DHidasTopBSM/LeptonPlusJets/interface/DHidasPatAna.h"
-#include "DHidasTopBSM/LeptonPlusJets/interface/TAnaHist.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/DHidasPatAna.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/TAnaHist.h"
 
 #include "TLorentzVector.h"
 

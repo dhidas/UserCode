@@ -3,7 +3,7 @@
 // Package:    Filter
 // Class:      Filter
 // 
-/**\class Filter Filter.cc DHidasTopBSM/Filter/src/Filter.cc
+/**\class Filter Filter.cc DHidasLJAna/Filter/src/Filter.cc
 
  Description: [one line class summary]
 
@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Hidas
 //         Created:  Tue Apr 19 12:07:58 EDT 2011
-// $Id$
+// $Id: Filter.cc,v 1.1.1.1 2011/04/26 07:28:05 dhidas Exp $
 //
 //
 
@@ -30,7 +30,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DHidasTopBSM/LeptonPlusJets/interface/DHidasPatAna.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/DHidasPatAna.h"
 
 //
 // class declaration

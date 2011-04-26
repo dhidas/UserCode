@@ -9,7 +9,7 @@ process.maxEvents = cms.untracked.PSet(
   #input = cms.untracked.int32(5000)
   input = cms.untracked.int32(-1) 
 )
-process.load("DHidasTopBSM.LeptonPlusJets.El27_v1_cfi");
+process.load("DHidasLJAna.LeptonPlusJets.El27_v1_cfi");
 ##process.source = cms.Source("PoolSource",
 ##  skipEvents = cms.untracked.uint32(0), 
 ##  fileNames = cms.untracked.vstring(

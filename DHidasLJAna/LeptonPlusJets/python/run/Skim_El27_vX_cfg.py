@@ -8,7 +8,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.maxEvents = cms.untracked.PSet( 
   input = cms.untracked.int32(-1) 
 )
-process.load("DHidasTopBSM.LeptonPlusJets.El27_vX_cfi");
+process.load("DHidasLJAna.LeptonPlusJets.El27_vX_cfi");
 ##process.source = cms.Source("PoolSource",
 ##  skipEvents = cms.untracked.uint32(0), 
 ##  fileNames = cms.untracked.vstring(

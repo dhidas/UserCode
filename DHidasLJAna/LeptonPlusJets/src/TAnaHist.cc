@@ -6,7 +6,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 
-#include "DHidasTopBSM/LeptonPlusJets/interface/TAnaHist.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/TAnaHist.h"
 
 #include <iostream>
 
