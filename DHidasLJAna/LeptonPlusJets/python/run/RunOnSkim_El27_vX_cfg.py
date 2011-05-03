@@ -7,7 +7,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.maxEvents = cms.untracked.PSet( 
   #input = cms.untracked.int32(5000)
-  input = cms.untracked.int32(-1) 
+  input = cms.untracked.int32(3000) 
 )
 process.source = cms.Source("PoolSource",
   skipEvents = cms.untracked.uint32(0), 
@@ -19,7 +19,8 @@ process.source = cms.Source("PoolSource",
 
 process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
-  OutFileName = cms.untracked.string('RunOnSkim_El27_vX.root'),
+  OutFileName = cms.untracked.string('Test_El27_vX_Dtuple.root'),
+  #OutFileName = cms.untracked.string('/cms/data21/dhidas/TopBSMSkims/Dtuple/FromSkim_El27_vX_Dtuple.root'),
   IsData = cms.untracked.bool(False),
   MakeDtuple = cms.untracked.bool(True)
 )                               

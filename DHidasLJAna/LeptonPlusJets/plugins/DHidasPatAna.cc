@@ -69,8 +69,9 @@ void DHidasPatAna::beginJob()
     throw;
   }
 
+  fTree = 0x0;
   if (fMakeDtuple) {
-  fTree = new TTree("d", "Simple event tree");
+    fTree = new TTree("d", "Simple event tree");
     SetBranches(fTree);
     fTree->SetDirectory(fOutFile);
   }
@@ -297,7 +298,20 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
   // Jet Selection
   for (size_t i = 0; i != PatJets->size(); ++i) {
     if ((*PatJets)[i].pt()>30.0 && fabs((*PatJets)[i].eta())<2.6) {
-      fGoodJets.push_back(&(*PatJets)[i]);
+      if 
+        ((*PatJets)[i].correctedJet("Uncorrected").neutralHadronEnergyFraction()   < 0.99 && 
+         (*PatJets)[i].correctedJet("Uncorrected").neutralEmEnergyFraction()       < 0.99 &&
+         (*PatJets)[i].correctedJet("Uncorrected").numberOfDaughters()             > 1    &&
+         (fabs((*PatJets)[i].eta())                    > 2.4  ||
+          ((*PatJets)[i].correctedJet("Uncorrected").chargedHadronEnergyFraction() > 0.   &&
+           (*PatJets)[i].correctedJet("Uncorrected").chargedEmEnergyFraction()     < 0.99 &&
+           (*PatJets)[i].correctedJet("Uncorrected").chargedMultiplicity()         > 0.))) {
+          fGoodJets.push_back(&(*PatJets)[i]);
+        }
+
+
+
+
     }
   }
 
@@ -439,7 +453,7 @@ void DHidasPatAna::PlotMultiJetLeptonEvents ()
     for (size_t j = i+1; j < NJets - 1; ++j) {
       for (size_t k = j+1; k < NJets; ++k) {
         float const Mass      = (Jet[i]+Jet[j]+Jet[k]).M();
-        float const SumPtJets = Jet[i].Perp() + Jet[j].Perp() + Jet[k].Perp();
+        float const SumPtJets = Jet[i].Pt() + Jet[j].Pt() + Jet[k].Pt();
         //printf("%i %i %i M=%7.2f  SumPtJets=%7.2f\n", (int) i, (int) j, (int) k, Mass, SumPtJets);
         Hist.FillTH2D("TrijetSumPt_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
         Hist.FillTH1D("TriJetMass", 100, 0, 800, Mass);
@@ -480,15 +494,15 @@ void DHidasPatAna::PlotDileptonEvents ()
   }
 
   // Order by Pt
-  if (A.Perp() < B.Perp()) {
+  if (A.Pt() < B.Pt()) {
     TLorentzVector C(A);
     A = B;
     B = C;
   }
 
   Hist.FillTH1D("M"+Type, 30, 0, 300, (A+B).M());
-  Hist.FillTH1D("Pt0_"+Type, 30, 0, 300, A.Perp());
-  Hist.FillTH1D("Pt1_"+Type, 30, 0, 300, B.Perp());
+  Hist.FillTH1D("Pt0_"+Type, 30, 0, 300, A.Pt());
+  Hist.FillTH1D("Pt1_"+Type, 30, 0, 300, B.Pt());
 
   TString Name = "M" + Type + "_";
   Name += (int) fCleanJets.size();
@@ -515,28 +529,20 @@ void DHidasPatAna::FillTree ()
 
   fEvt.NLeptons = 0;
   for (size_t i = 0; i != fCleanMuons.size(); ++i) {
-    if (fEvt.NLeptons >= Dtuple::kMaxLeptons) {
-      std::cerr << "WARNING: Over the lepton limit for dtuple" << std::endl;
-      break;
-    }
-    fEvt.LeptonPx[fEvt.NLeptons] = fCleanMuons[i]->px();
-    fEvt.LeptonPy[fEvt.NLeptons] = fCleanMuons[i]->py();
-    fEvt.LeptonPz[fEvt.NLeptons] = fCleanMuons[i]->pz();
-    fEvt.LeptonPt[fEvt.NLeptons] = fCleanMuons[i]->pt();
-    fEvt.LeptonType[fEvt.NLeptons] = Dtuple::kMuon;
+    fEvt.LeptonPx->push_back(fCleanMuons[i]->px());
+    fEvt.LeptonPy->push_back(fCleanMuons[i]->py());
+    fEvt.LeptonPz->push_back(fCleanMuons[i]->pz());
+    fEvt.LeptonPt->push_back(fCleanMuons[i]->pt());
+    fEvt.LeptonType->push_back(Dtuple::kMuon);
     ++fEvt.NLeptons;
   }
 
   for (size_t i = 0; i != fCleanElectrons.size(); ++i) {
-    if (fEvt.NLeptons >= Dtuple::kMaxLeptons) {
-      std::cerr << "WARNING: Over the lepton limit for dtuple" << std::endl;
-      break;
-    }
-    fEvt.LeptonPx[fEvt.NLeptons] = fCleanElectrons[i]->px();
-    fEvt.LeptonPy[fEvt.NLeptons] = fCleanElectrons[i]->py();
-    fEvt.LeptonPz[fEvt.NLeptons] = fCleanElectrons[i]->pz();
-    fEvt.LeptonPt[fEvt.NLeptons] = fCleanElectrons[i]->pt();
-    fEvt.LeptonType[fEvt.NLeptons] = Dtuple::kElectron;
+    fEvt.LeptonPx->push_back(fCleanElectrons[i]->px());
+    fEvt.LeptonPy->push_back(fCleanElectrons[i]->py());
+    fEvt.LeptonPz->push_back(fCleanElectrons[i]->pz());
+    fEvt.LeptonPt->push_back(fCleanElectrons[i]->pt());
+    fEvt.LeptonType->push_back(Dtuple::kElectron);
     ++fEvt.NLeptons;
   }
 
@@ -544,14 +550,10 @@ void DHidasPatAna::FillTree ()
   fEvt.NJets = 0;
   fEvt.SumPtJets = 0;
   for (size_t i = 0; i != fCleanJets.size(); ++i) {
-    if (fEvt.NJets >= Dtuple::kMaxJets) {
-      std::cerr << "WARNING: Over the lepton limit for dtuple" << std::endl;
-      break;
-    }
-    fEvt.JetPx[fEvt.NJets] = fCleanJets[i]->px();
-    fEvt.JetPy[fEvt.NJets] = fCleanJets[i]->py();
-    fEvt.JetPz[fEvt.NJets] = fCleanJets[i]->pz();
-    fEvt.JetPt[fEvt.NJets] = fCleanJets[i]->pt();
+    fEvt.JetPx->push_back(fCleanJets[i]->px());
+    fEvt.JetPy->push_back(fCleanJets[i]->py());
+    fEvt.JetPz->push_back(fCleanJets[i]->pz());
+    fEvt.JetPt->push_back(fCleanJets[i]->pt());
     fEvt.SumPtJets += fCleanJets[i]->pt();
     ++fEvt.NJets;
   }
@@ -563,17 +565,11 @@ void DHidasPatAna::FillTree ()
     for (size_t i = 0; i != NJets; ++i) {
       Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->py(), fCleanJets[i]->py(), fCleanJets[i]->energy());
     }
-    int iCombination = 0;
     for (size_t i = 0; i < NJets - 2; ++i) {
       for (size_t j = i+1; j < NJets - 1; ++j) {
         for (size_t k = j+1; k < NJets; ++k) {
-          if (iCombination >= Dtuple::kMaxCombinations) {
-            std::cerr << "WARNING: More combinations than I can deal with!" << std::endl;
-            break;
-          }
-          fEvt.TriJetMasses[iCombination] = (Jet[i]+Jet[j]+Jet[k]).M();
-          fEvt.TriJetSumPt[iCombination] = Jet[i].Perp() + Jet[j].Perp() + Jet[k].Perp();
-          ++iCombination;
+          fEvt.TriJetMasses->push_back( (Jet[i]+Jet[j]+Jet[k]).M() );
+          fEvt.TriJetSumPt->push_back( Jet[i].Pt() + Jet[j].Pt() + Jet[k].Pt() );
         }
       }
     }

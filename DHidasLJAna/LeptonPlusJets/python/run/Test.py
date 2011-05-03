@@ -7,9 +7,14 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.maxEvents = cms.untracked.PSet( 
   #input = cms.untracked.int32(5000)
-  input = cms.untracked.int32(-1) 
+  input = cms.untracked.int32(3000) 
 )
-process.load("DHidasLJAna.LeptonPlusJets.DeanTest_cfi");
+process.source = cms.Source("PoolSource",
+                            fileNames = cms.untracked.vstring( 
+#                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleMu/Mu15_v2/trigVal_patTuple_38_1_7bm.root'
+                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleMu/Mu15_v2/trigVal_patTuple_48_1_UW8.root'
+                                                             )
+                              )
 ##process.source = cms.Source("PoolSource",
 ##  skipEvents = cms.untracked.uint32(0), 
 ##  fileNames = cms.untracked.vstring(
@@ -22,6 +27,7 @@ process.load("DHidasLJAna.LeptonPlusJets.DeanTest_cfi");
 process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
   OutFileName = cms.untracked.string('Test.root'),
+  MakeDtuple = cms.untracked.bool(True),
   IsData = cms.untracked.bool(False)
 )                               
 

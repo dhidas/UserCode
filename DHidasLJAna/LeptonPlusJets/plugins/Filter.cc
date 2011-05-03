@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Hidas
 //         Created:  Tue Apr 19 12:07:58 EDT 2011
-// $Id: Filter.cc,v 1.1.1.1 2011/04/26 07:28:05 dhidas Exp $
+// $Id: Filter.cc,v 1.2 2011/04/26 07:42:00 dhidas Exp $
 //
 //
 

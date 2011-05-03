@@ -2,7 +2,7 @@
 
 if ($#ARGV ne 1) {
   print "Usage: ./MakeFilePY.pl [InDir] [OutFileName]\n";
-  die;
+  exit;
 }
 
 open OUTFILE, ">$ARGV[1]" || die;
@@ -29,7 +29,8 @@ foreach (@FI) {
 print OUTFILE "                                                             )";
 print OUTFILE "                              )";
 
-print "Found $#FI files\n";
+
+print "Last File index: $#FI\n";
 
 close OUTFILE;
 

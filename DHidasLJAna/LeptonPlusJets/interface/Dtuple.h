@@ -1,3 +1,5 @@
+#ifndef GUARD_Dtuple_h
+#define GUARD_Dtuple_h
 ////////////////////////////////////////////////////////////////////
 //
 // Dean Andrew Hidas <Dean.Andrew.Hidas@cern.ch>
@@ -6,21 +8,22 @@
 //
 ////////////////////////////////////////////////////////////////////
 
+
 #include <iostream>
+#include <vector>
 
 #include "TString.h"
 #include "TTree.h"
+#include "TChain.h"
+#include "TLorentzVector.h"
 
 
 class Dtuple
 {
   public:
     Dtuple ();
+    Dtuple (std::vector<TString> const&);
     ~Dtuple ();
-
-    static int const kMaxLeptons      =  4;
-    static int const kMaxJets         = 10;
-    static int const kMaxCombinations = 26;
 
     enum LepType {
       kElectron = 0,
@@ -28,35 +31,60 @@ class Dtuple
       kNLeptonTypes
     };
 
+    void SetBranchAddresses (TTree*);
     void SetBranches (TTree*);
     void ClearDtuple ();
+    int  GetEntry (long long&);
 
 
-  protected:
+  private:
+    TTree* fTree;
+
+  public:
     struct SimpleEvent {
       int Run;
       int LumiSection;
       int Event;
 
-      float LeptonPx[kMaxLeptons];
-      float LeptonPy[kMaxLeptons];
-      float LeptonPz[kMaxLeptons];
-      float LeptonPt[kMaxLeptons];
-      int   LeptonType[kMaxLeptons];
+
+      std::vector<float>* LeptonPx;
+      std::vector<float>* LeptonPy;
+      std::vector<float>* LeptonPz;
+      std::vector<float>* LeptonPt;
+      std::vector<int>*   LeptonType;
       int   NLeptons;
 
-      float JetPx[kMaxJets];
-      float JetPy[kMaxJets];
-      float JetPz[kMaxJets];
-      float JetPt[kMaxJets];
+      std::vector<float>* JetPx;
+      std::vector<float>* JetPy;
+      std::vector<float>* JetPz;
+      std::vector<float>* JetPt;
       int   NJets;
 
       float SumPtJets;
-      float TriJetSumPt[kMaxCombinations];
-      float TriJetMasses[kMaxCombinations];
+      std::vector<float>* TriJetSumPt;
+      std::vector<float>* TriJetMasses;
 
       float MET;
-    };
 
+
+      // Not stored in Dtuple...but useful
+      std::vector<TLorentzVector> Lep;
+      std::vector<TLorentzVector> Jet;
+      //TVector2 MET;
+    };
+    SimpleEvent& GetEvt () {
+      return fEvt;
+    }
+
+
+  protected:
     SimpleEvent fEvt;
 };
+
+
+
+
+
+
+
+#endif
