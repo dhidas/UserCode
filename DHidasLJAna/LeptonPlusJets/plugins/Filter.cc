@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Hidas
 //         Created:  Tue Apr 19 12:07:58 EDT 2011
-// $Id: Filter.cc,v 1.2 2011/04/26 07:42:00 dhidas Exp $
+// $Id: Filter.cc,v 1.1 2011/05/03 09:12:23 dhidas Exp $
 //
 //
 
@@ -30,7 +30,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DHidasLJAna/LeptonPlusJets/interface/DHidasPatAna.h"
+#include "DHidasLJAna/LeptonPlusJets/plugins/DHidasPatAna.h"
 
 //
 // class declaration

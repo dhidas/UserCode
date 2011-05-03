@@ -23,7 +23,7 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
 #include "TTree.h"
-#include "DHidasLJAna/LeptonPlusJets/interface/DHidasPatAna.h"
+#include "DHidasLJAna/LeptonPlusJets/plugins/DHidasPatAna.h"
 #include "DHidasLJAna/LeptonPlusJets/interface/TAnaHist.h"
 
 #include "TLorentzVector.h"
