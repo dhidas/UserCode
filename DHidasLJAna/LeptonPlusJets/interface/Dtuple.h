@@ -77,6 +77,21 @@ class Dtuple
       return fEvt;
     }
 
+  public:
+    static TString LeptonEventType (SimpleEvent& Ev) {
+      TString ee, mm, xx;
+      for (int i = 0; i < Ev.NLeptons; ++i) {
+        if ( (*Ev.LeptonType)[i] == kElectron ) {
+          ee += "e";
+        } else if ( (*Ev.LeptonType)[i] == kMuon ) {
+          mm += "m";
+        } else {
+          xx += "x";
+        }
+      }
+      return ee+mm+xx;
+    }
+
 
   protected:
     SimpleEvent fEvt;

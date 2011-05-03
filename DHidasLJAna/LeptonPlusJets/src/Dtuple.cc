@@ -101,8 +101,8 @@ void Dtuple::SetBranchAddresses (TTree* T)
   T->SetBranchAddress("TriJetSumPt",  &fEvt.TriJetSumPt);
   T->SetBranchAddress("TriJetMasses", &fEvt.TriJetMasses);
 
-  T->SetBranchAddress("METMag", &fEvt.METPhi);
-  T->SetBranchAddress("METPhi", &fEvt.METMag);
+  T->SetBranchAddress("METMag", &fEvt.METMag);
+  T->SetBranchAddress("METPhi", &fEvt.METPhi);
 
   return;
 }
