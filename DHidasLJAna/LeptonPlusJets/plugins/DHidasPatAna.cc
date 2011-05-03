@@ -575,6 +575,9 @@ void DHidasPatAna::FillTree ()
     }
   }
 
+  TVector2 const MET = MetColl->empty() ? TVector2(0,0) : TVector2((*MetColl)[0].px(), (*MetColl)[0].py());
+  fEvt.METMag = MET.Mod();
+  fEvt.METPhi = MET.Phi();
 
   fTree->Fill();
 

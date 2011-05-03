@@ -19,8 +19,8 @@ process.source = cms.Source("PoolSource",
 
 process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
-  OutFileName = cms.untracked.string('Test_El27_vX_Dtuple.root'),
-  #OutFileName = cms.untracked.string('/cms/data21/dhidas/TopBSMSkims/Dtuple/FromSkim_El27_vX_Dtuple.root'),
+  #OutFileName = cms.untracked.string('Test_El27_vX_Dtuple.root'),
+  OutFileName = cms.untracked.string('/cms/data21/dhidas/TopBSMSkims/Dtuple/FromSkim_El27_vX_Dtuple.root'),
   IsData = cms.untracked.bool(False),
   MakeDtuple = cms.untracked.bool(True)
 )                               

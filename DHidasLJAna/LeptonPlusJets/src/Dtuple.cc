@@ -57,6 +57,7 @@ int Dtuple::GetEntry (long long& ientry)
         TMath::Sqrt( TMath::Power(fEvt.JetPt->at(i), 2) + TMath::Power(fEvt.JetPz->at(i), 2) ));
   }
 
+  fEvt.MET.SetMagPhi(fEvt.METMag, fEvt.METPhi);
 
   return ret;
 }
@@ -100,7 +101,8 @@ void Dtuple::SetBranchAddresses (TTree* T)
   T->SetBranchAddress("TriJetSumPt",  &fEvt.TriJetSumPt);
   T->SetBranchAddress("TriJetMasses", &fEvt.TriJetMasses);
 
-  T->SetBranchAddress("MET", &fEvt.MET);
+  T->SetBranchAddress("METMag", &fEvt.METPhi);
+  T->SetBranchAddress("METPhi", &fEvt.METMag);
 
   return;
 }
@@ -138,12 +140,14 @@ void Dtuple::SetBranches (TTree* T)
   T->Branch("JetPt", fEvt.JetPt);
   T->Branch("NJets", &fEvt.NJets);
 
-  T->Branch("SumPtJets", fEvt.SumPtJets);
+  T->Branch("SumPtJets", &fEvt.SumPtJets);
+
   T->Branch("TriJetSumPt",  fEvt.TriJetSumPt);
   T->Branch("TriJetMasses", fEvt.TriJetMasses);
 
 
-  T->Branch("MET", &fEvt.MET);
+  T->Branch("METMag", &fEvt.METMag);
+  T->Branch("METPhi", &fEvt.METPhi);
 
   return;
 }
@@ -172,7 +176,8 @@ void Dtuple::ClearDtuple ()
   fEvt.TriJetSumPt->clear();
   fEvt.TriJetMasses->clear();
 
-  fEvt.MET = 0;
+  fEvt.METMag = 0;
+  fEvt.METPhi = 0;
 
   return;
 }

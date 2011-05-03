@@ -64,13 +64,14 @@ class Dtuple
       std::vector<float>* TriJetSumPt;
       std::vector<float>* TriJetMasses;
 
-      float MET;
+      float METMag;
+      float METPhi;
 
 
       // Not stored in Dtuple...but useful
       std::vector<TLorentzVector> Lep;
       std::vector<TLorentzVector> Jet;
-      //TVector2 MET;
+      TVector2 MET;
     };
     SimpleEvent& GetEvt () {
       return fEvt;
