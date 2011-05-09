@@ -57,10 +57,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (true) {
-    HiggsLimits.DrawFrame(200,1,500,650);
+    HiggsLimits.DrawFrame(200,5,500,750);
     HiggsLimits.SetLogy(1);
   } else {
-    HiggsLimits.DrawFrame(200,0,500,650);
+    HiggsLimits.DrawFrame(200,0,500,750);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
@@ -265,7 +265,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   // Draw the sigma shaded bands and add to legend
   MyLegend.AddEntry(UseShade1S, (ShadeLabel+" \\pm 1\\sigma").c_str(), "f");
-  //MyLegend.AddEntry(UseShade2S, (ShadeLabel+" \\pm 2\\sigma").c_str(), "f");
+  MyLegend.AddEntry(UseShade2S, (ShadeLabel+" \\pm 2\\sigma").c_str(), "f");
 
 
 
@@ -282,7 +282,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   grModel.Draw("samec");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
-  HMassLabel->SetLabel("Three jet Mass [GeV/c^{2}]");
+  HMassLabel->SetLabel("Three Jet Mass [GeV/c^{2}]");
   HMassLabel->SetX1NDC(0.60);
   HMassLabel->SetX2NDC(0.90);
   HMassLabel->SetY1NDC(0.01);
@@ -316,7 +316,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   TPaveLabel *RunII = new TPaveLabel();
   //RunII->SetLabel("CDF Run II Preliminary");
-  RunII->SetLabel("CMS Preliminary");
+  RunII->SetLabel("CMS");
   RunII->SetX1NDC(0.1);
   RunII->SetX2NDC(0.5);
   RunII->SetY1NDC(0.92);
