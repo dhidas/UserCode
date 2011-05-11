@@ -24,6 +24,8 @@ process.source = cms.Source("PoolSource",
 ##  duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 ##)
 
+
+
 process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
   OutFileName = cms.untracked.string('Test.root'),
@@ -31,4 +33,4 @@ process.patana = cms.EDAnalyzer('DHidasPatAna',
   IsData = cms.untracked.bool(False)
 )                               
 
-process.p = cms.Path(process.patana)
+process.p = cms.Path(process.triggerAnalysis+process.patana)

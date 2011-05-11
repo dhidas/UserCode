@@ -1,5 +1,4 @@
 
-#include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
@@ -42,6 +41,11 @@ DHidasPatAna::DHidasPatAna(const edm::ParameterSet& iConfig)
   fOutFileName = iConfig.getUntrackedParameter<std::string>("OutFileName", "OutFile.root");
   fJSONFilename  = iConfig.getUntrackedParameter<std::string>("JSONFilename","test.txt");
 
+  fTriggerNames = iConfig.getUntrackedParameter<std::vector<std::string> >("TriggerNames");
+  for (std::vector<std::string>::iterator It = fTriggerNames.begin(); It != fTriggerNames.end(); ++It) {
+    fTriggerMap[*It] = false;
+  }
+
 }
 
 
@@ -79,6 +83,7 @@ void DHidasPatAna::beginJob()
   //////////////////
   /// JSON FILE for DATA
   //////////////////
+  if (false)
   if (fIsData) {
     char c;
     int n;
@@ -125,6 +130,18 @@ void DHidasPatAna::beginJob()
 
 bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  bool HasTrigger = false;
+  getTriggerDecision(iEvent, fTriggerMap);
+  for (std::map<std::string, bool>::iterator It = fTriggerMap.begin(); It != fTriggerMap.end(); ++It) {
+    if (It->second) {
+      HasTrigger = true;
+      break;
+    }
+  }
+  if (!HasTrigger) {
+    return false;
+  }
+
   GetObjects(iEvent);
 
   if (fGoodElectrons.size() + fGoodMuons.size() > 0) {
@@ -148,20 +165,21 @@ void DHidasPatAna::analyze (const edm::Event& iEvent, const edm::EventSetup& iSe
 
 
   // apply json file 
-  bool GoodRun = false;
-  if (fIsData) {
-    GoodRun = false;
-    for (int ii = 0; ii < fNGoodRuns; ++ii)
-    {
-      if (fRun == fGoodRuns[ii]) {
-        if (fLumiSection >= fGoodLumiStart[ii] && fLumiSection <= fGoodLumiEnd[ii]) {
-          GoodRun = true;
-        }
-      }
-    }
-  } else {  
-    GoodRun = true;
-  }
+  //bool GoodRun = false;
+  //if (fIsData) {
+  //  GoodRun = false;
+  //  for (int ii = 0; ii < fNGoodRuns; ++ii)
+  //  {
+  //    if (fRun == fGoodRuns[ii]) {
+  //      if (fLumiSection >= fGoodLumiStart[ii] && fLumiSection <= fGoodLumiEnd[ii]) {
+  //        GoodRun = true;
+  //        break;
+  //      }
+  //    }
+  //  }
+  //} else {  
+  //  GoodRun = true;
+  //}
 
   GetObjects(iEvent);
   PlotObjects();
@@ -367,6 +385,12 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
         HasOverlap = true;
       }
     }
+    for (size_t im = 0; im != fCleanMuons.size(); ++im) {
+      TLorentzVector Muon(fCleanMuons[im]->px(), fCleanMuons[im]->py(), fCleanMuons[im]->pz(), fCleanMuons[im]->energy());
+      if (Muon.DeltaR(Jet) < 0.4) {
+        HasOverlap = true;
+      }
+    }
 
     if (!HasOverlap) {
       fCleanJets.push_back( fGoodJets[ij] );
@@ -515,6 +539,28 @@ void DHidasPatAna::PlotDileptonEvents ()
 
 
 
+void DHidasPatAna::getTriggerDecision(const edm::Event& iEvent, std::map<std::string, bool>& TriggerMap)
+{
+  edm::Handle<edm::TriggerResults> triggerResults;
+
+  std::string menu = "HLT";
+  iEvent.getByLabel(edm::InputTag("TriggerResults", "", menu), triggerResults);
+
+  const edm::TriggerNames& triggerNames = iEvent.triggerNames(* triggerResults);
+
+  for (std::map<std::string, bool>::iterator It = TriggerMap.begin(); It != TriggerMap.end(); ++It) {
+    It->second = false;
+    unsigned int triggerIndex = triggerNames.triggerIndex(It->first);
+
+    if (triggerIndex < triggerResults->size()) {
+      if (triggerResults->accept(triggerIndex)) {
+        It->second = true;
+      }
+    }
+
+  }
+  return;
+}
 
 
 
