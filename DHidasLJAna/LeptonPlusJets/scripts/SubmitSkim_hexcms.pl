@@ -65,8 +65,7 @@ print SUBMIT "Error =  $OUTDIR/Log/Log_\$(Process).stderr\n";
 print SUBMIT "Log =    $OUTDIR/Log/Log_\$(Process).log\n";
 print SUBMIT "notify_user = dhidas\@physics.rutgers.edu\n";
 print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $RELEASEDIR\n";
-#print SUBMIT "Queue $NFiles\n";
-print SUBMIT "Queue 3\n";
+print SUBMIT "Queue $NFiles\n";
 close SUBMIT;
 
 
