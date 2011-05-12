@@ -26,7 +26,7 @@ process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
   #OutFileName = cms.untracked.string('Test_El27_vX_Dtuple.root'),
   OutFileName = cms.untracked.string(options.outputFile),
-  IsData = cms.untracked.bool(True),
+  IsData = cms.untracked.bool(False),
   MakeDtuple = cms.untracked.bool(True)
 )                               
 

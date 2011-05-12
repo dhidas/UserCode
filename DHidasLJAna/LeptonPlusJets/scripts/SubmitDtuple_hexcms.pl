@@ -27,9 +27,13 @@ print "RELEASEDIR: $RELEASEDIR\n";
 mkdir "$OUTDIR" or die "$OUTDIR already exists.  Move it first and then try again.\n";
 mkdir "$OUTDIR/Log" or die "cannot make out/Log dir $!";
 
-my $EXENAME = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/scripts/run_hexcms_Dtuple.sh";
-my $PYFILE = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/python/run/Dtuple_Template_cfg.py";
-copy $PYFILE, $OUTDIR;
+my $EXENAME  = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/scripts/run_hexcms_Dtuple.sh";
+my $PYFILE   = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/python/run/Dtuple_Template_cfg.py";
+my $SRCFILE0 = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/bin/RunLJDtuple.cc";
+my $SRCFILE1 = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/src/Dtuple.cc";
+copy $PYFILE,   $OUTDIR;
+copy $SRCFILE0, $OUTDIR;
+copy $SRCFILE1, $OUTDIR;
 
 my @FILES = `ls -1 $INDIR/*.root`;
 foreach (@FILES) {
