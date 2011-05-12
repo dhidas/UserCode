@@ -28,8 +28,10 @@ mkdir "$OUTDIR" or die "$OUTDIR already exists.  Move it first and then try agai
 mkdir "$OUTDIR/Log" or die "cannot make out/Log dir $!";
 
 my $EXENAME = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/scripts/run_hexcms.sh";
-my $PYFILE = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/python/run/Skim_Template_cfg.py";
-copy $PYFILE, $OUTDIR;
+my $PYFILE  = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/python/run/Skim_Template_cfg.py";
+my $SRCFILE = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/plugins/DHidasPatAna.cc";
+copy $PYFILE,  $OUTDIR;
+copy $SRCFILE, $OUTDIR;
 
 my @FILES = `ls -1 $INDIR/*.root`;
 foreach (@FILES) {
