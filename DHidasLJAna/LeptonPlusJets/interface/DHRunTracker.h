@@ -12,10 +12,10 @@ class DHRunTracker
     DHRunTracker ();
     ~DHRunTracker ();
 
-    bool IsDuplicate(unsigned int, unsigned int);
+    bool IsDuplicate(unsigned int, unsigned long);
 
   private:
-    std::set< std::pair<unsigned int, unsigned int> > fSet;
+    std::set< std::pair<unsigned int, unsigned long> > fSet;
 };
 
 
