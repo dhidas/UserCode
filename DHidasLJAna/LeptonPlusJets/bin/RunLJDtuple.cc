@@ -30,6 +30,10 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
     return;
   }
 
+  if (Ev.Lep[0].Pt() < 25) {
+    return;
+  }
+
 
   static char NAME[400];
   static char SIGN;
@@ -70,6 +74,15 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
         Hist.FillTH2D("METMag_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
 
+        for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
+          if (Ev.Jet[i].Pt() > JetPtCut) {
+            sprintf(NAME, "TriJetSumPt_vs_Mass_JetPtCut%03i", (int) JetPtCut);
+            Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
+              sprintf(NAME, "TriJetMass_JetPtCut%03i", (int) JetPtCut);
+              Hist.FillTH1D(NAME, 100, 0, 800, Mass);
+          }
+        }
+
         for (size_t ijets = 3; ijets < 10; ++ijets) {
           if (NJets == ijets) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_NJetEQ%02i", (int) ijets);
@@ -107,6 +120,13 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
             //Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
             sprintf(NAME, "TriJetMass_NJetEQ%02i_d%c%03i", (int) NJets, SIGN, abs((int) cut));
             Hist.FillTH1D(NAME, 100, 0, 800, Mass);
+
+            for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
+              if (Ev.Jet[i].Pt() > JetPtCut) {
+              sprintf(NAME, "TriJetMass_d%c%03is_JetPtCut%03i", SIGN, abs((int) cut), (int) JetPtCut);
+              Hist.FillTH1D(NAME, 100, 0, 800, Mass);
+              }
+            }
 
             // Lepton Pt
             sprintf(NAME, "LeptonPt_d%c%03i", SIGN, abs((int) cut));
