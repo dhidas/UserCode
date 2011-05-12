@@ -80,43 +80,9 @@ void DHidasPatAna::beginJob()
     fTree->SetDirectory(fOutFile);
   }
 
-  //////////////////
-  /// JSON FILE for DATA
-  //////////////////
-  if (false)
+  // JSON file for data
   if (fIsData) {
-    char c;
-    int n;
-
-    std::ifstream JSONFile(fJSONFilename.data());
-    fNGoodRuns = 0;
-    int run, lb, le;
-    bool startlb = false;
-    while(!JSONFile.eof()) {
-      c = JSONFile.peek();
-      while(!JSONFile.eof() && !( (c >= '0') && (c <= '9'))) {
-        c = JSONFile.get();
-        c = JSONFile.peek();
-      }
-      JSONFile >> n;
-      if(n > 100000) {
-        run = n;
-      } else {
-        if(!startlb) {
-          lb = n;
-          startlb = true;
-        } else {
-          le = n;
-          fGoodRuns[fNGoodRuns] = run;
-          fGoodLumiStart[fNGoodRuns] = lb;
-          fGoodLumiEnd[fNGoodRuns] = le;
-          ++fNGoodRuns;
-          startlb = false;
-        }
-      }
-    }
-    std::cout << "Got: " << fNGoodRuns << " specified as good." << std::endl;
-
+    fJSON.ReadFile(fJSONFilename);
   }
 
 
@@ -130,6 +96,16 @@ void DHidasPatAna::beginJob()
 
 bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  // Event info
+  fRun         = iEvent.id().run();
+  fLumiSection = iEvent.id().luminosityBlock();
+
+  // If we're looking at data check for a good lumi section
+  if (fIsData && !fJSON.IsGoodLumiSection(fRun, fLumiSection)) {
+    return;
+  }
+
+  // Look for one of the triggers we care about
   bool HasTrigger = false;
   getTriggerDecision(iEvent, fTriggerMap);
   for (std::map<std::string, bool>::iterator It = fTriggerMap.begin(); It != fTriggerMap.end(); ++It) {
@@ -142,12 +118,13 @@ bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     return false;
   }
 
+  // Look for a good lepton
   GetObjects(iEvent);
-
   if (fGoodElectrons.size() + fGoodMuons.size() > 0) {
     return true;
   }
 
+  // no dice, return false.  don't take this event
   return false;
 }
 
@@ -164,22 +141,10 @@ void DHidasPatAna::analyze (const edm::Event& iEvent, const edm::EventSetup& iSe
   Hist.FillTH1F("RunNumber", 100, 160500, 161500, fRun);
 
 
-  // apply json file 
-  //bool GoodRun = false;
-  //if (fIsData) {
-  //  GoodRun = false;
-  //  for (int ii = 0; ii < fNGoodRuns; ++ii)
-  //  {
-  //    if (fRun == fGoodRuns[ii]) {
-  //      if (fLumiSection >= fGoodLumiStart[ii] && fLumiSection <= fGoodLumiEnd[ii]) {
-  //        GoodRun = true;
-  //        break;
-  //      }
-  //    }
-  //  }
-  //} else {  
-  //  GoodRun = true;
-  //}
+  // If we're looking at data check for a good lumi section
+  if (fIsData && !fJSON.IsGoodLumiSection(fRun, fLumiSection)) {
+    return;
+  }
 
   GetObjects(iEvent);
   PlotObjects();

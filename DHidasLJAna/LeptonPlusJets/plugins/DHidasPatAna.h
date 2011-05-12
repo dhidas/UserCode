@@ -39,6 +39,7 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 
 #include "DHidasLJAna/LeptonPlusJets/interface/Dtuple.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/DHidasJSON.h"
 
 
 class DHidasPatAna : public edm::EDAnalyzer, public Dtuple
@@ -77,11 +78,8 @@ class DHidasPatAna : public edm::EDAnalyzer, public Dtuple
     TString fOutFileName;
 
     // For JSON
-    std::string     fJSONFilename;
-    Int_t fGoodRuns[4000];
-    Int_t fGoodLumiStart[4000];
-    Int_t fGoodLumiEnd[4000];
-    Int_t fNGoodRuns;
+    std::string fJSONFilename;
+    DHidasJSON  fJSON;
 
     // Object handles, object, and clean objects
     edm::Handle< std::vector<pat::Electron> > PatElectrons; 
