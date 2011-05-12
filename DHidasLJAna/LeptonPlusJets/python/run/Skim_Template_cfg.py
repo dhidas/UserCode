@@ -26,7 +26,7 @@ process.source = cms.Source("PoolSource",
 process.patfilter = cms.EDFilter('Filter',
   debug = cms.untracked.bool(False), 
 #  OutFileName = cms.untracked.string(''),
-  IsData = cms.untracked.bool(True),
+  IsData = cms.untracked.bool(False),
   TriggerNames = cms.untracked.vstring(
     'HLT_Mu12_v1',
     'HLT_IsoMu12_v1',

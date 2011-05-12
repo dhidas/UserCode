@@ -97,26 +97,28 @@ void DHidasPatAna::beginJob()
 
 bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  // Event info
-  fRun         = iEvent.id().run();
-  fLumiSection = iEvent.id().luminosityBlock();
+  if (fIsData) {
+    // Event info
+    fRun         = iEvent.id().run();
+    fLumiSection = iEvent.id().luminosityBlock();
 
-  // If we're looking at data check for a good lumi section
-  if (fIsData && !fJSON.IsGoodLumiSection(fRun, fLumiSection)) {
-    return false;
-  }
-
-  // Look for one of the triggers we care about
-  bool HasTrigger = false;
-  getTriggerDecision(iEvent, fTriggerMap);
-  for (std::map<std::string, bool>::iterator It = fTriggerMap.begin(); It != fTriggerMap.end(); ++It) {
-    if (It->second) {
-      HasTrigger = true;
-      break;
+    // If we're looking at data check for a good lumi section
+    if (!fJSON.IsGoodLumiSection(fRun, fLumiSection)) {
+      return false;
     }
-  }
-  if (!HasTrigger) {
-    return false;
+
+    // Look for one of the triggers we care about
+    bool HasTrigger = false;
+    getTriggerDecision(iEvent, fTriggerMap);
+    for (std::map<std::string, bool>::iterator It = fTriggerMap.begin(); It != fTriggerMap.end(); ++It) {
+      if (It->second) {
+        HasTrigger = true;
+        break;
+      }
+    }
+    if (!HasTrigger) {
+      return false;
+    }
   }
 
   // Look for a good lepton
