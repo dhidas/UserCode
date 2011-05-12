@@ -10,15 +10,16 @@ DHRunTracker::~DHRunTracker ()
 }
 
 
-bool DHRunTracker::IsDuplicate(unsigned int run)
+bool DHRunTracker::IsDuplicate(unsigned int run, unsigned int event)
 {
-  if (std::binary_search(fVector.begin(), fVector.end(), run)) {
-    return true;
+  static std::pair<unsigned int, unsigned int> pair;
+  pair = std::make_pair<unsigned int, unsigned int>(run, event);
+  if (fSet.find(pair) == fSet.end()) {
+    fSet.insert(pair);
+    return false;
   }
 
-  fVector.push_back(run);
-  std::sort(fVector.begin(), fVector.end());
-  return false;
+  return true;
 }
 
 

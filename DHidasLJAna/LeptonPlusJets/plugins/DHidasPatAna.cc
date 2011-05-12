@@ -41,7 +41,8 @@ DHidasPatAna::DHidasPatAna(const edm::ParameterSet& iConfig)
   fOutFileName = iConfig.getUntrackedParameter<std::string>("OutFileName", "OutFile.root");
   fJSONFilename  = iConfig.getUntrackedParameter<std::string>("JSONFilename","test.txt");
 
-  fTriggerNames = iConfig.getUntrackedParameter<std::vector<std::string> >("TriggerNames");
+  fTriggerNames = iConfig.getUntrackedParameter<std::vector<std::string> >("TriggerNames", std::vector<std::string>());
+
   for (std::vector<std::string>::iterator It = fTriggerNames.begin(); It != fTriggerNames.end(); ++It) {
     fTriggerMap[*It] = false;
   }
@@ -102,7 +103,7 @@ bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // If we're looking at data check for a good lumi section
   if (fIsData && !fJSON.IsGoodLumiSection(fRun, fLumiSection)) {
-    return;
+    return false;
   }
 
   // Look for one of the triggers we care about

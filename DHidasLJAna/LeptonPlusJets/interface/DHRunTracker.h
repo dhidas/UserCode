@@ -2,6 +2,8 @@
 #define GUARD_DHRunTracker_h
 
 #include <vector>
+#include <set>
+#include <map>
 #include <algorithm>
 
 class DHRunTracker
@@ -10,10 +12,10 @@ class DHRunTracker
     DHRunTracker ();
     ~DHRunTracker ();
 
-    bool IsDuplicate(unsigned int);
+    bool IsDuplicate(unsigned int, unsigned int);
 
   private:
-    std::vector<unsigned int> fVector;
+    std::set< std::pair<unsigned int, unsigned int> > fSet;
 };
 
 

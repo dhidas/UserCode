@@ -15,6 +15,7 @@
 
 #include "DHidasLJAna/LeptonPlusJets/interface/Dtuple.h"
 #include "DHidasLJAna/LeptonPlusJets/interface/TAnaHist.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/DHRunTracker.h"
 
 
 
@@ -188,6 +189,9 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     throw;
   }
 
+  // Keep track of runs
+  DHRunTracker RT;
+
 
   // Grab small ntuple.  Everything is contained in "Ev"
   Dtuple DT(InFileNames);
@@ -195,6 +199,12 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
   for (long long ientry = 0; DT.GetEntry(ientry) > 0; ++ientry) {
     if (ientry % 10000 == 0) {
       std::cout << "Processing: " << ientry << std::endl;
+    }
+
+    // Duplicate event check
+    if (RT.IsDuplicate(Ev.Run, Ev.Event)) {
+      std::cerr << "Duplicate run found and being skipped: " << Ev.Run << "  " << Ev.Event << std::endl;
+      continue;
     }
 
     // Analysis starts here!
