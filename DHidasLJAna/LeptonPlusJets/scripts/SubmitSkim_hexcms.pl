@@ -34,6 +34,7 @@ copy $PYFILE,  $OUTDIR;
 copy $SRCFILE, $OUTDIR;
 
 my @FILES = `ls -1 $INDIR/*.root`;
+#my @FILES = `cat ZPrime.list`;
 foreach (@FILES) {
   print "Using file: $_";
 }
@@ -53,7 +54,6 @@ if (-e $LISTNAME) {
 open LIST, ">$LISTNAME" or die "cannot open the list file $LISTNAME $!";
 print LIST @FILES;
 close LIST;
-
 
 my $SUBMITNAME = "$OUTDIR/Submit_$NAME.jdl";
 open SUBMIT, ">$SUBMITNAME" or die "cannot open the submit file for writing $!";
