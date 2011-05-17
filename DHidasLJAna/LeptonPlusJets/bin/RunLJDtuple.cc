@@ -16,6 +16,7 @@
 #include "DHidasLJAna/LeptonPlusJets/interface/Dtuple.h"
 #include "DHidasLJAna/LeptonPlusJets/interface/TAnaHist.h"
 #include "DHidasLJAna/LeptonPlusJets/interface/DHRunTracker.h"
+#include "DHidasLJAna/LeptonPlusJets/interface/DHidasJSON.h"
 
 
 
@@ -209,6 +210,8 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     throw;
   }
 
+  DHidasJSON JSON("json/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt");
+
   // Keep track of runs
   DHRunTracker RT;
 
@@ -219,6 +222,12 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
   for (long long ientry = 0; DT.GetEntry(ientry) > 0; ++ientry) {
     if (ientry % 10000 == 0) {
       std::cout << "Processing: " << ientry << std::endl;
+    }
+
+    // Check lumi section
+    if (!JSON.IsGoodLumiSection(Ev.Run, Ev.LumiSection)) {
+      printf("JSON Skipping Run %9i  LumiSection %9i\n", Ev.Run, Ev.LumiSection);
+      continue;
     }
 
     // Duplicate event check
