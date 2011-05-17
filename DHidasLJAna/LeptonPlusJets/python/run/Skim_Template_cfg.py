@@ -26,15 +26,18 @@ process.source = cms.Source("PoolSource",
 process.patfilter = cms.EDFilter('Filter',
   debug = cms.untracked.bool(False), 
 #  OutFileName = cms.untracked.string(''),
-  IsData = cms.untracked.bool(False),
+  IsData = cms.untracked.bool(True),
   TriggerNames = cms.untracked.vstring(
-    'HLT_Mu12_v1',
-    'HLT_IsoMu12_v1',
-    'HLT_Mu15_v2',
-    'HLT_IsoMu12_v1',
-    'HLT_IsoMu12_v1',
-    'HLT_Mu24_v2',
-    'HLT_IsoMu17_v6'
+#    'HLT_Mu12_v1',
+#    'HLT_IsoMu12_v1',
+#    'HLT_Mu15_v2',
+#    'HLT_IsoMu12_v1',
+#    'HLT_IsoMu12_v1',
+#    'HLT_Mu24_v2',
+#    'HLT_IsoMu17_v6',
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1',
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v2',
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3'
     )
 )
 

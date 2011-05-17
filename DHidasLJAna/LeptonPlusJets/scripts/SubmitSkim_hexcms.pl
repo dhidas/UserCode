@@ -2,15 +2,15 @@
 
 use File::Copy;
 
-if ($#ARGV != 2) {
-  print "Usage: [NAME] [INDIR] [OUTDIR]\n";
+if ($#ARGV != 1) {
+  print "Usage: [INDIR] [OUTDIR]\n";
   exit;
 }
 
-my $NAME = $ARGV[0];
-my $INDIR = $ARGV[1];
-my $OUTDIR = $ARGV[2];
+my $INDIR = $ARGV[0];
+my $OUTDIR = $ARGV[1];
 
+my $NAME = "Skim";
 my $LISTNAME = "$OUTDIR/$NAME.list";
 
 my $RELEASEDIR = `pwd`;

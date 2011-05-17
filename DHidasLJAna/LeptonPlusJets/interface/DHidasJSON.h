@@ -12,6 +12,7 @@ class DHidasJSON
 {
   public:
     DHidasJSON ();
+    DHidasJSON (std::string const&, bool);
     DHidasJSON (std::string const&);
     ~DHidasJSON ();
 
@@ -20,6 +21,7 @@ class DHidasJSON
 
   private:
     std::multimap<int, std::pair<int, int> > fMap;
+    bool fUseJSON;
 
 };
 

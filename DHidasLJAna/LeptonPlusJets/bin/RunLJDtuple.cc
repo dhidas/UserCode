@@ -27,19 +27,36 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
   size_t const NJets = Ev.Jet.size();
 
-  if (NJets < 3 || Ev.Lep.size() != 1) {
+  TString const LepType = Dtuple::LeptonEventType(Ev);
+
+  /*
+  if (NJets >= 3 && Ev.Lep.size() == 1 && LepType == "m" && Ev.Lep[0].Pt() < 25) {
+    printf("%12i  %3i", Ev.Event, (int) Ev.Jet.size());
+    for (size_t i = 0; i != Ev.Jet.size(); ++i) {
+      printf("  %9.1f", Ev.Jet[i].Pt());
+    }
+    printf("\n");
+  }
+  */
+
+  if (NJets < 4 || Ev.Lep.size() != 1) {
     return;
   }
 
-  if (Ev.Lep[0].Pt() < 25) {
+  if (LepType == "e" && Ev.Lep[0].Pt() < 30) {
+    return;
+  } else if (LepType == "m" && Ev.Lep[0].Pt() < 25) {
+    return;
+  } else if (LepType != "e" && LepType != "m") {
+    std::cerr << "I don't understand this type: PlotLeptonPlusJets(): " << LepType << std::endl;
     return;
   }
+ 
 
 
   static char NAME[400];
   static char SIGN;
 
-  TString const LepType = Dtuple::LeptonEventType(Ev);
 
 
   // Make a plot of the Jet Pts
@@ -76,7 +93,8 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
         Hist.FillTH2D("METMag_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
 
         for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
-          if (Ev.Jet[i].Pt() > JetPtCut) {
+          // Cut on 4-th jet Pt
+          if (Ev.Jet[3].Pt() > JetPtCut) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_JetPtCut%03i", (int) JetPtCut);
             Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
               sprintf(NAME, "TriJetMass_JetPtCut%03i", (int) JetPtCut);
@@ -84,7 +102,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
           }
         }
 
-        for (size_t ijets = 3; ijets < 10; ++ijets) {
+        for (size_t ijets = 4; ijets < 10; ++ijets) {
           if (NJets == ijets) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_NJetEQ%02i", (int) ijets);
             Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
@@ -93,7 +111,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
           } 
         }
 
-        for (size_t ijets = 3; ijets < 10; ++ijets) {
+        for (size_t ijets = 4; ijets < 10; ++ijets) {
           if (NJets >= ijets) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_NJetGE%02i", (int) ijets);
             Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
@@ -154,7 +172,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
             Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
 
 
-            for (size_t ijets = 3; ijets < NJets; ++ijets) {
+            for (size_t ijets = 4; ijets < NJets; ++ijets) {
               if (NJets >= ijets) {
                 //sprintf(NAME, "TriJetSumPt_vs_Mass_NJetGE%02i_d%c%03i", (int) ijets, SIGN, abs((int) cut));
                 //Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
@@ -210,7 +228,7 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     throw;
   }
 
-  DHidasJSON JSON("json/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt");
+  DHidasJSON JSON("json/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", true);
 
   // Keep track of runs
   DHRunTracker RT;

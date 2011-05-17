@@ -6,13 +6,13 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.maxEvents = cms.untracked.PSet( 
-  #input = cms.untracked.int32(5000)
-  input = cms.untracked.int32(3000) 
+  input = cms.untracked.int32(-1)
+#input = cms.untracked.int32(3000) 
 )
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring( 
 #                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleMu/Mu15_v2/trigVal_patTuple_38_1_7bm.root'
-                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleMu/Mu15_v2/trigVal_patTuple_48_1_UW8.root'
+                             'file:/cms/dan/Data/Collisions11/v2/DCSOnly/SingleMu/trigVal_patTuple_230_2_HEZ.root'
                                                              )
                               )
 ##process.source = cms.Source("PoolSource",
@@ -33,4 +33,4 @@ process.patana = cms.EDAnalyzer('DHidasPatAna',
   IsData = cms.untracked.bool(False)
 )                               
 
-process.p = cms.Path(process.triggerAnalysis+process.patana)
+process.p = cms.Path(process.patana)

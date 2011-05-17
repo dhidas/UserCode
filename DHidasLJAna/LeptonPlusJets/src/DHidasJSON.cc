@@ -3,11 +3,20 @@
 
 DHidasJSON::DHidasJSON ()
 {
+  fUseJSON = false;
+}
+
+
+DHidasJSON::DHidasJSON (std::string const& InFileName, bool const inUseJSON)
+{
+  fUseJSON = inUseJSON;
+  ReadFile(InFileName);
 }
 
 
 DHidasJSON::DHidasJSON (std::string const& InFileName)
 {
+  fUseJSON = true;
   ReadFile(InFileName);
 }
 
@@ -57,16 +66,21 @@ bool DHidasJSON::ReadFile (std::string const& InFileName)
 
 bool DHidasJSON::IsGoodLumiSection(int const run, int const lumis)
 {
-  std::multimap<int, std::pair<int, int> >::iterator p = fMap.find(run);
-  if (p == fMap.end()) {
-    return false;
+  if (fUseJSON) {
+    std::multimap<int, std::pair<int, int> >::iterator p = fMap.find(run);
+    if (p == fMap.end()) {
+      return false;
+    }
+
+    for (std::multimap<int, std::pair<int, int> >::iterator b = fMap.upper_bound(run); p != b; ++p) {
+      if (lumis >= p->second.first && lumis <= p->second.second) {
+        return true;
+      }
+    }
+  } else {
+    return true;
   }
 
-  for (std::multimap<int, std::pair<int, int> >::iterator b = fMap.upper_bound(run); p != b; ++p) {
-    if (lumis >= p->second.first && lumis <= p->second.second) {
-      return true;
-    }
-  }
   return false;
 }
 
