@@ -37,12 +37,12 @@ echo 'REMAINDER:   ' $REMAINDER
 
 # if section < remainder - 1 add another one =)
 
-if [[ $SECTION < $REMAINDER ]]
+if [[ $SECTION -lt $REMAINDER ]]
 then let BEGIN=$SECTION*$NPERSEC+$SECTION
 else let BEGIN=$SECTION*$NPERSEC+$REMAINDER
 fi
 
-if [[ $SECTION < $REMAINDER ]]
+if [[ $SECTION -lt $REMAINDER ]]
 then let NUM=$NPERSEC+1
 else let NUM=$NPERSEC
 fi
@@ -62,8 +62,7 @@ declare -a INPUTFILE
 INPUTFILE=`head -$LINENUMBER $INPUTLIST | tail -$NUM  | sed 's/^/file:/g' | tr '[:space:]' ','`
 INPUTFILE=${INPUTFILE%?}
 #echo "File is: $INPUTFILE"
-
-OUTFILENAME="Skim_`basename $INPUTFILE`"
+OUTFILENAME="Skim_$SECTION.root"
 
 # run the cmsRun job
 echo cmsRun $PYFILE print inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
