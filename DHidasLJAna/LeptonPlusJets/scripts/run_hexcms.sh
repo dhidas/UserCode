@@ -38,8 +38,8 @@ echo 'REMAINDER:   ' $REMAINDER
 # if section < remainder - 1 add another one =)
 
 if [[ $SECTION < $REMAINDER ]]
-then let BEGIN=$SECTION*$NPERSEC+$SECTION+1
-else let BEGIN=$SECTION*$NPERSEC+$REMAINDER+1
+then let BEGIN=$SECTION*$NPERSEC+$SECTION
+else let BEGIN=$SECTION*$NPERSEC+$REMAINDER
 fi
 
 if [[ $SECTION < $REMAINDER ]]
@@ -61,7 +61,7 @@ echo `head -$LINENUMBER $INPUTLIST | tail -$NUM`
 declare -a INPUTFILE
 INPUTFILE=`head -$LINENUMBER $INPUTLIST | tail -$NUM  | sed 's/^/file:/g' | tr '[:space:]' ','`
 INPUTFILE=${INPUTFILE%?}
-echo "File is: $INPUTFILE"
+#echo "File is: $INPUTFILE"
 
 OUTFILENAME="Skim_`basename $INPUTFILE`"
 
