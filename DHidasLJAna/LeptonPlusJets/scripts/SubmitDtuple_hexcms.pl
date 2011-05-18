@@ -32,7 +32,8 @@ my $SRCFILE0 = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/bin/RunLJDtuple.cc";
 my $SRCFILE1 = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/src/Dtuple.cc";
 copy $PYFILE,   $OUTDIR;
 copy $SRCFILE0, $OUTDIR;
-copy $SRCFILE1, $OUTDIR;
+mkdir "$OUTDIR/json" or die "cannot make json dir $!";
+`cp json/*.txt $OUTDIR/json`;
 
 my @FILES = `ls -1 $INDIR/*.root`;
 foreach (@FILES) {

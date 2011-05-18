@@ -18,6 +18,7 @@ class DHidasJSON
 
     bool ReadFile (std::string const&);
     bool IsGoodLumiSection(int const, int const);
+    void UseJSON (bool const);
 
   private:
     std::multimap<int, std::pair<int, int> > fMap;

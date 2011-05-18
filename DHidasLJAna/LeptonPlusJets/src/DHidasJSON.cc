@@ -28,10 +28,17 @@ DHidasJSON::~DHidasJSON ()
 
 bool DHidasJSON::ReadFile (std::string const& InFileName)
 {
+  if (InFileName.size() == 0) {
+    fUseJSON = false;
+    return true;
+  }
+
   std::ifstream f(InFileName.c_str());
   if (!f.is_open()) {
+    std::cerr << "Unable to open json file: " << InFileName << std::endl;
     throw;
   }
+  std::cout << "Reading JSON file: " << InFileName << std::endl;
 
   char c;
   int n;
@@ -84,3 +91,9 @@ bool DHidasJSON::IsGoodLumiSection(int const run, int const lumis)
   return false;
 }
 
+
+void DHidasJSON::UseJSON (bool const a)
+{
+  fUseJSON = a;
+  return;
+}
