@@ -10,6 +10,7 @@ if ($#ARGV != 1) {
 my $INDIR = $ARGV[0];
 my $OUTDIR = $ARGV[1];
 
+
 my $NAME = "Skim";
 my $LISTNAME = "$OUTDIR/$NAME.list";
 
@@ -41,6 +42,9 @@ foreach (@FILES) {
 
 my $NFiles = $#FILES + 1;
 print "Number of files found: $NFiles\n";
+my $NSECTIONS = 12;
+print "Number of sections to queue: $NSECTIONS\n";
+
 
 if (-e $LISTNAME) {
   print "$LISTNAME exists.  Do you want to overwrite [y/n]: ";
@@ -66,8 +70,8 @@ print SUBMIT "Output = $OUTDIR/Log/Log_\$(Process).stdout\n";
 print SUBMIT "Error =  $OUTDIR/Log/Log_\$(Process).stderr\n";
 print SUBMIT "Log =    $OUTDIR/Log/Log_\$(Process).log\n";
 print SUBMIT "notify_user = dhidas\@physics.rutgers.edu\n";
-print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $RELEASEDIR\n";
-print SUBMIT "Queue $NFiles\n";
+print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $NESCTIONS $RELEASEDIR\n";
+print SUBMIT "Queue $NSECTIONS\n";
 close SUBMIT;
 
 
