@@ -11,7 +11,7 @@ my $NAME = $ARGV[0];
 my $INDIR = $ARGV[1];
 my $OUTDIR = $ARGV[2];
 
-my $LISTNAME = "$OUTDIR/$NAME.list";
+my $LISTNAME = "$OUTDIR/Dtuplize.list";
 
 my $RELEASEDIR = `pwd`;
 $RELEASEDIR =~ m/(.*)\/src\//;
