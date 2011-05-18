@@ -45,6 +45,11 @@ print "Number of files found: $NFiles\n";
 my $NSECTIONS = 12;
 print "Number of sections to queue: $NSECTIONS\n";
 
+if ($NFiles lt $NSECTIONS) {
+  $NSECTIONS = $NFiles;
+}
+
+print "NSECTIONS:  $NSECTIONS\n";
 
 if (-e $LISTNAME) {
   print "$LISTNAME exists.  Do you want to overwrite [y/n]: ";
@@ -70,7 +75,7 @@ print SUBMIT "Output = $OUTDIR/Log/Log_\$(Process).stdout\n";
 print SUBMIT "Error =  $OUTDIR/Log/Log_\$(Process).stderr\n";
 print SUBMIT "Log =    $OUTDIR/Log/Log_\$(Process).log\n";
 print SUBMIT "notify_user = dhidas\@physics.rutgers.edu\n";
-print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $NESCTIONS $RELEASEDIR\n";
+print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $NSECTIONS $RELEASEDIR\n";
 print SUBMIT "Queue $NSECTIONS\n";
 close SUBMIT;
 

@@ -30,8 +30,13 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
   TString const LepType = Dtuple::LeptonEventType(Ev);
 
   /*
-  if (NJets >= 3 && Ev.Lep.size() == 1 && LepType == "m" && Ev.Lep[0].Pt() < 25) {
-    printf("%12i  %3i", Ev.Event, (int) Ev.Jet.size());
+  if (NJets == 0 && Ev.Lep.size() == 1 && LepType == "m" && Ev.Lep[0].Pt() > 25) {
+    std::cout << "ASD" << std::endl;
+  }
+  */
+  /*
+  if (NJets >= 3 && Ev.Lep.size() == 1 && LepType == "m" && Ev.Lep[0].Pt() > 25) {
+    printf("%12i  %9.1f  %3i", Ev.Event, Ev.Lep[0].Pt(), (int) Ev.Jet.size());
     for (size_t i = 0; i != Ev.Jet.size(); ++i) {
       printf("  %9.1f", Ev.Jet[i].Pt());
     }

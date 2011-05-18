@@ -26,7 +26,19 @@ process.patana = cms.EDAnalyzer('DHidasPatAna',
   debug = cms.untracked.bool(False), 
   #OutFileName = cms.untracked.string('Test_El27_vX_Dtuple.root'),
   OutFileName = cms.untracked.string(options.outputFile),
-  IsData = cms.untracked.bool(False),
+  IsData = cms.untracked.bool(True),
+  TriggerNames = cms.untracked.vstring(
+#    'HLT_Mu12_v1',
+#    'HLT_IsoMu12_v1',
+#    'HLT_Mu15_v2',
+#    'HLT_IsoMu12_v1',
+#    'HLT_IsoMu12_v1',
+#    'HLT_Mu24_v2',
+#    'HLT_IsoMu17_v6',
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1',
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v2',
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3'
+    ),
   MakeDtuple = cms.untracked.bool(True)
 )                               
 
