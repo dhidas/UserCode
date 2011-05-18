@@ -2,7 +2,7 @@
 
 use File::Copy;
 
-if ($#ARGV != 2) {
+if ($#ARGV != 1) {
   print "Usage: [INDIR] [OUTDIR]\n";
   exit;
 }
@@ -10,7 +10,8 @@ if ($#ARGV != 2) {
 my $INDIR = $ARGV[0];
 my $OUTDIR = $ARGV[1];
 
-my $LISTNAME = "$OUTDIR/Dtuplize.list";
+my $NAME = "Dtuplize";
+my $LISTNAME = "$OUTDIR/$NAME.list";
 
 my $RELEASEDIR = `pwd`;
 $RELEASEDIR =~ m/(.*)\/src\//;
