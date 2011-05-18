@@ -3,13 +3,12 @@
 use File::Copy;
 
 if ($#ARGV != 2) {
-  print "Usage: [NAME] [INDIR] [OUTDIR]\n";
+  print "Usage: [INDIR] [OUTDIR]\n";
   exit;
 }
 
-my $NAME = $ARGV[0];
-my $INDIR = $ARGV[1];
-my $OUTDIR = $ARGV[2];
+my $INDIR = $ARGV[0];
+my $OUTDIR = $ARGV[1];
 
 my $LISTNAME = "$OUTDIR/Dtuplize.list";
 
@@ -18,7 +17,6 @@ $RELEASEDIR =~ m/(.*)\/src\//;
 $RELEASEDIR = "$1/src";
 
 
-print "NAME:       $NAME\n";
 print "INDIR:      $INDIR\n";
 print "OUTDIR:     $OUTDIR\n";
 print "RELEASEDIR: $RELEASEDIR\n";
