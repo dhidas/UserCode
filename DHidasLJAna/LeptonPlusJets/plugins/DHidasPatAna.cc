@@ -39,8 +39,7 @@ DHidasPatAna::DHidasPatAna(const edm::ParameterSet& iConfig)
   fIsData  = iConfig.getUntrackedParameter<bool>("IsData",false);
   fMakeDtuple  = iConfig.getUntrackedParameter<bool>("MakeDtuple",false);
   fOutFileName = iConfig.getUntrackedParameter<std::string>("OutFileName", "OutFile.root");
-  fJSONFilename  = iConfig.getUntrackedParameter<std::string>("JSONFilename","test.txt");
-
+  fJSONFilename  = iConfig.getUntrackedParameter<std::string>("JSONFilename","");
   fTriggerNames = iConfig.getUntrackedParameter<std::vector<std::string> >("TriggerNames", std::vector<std::string>());
 
   for (std::vector<std::string>::iterator It = fTriggerNames.begin(); It != fTriggerNames.end(); ++It) {
@@ -81,6 +80,7 @@ void DHidasPatAna::beginJob()
     fTree->SetDirectory(fOutFile);
   }
 
+  std::cout << "Hi" << std::endl;
   // JSON file for data
   if (fIsData) {
     fJSON.ReadFile(fJSONFilename);
@@ -150,6 +150,22 @@ void DHidasPatAna::analyze (const edm::Event& iEvent, const edm::EventSetup& iSe
   }
 
   GetObjects(iEvent);
+
+  /*
+  std::vector<std::string> ElectronModule;
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronLWEt10PixelMatchFilter");
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronEt15PixelMatchFilter");
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronEt15CaloEleIdPixelMatchFilter");
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronEt17CaloEleIdPixelMatchFilter");
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronEt17TightEleIdDphiFilter");
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronEt22TighterEleIdDphiFilter");
+  ElectronModule.push_back("hltL1NonIsoHLTNonIsoSingleElectronEt22TighterEleIdDphiFilter");
+  ElectronModule.push_back("HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v2");
+  ElectronModule.push_back("cleanElectronTriggerMatchHLTEle20SWL1R");
+  matchElectrons(*TriggerEvent, ElectronModule, fCleanElectrons);
+  */
+
+
   PlotObjects();
   PlotDileptonEvents();
   PlotMultiJetLeptonEvents();
@@ -193,12 +209,13 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
 
   // Get pat objects
   iEvent.getByLabel("selectedPatElectrons", PatElectrons); 
-  iEvent.getByLabel("generalTracks", recoTracks);
+  //iEvent.getByLabel("generalTracks", recoTracks);
   iEvent.getByLabel("selectedPatPhotons", PatPhotons); 
   iEvent.getByLabel("selectedPatMuons", PatMuons); 
   iEvent.getByLabel("selectedPatJetsAK5PF", PatJets); 
   iEvent.getByLabel("patMETsPF",  MetColl);
-  iEvent.getByLabel("offlinePrimaryVertices", recVtxs);
+  //iEvent.getByLabel("offlinePrimaryVertices", recVtxs);
+  iEvent.getByLabel("hltTriggerSummaryAOD", TriggerEvent);
 
 
   // Electron Selection
@@ -367,7 +384,6 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
   //printf("NElectrons=%i  NPhoton=%i  NMuons=%i  NJets=%i\n", (int) fCleanElectrons.size(), (int) fCleanPhotons.size(), (int) fCleanMuons.size(), (int) fCleanJets.size());
   return;
 }
-
 
 
 

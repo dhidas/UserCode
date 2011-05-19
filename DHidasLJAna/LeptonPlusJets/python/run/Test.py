@@ -11,8 +11,13 @@ process.maxEvents = cms.untracked.PSet(
 )
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring( 
+<<<<<<< Test.py
+                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleElectron/El27_v2/trigVal_patTuple_3_2_PaP.root'
+#                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleMu/Mu15_v2/trigVal_patTuple_48_1_UW8.root'
+=======
 #                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleMu/Mu15_v2/trigVal_patTuple_38_1_7bm.root'
                              'file:/cms/dan/Data/Collisions11/v2/DCSOnly/SingleMu/trigVal_patTuple_230_2_HEZ.root'
+>>>>>>> 1.5
                                                              )
                               )
 ##process.source = cms.Source("PoolSource",
