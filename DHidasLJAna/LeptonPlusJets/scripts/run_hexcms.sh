@@ -3,10 +3,11 @@
 echo 'Hello World!'
 
 SECTION=$1
-OUTDIR=$2
-INPUTLIST=$3
-NSECTIONS=$4
-RELEASEDIR=$5
+ISDATA=$2
+OUTDIR=$3
+INPUTLIST=$4
+NSECTIONS=$5
+RELEASEDIR=$6
 
 PYFILE=$OUTDIR/Skim_Template_cfg.py
 
@@ -65,7 +66,7 @@ INPUTFILE=${INPUTFILE%?}
 OUTFILENAME="Skim_$SECTION.root"
 
 # run the cmsRun job
-echo cmsRun $PYFILE print inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
+echo cmsRun $PYFILE print IsData=$ISDATA inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
 cmsRun $PYFILE print IsData=$ISDATA inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
 
 

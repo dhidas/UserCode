@@ -2,13 +2,15 @@
 
 use File::Copy;
 
-if ($#ARGV != 1) {
-  print "Usage: [INDIR] [OUTDIR]\n";
+if ($#ARGV != 2) {
+  print "Usage: [INDIR] [OUTDIR] [ISDATA]\n";
   exit;
 }
 
+
 my $INDIR = $ARGV[0];
 my $OUTDIR = $ARGV[1];
+my $ISDATA = $ARGV[2];
 
 my $NAME = "Dtuplize";
 my $LISTNAME = "$OUTDIR/$NAME.list";
@@ -20,6 +22,7 @@ $RELEASEDIR = "$1/src";
 
 print "INDIR:      $INDIR\n";
 print "OUTDIR:     $OUTDIR\n";
+print "ISDATA:     $ISDATA\n";
 print "RELEASEDIR: $RELEASEDIR\n";
 
 
@@ -35,7 +38,14 @@ copy $SRCFILE0, $OUTDIR;
 mkdir "$OUTDIR/json" or die "cannot make json dir $!";
 `cp json/*.txt $OUTDIR/json`;
 
-my @FILES = `ls -1 $INDIR/*.root`;
+my @FILES;
+if (-f $INDIR) {
+  open FILELIST, $INDIR or die "cannot open file list $!";
+  @FILES = <FILELIST>;
+  close FILELIST;
+} else {
+  @FILES = `ls -1 $INDIR/*.root`;
+}
 foreach (@FILES) {
   print "Using file: $_";
 }
@@ -68,7 +78,7 @@ print SUBMIT "Output = $OUTDIR/Log/Log_\$(Process).stdout\n";
 print SUBMIT "Error =  $OUTDIR/Log/Log_\$(Process).stderr\n";
 print SUBMIT "Log =    $OUTDIR/Log/Log_\$(Process).log\n";
 print SUBMIT "notify_user = dhidas\@physics.rutgers.edu\n";
-print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $RELEASEDIR\n";
+print SUBMIT "Arguments = \$(Process) $ISDATA $OUTDIR $LISTNAME $RELEASEDIR\n";
 print SUBMIT "Queue $NFiles\n";
 close SUBMIT;
 

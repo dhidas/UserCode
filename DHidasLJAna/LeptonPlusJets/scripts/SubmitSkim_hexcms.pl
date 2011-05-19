@@ -23,6 +23,7 @@ $RELEASEDIR = "$1/src";
 print "NAME:       $NAME\n";
 print "INDIR:      $INDIR\n";
 print "OUTDIR:     $OUTDIR\n";
+print "ISDATA:     $ISDATA\n";
 print "RELEASEDIR: $RELEASEDIR\n";
 
 

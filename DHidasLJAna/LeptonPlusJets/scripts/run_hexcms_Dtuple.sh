@@ -3,9 +3,10 @@
 echo 'Hello World!'
 
 SECTION=$1
-OUTDIR=$2
-INPUTLIST=$3
-RELEASEDIR=$4
+ISDATA=$2
+OUTDIR=$3
+INPUTLIST=$4
+RELEASEDIR=$5
 
 PYFILE=$OUTDIR/Dtuple_Template_cfg.py
 
@@ -36,8 +37,8 @@ echo "File is: $INPUTFILE"
 OUTFILENAME="Dtuple_`basename $INPUTFILE`"
 
 # run the cmsRun job
-echo cmsRun $PYFILE print inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
-cmsRun $PYFILE print inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
+echo cmsRun $PYFILE print IsData=$ISDATA inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
+cmsRun $PYFILE print IsData=$ISDATA inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
 
 
 
