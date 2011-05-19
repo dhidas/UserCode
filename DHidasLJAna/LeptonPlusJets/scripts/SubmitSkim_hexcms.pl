@@ -2,13 +2,14 @@
 
 use File::Copy;
 
-if ($#ARGV != 1) {
-  print "Usage: [INDIR] [OUTDIR]\n";
+if ($#ARGV != 2) {
+  print "Usage: [INDIR] [OUTDIR] [ISDATA]\n";
   exit;
 }
 
 my $INDIR = $ARGV[0];
 my $OUTDIR = $ARGV[1];
+my $ISDATA = $ARGV[2];
 
 
 my $NAME = "Skim";
@@ -75,7 +76,7 @@ print SUBMIT "Output = $OUTDIR/Log/Log_\$(Process).stdout\n";
 print SUBMIT "Error =  $OUTDIR/Log/Log_\$(Process).stderr\n";
 print SUBMIT "Log =    $OUTDIR/Log/Log_\$(Process).log\n";
 print SUBMIT "notify_user = dhidas\@physics.rutgers.edu\n";
-print SUBMIT "Arguments = \$(Process) $OUTDIR $LISTNAME $NSECTIONS $RELEASEDIR\n";
+print SUBMIT "Arguments = \$(Process) $ISDATA $OUTDIR $LISTNAME $NSECTIONS $RELEASEDIR\n";
 print SUBMIT "Queue $NSECTIONS\n";
 close SUBMIT;
 

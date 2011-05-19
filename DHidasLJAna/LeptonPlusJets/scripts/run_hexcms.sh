@@ -66,7 +66,7 @@ OUTFILENAME="Skim_$SECTION.root"
 
 # run the cmsRun job
 echo cmsRun $PYFILE print inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
-cmsRun $PYFILE print inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
+cmsRun $PYFILE print IsData=$ISDATA inputFiles=$INPUTFILE outputFile=$OUTDIR/$OUTFILENAME
 
 
 

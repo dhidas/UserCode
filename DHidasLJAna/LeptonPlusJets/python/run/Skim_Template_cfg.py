@@ -5,6 +5,11 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing("analysis")
 options.inputFiles = cms.untracked.vstring('')
 options.outputFile = cms.untracked.string('')
+options.register ('IsData',
+                  0, # default value
+                  VarParsing.VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.VarParsing.varType.int,          # string, int, or float
+                  "IsData: True or False [1,0]")
 options.parseArguments()
 
 
@@ -23,10 +28,14 @@ process.source = cms.Source("PoolSource",
   duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 )
 
+IsData = False
+if options.IsData == 1:
+  IsData = True
+
 process.patfilter = cms.EDFilter('Filter',
   debug = cms.untracked.bool(False), 
 #  OutFileName = cms.untracked.string(''),
-  IsData = cms.untracked.bool(True),
+  IsData = cms.untracked.bool(IsData),
   TriggerNames = cms.untracked.vstring(
 #    'HLT_Mu12_v1',
 #    'HLT_IsoMu12_v1',
