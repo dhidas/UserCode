@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 use File::Copy;
+use List::Util qw(shuffle);
 
 if ($#ARGV != 2) {
   print "Usage: [INDIR] [OUTDIR] [ISDATA]\n";
@@ -49,6 +50,9 @@ if (-f $INDIR) {
 foreach (@FILES) {
   print "Using file: $_";
 }
+
+# randomize so that each section runs in about same time..
+@FILES = shuffle(@FILES);
 
 my $NFiles = $#FILES + 1;
 print "Number of files found: $NFiles\n";
