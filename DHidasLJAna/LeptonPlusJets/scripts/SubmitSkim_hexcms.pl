@@ -35,7 +35,16 @@ my $SRCFILE = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/plugins/DHidasPatAna.cc";
 copy $PYFILE,  $OUTDIR;
 copy $SRCFILE, $OUTDIR;
 
-my @FILES = `ls -1 $INDIR/*.root`;
+
+my @FILES;
+if (-f $INDIR) {
+  open FILELIST, $INDIR or die "cannot open file list $!";
+  @FILES = <FILELIST>;
+  close FILELIST;
+} else {
+  @FILES = `ls -1 $INDIR/*.root`;
+}
+
 #my @FILES = `cat ZPrime.list`;
 foreach (@FILES) {
   print "Using file: $_";
