@@ -101,7 +101,7 @@ int CompareZprime (TString const PlotName)
     }
 
     // Set the title to the mass
-    ((TH1F*) h)->SetTitle(Masses[i]);
+    ((TH1F*) h)->SetTitle( TString("M = ")+Masses[i]);
 
     // For the 2D let's make it look nicer..
     if (TString(h->ClassName()).BeginsWith("TH2")) {
@@ -109,9 +109,12 @@ int CompareZprime (TString const PlotName)
       //gStyle->SetPalette(1);
       Pad->SetLogz(1);
       ((TH2F*) h)->Rebin2D(4);
+      ((TH2F*) h)->SetXTitle("Tri-jet SumPt");
+      ((TH2F*) h)->SetYTitle("Tri-jet Mass");
       h->Draw("colz");
 
     } else {
+      ((TH1F*) h)->SetXTitle("Tri-jet Mass");
       h->Draw();
     }
   }
