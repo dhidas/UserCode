@@ -1,8 +1,0 @@
-<bin name="MyTest" file="MyTest.cc">
-</bin>
-
-
-<bin name="RunLHEPlotter" file="RunLHEPlotter.cc">
-  <use name=VgammaAna/LHEReader>
-  <use name=root>
-</bin>

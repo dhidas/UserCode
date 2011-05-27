@@ -1,6 +1,0 @@
-<bin name="MyTest" file="MyTest.cc">
-</bin>
-
-<bin name="RunVgAna" file="RunVgAna.cc">
-  <use name="VgammaAna/TaiwanAna">
-</bin>
