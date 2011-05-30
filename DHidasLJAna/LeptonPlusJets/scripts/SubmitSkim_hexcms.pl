@@ -36,6 +36,8 @@ my $PYFILE  = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/python/run/Skim_Template_c
 my $SRCFILE = "$RELEASEDIR/DHidasLJAna/LeptonPlusJets/plugins/DHidasPatAna.cc";
 copy $PYFILE,  $OUTDIR;
 copy $SRCFILE, $OUTDIR;
+mkdir "$OUTDIR/json" or die "cannot make json dir $!";
+`cp json/*.txt $OUTDIR/json`;
 
 
 my @FILES;

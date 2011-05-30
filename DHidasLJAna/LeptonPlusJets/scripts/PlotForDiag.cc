@@ -53,7 +53,7 @@ void Check (void* a)
 {
   if (!a) {
     std::cerr << "I don't see that!!" << std::endl;
-    exit(1);
+    throw;
   }
   return;
 }

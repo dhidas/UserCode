@@ -50,7 +50,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
   if (LepType == "e" && Ev.Lep[0].Pt() < 30) {
     return;
-  } else if (LepType == "m" && Ev.Lep[0].Pt() < 25) {
+  } else if (LepType == "m" && Ev.Lep[0].Pt() < 20) {
     return;
   } else if (LepType != "e" && LepType != "m") {
     std::cerr << "I don't understand this type: PlotLeptonPlusJets(): " << LepType << std::endl;

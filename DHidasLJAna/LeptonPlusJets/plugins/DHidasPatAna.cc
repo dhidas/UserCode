@@ -46,6 +46,14 @@ DHidasPatAna::DHidasPatAna(const edm::ParameterSet& iConfig)
     fTriggerMap[*It] = false;
   }
 
+  // JSON file for data
+  if (fIsData) {
+    std::cout << "I see that This IS Data!!" << std::endl;
+    std::cout << "Tryng JSON file: " << fJSONFilename << std::endl;
+    fJSON.ReadFile(fJSONFilename);
+  }
+
+
 }
 
 
@@ -80,13 +88,6 @@ void DHidasPatAna::beginJob()
     fTree->SetDirectory(fOutFile);
   }
 
-  std::cout << "Hi" << std::endl;
-  // JSON file for data
-  if (fIsData) {
-    fJSON.ReadFile(fJSONFilename);
-  }
-
-
   //////////////////
   ///  HISTOGRAMS
   //////////////////
@@ -104,6 +105,8 @@ bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     // If we're looking at data check for a good lumi section
     if (!fJSON.IsGoodLumiSection(fRun, fLumiSection)) {
+      std::cout << "JSON Rejecting: ";
+      std::cout << fRun << " " << fLumiSection << " " << fJSON.IsGoodLumiSection(fRun, fLumiSection) << std::endl;
       return false;
     }
 
@@ -232,7 +235,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
     //        6: passes conversion rejection and Isolation
     //        7: passes the whole selection
 
-    if ( eleid == 7 && (*PatElectrons)[i].pt() > 20.0 && fabs((*PatElectrons)[i].eta())<2.1) {
+    if ( eleid == 7 && (*PatElectrons)[i].pt() > 30.0 && fabs((*PatElectrons)[i].eta())<2.1) {
       fGoodElectrons.push_back(&(*PatElectrons)[i]);
     }
   }

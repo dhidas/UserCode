@@ -13,7 +13,8 @@ options.register ('IsData',
 options.parseArguments()
 
 
-process = cms.Process("data")
+process = cms.Process("Skim")
+
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -30,12 +31,14 @@ process.source = cms.Source("PoolSource",
 
 IsData = False
 if options.IsData == 1:
+  print "This IS Data"
   IsData = True
 
 process.patfilter = cms.EDFilter('Filter',
   debug = cms.untracked.bool(False), 
 #  OutFileName = cms.untracked.string(''),
   IsData = cms.untracked.bool(IsData),
+  JSONFilename = cms.untracked.string('json/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt'),
   TriggerNames = cms.untracked.vstring(
     'HLT_Mu12_v1',
     'HLT_IsoMu12_v1',
