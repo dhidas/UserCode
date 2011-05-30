@@ -31,6 +31,8 @@ bool DHidasJSON::ReadFile (std::string const& InFileName)
   if (InFileName.size() == 0) {
     fUseJSON = false;
     return true;
+  } else {
+    fUseJSON = true;
   }
 
   std::ifstream f(InFileName.c_str());
