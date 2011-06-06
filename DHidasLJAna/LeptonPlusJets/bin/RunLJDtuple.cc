@@ -37,6 +37,20 @@ void PlotGammaJetJet (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
   TString const LepType = Dtuple::LeptonEventType(Ev);
 
+  Hist.FillTH1D("PhotonPt", 100, 0, 800, Ev.Pho[0].Pt());
+  Hist.FillTH1D("PhotonPt_"+LepType, 100, 0, 800, Ev.Pho[0].Pt());
+  Hist.FillTH1D("LeptonPt", 100, 0, 800, Ev.Lep[0].Pt());
+  Hist.FillTH1D("LeptonPt_"+LepType, 100, 0, 800, Ev.Lep[0].Pt());
+
+  if (NJets == 2) {
+    Hist.FillTH1D("GammaJJ", 100, 0, 800, (Ev.Pho[0] + Ev.Jet[0] + Ev.Jet[1]).M());
+  }
+
+  for (size_t i = 0; i < Ev.Jet.size() - 1; ++i) {
+    for (size_t j = i + 1; j < Ev.Jet.size(); ++j) {
+      Hist.FillTH1D("GammaJJ_All", 100, 0, 800, (Ev.Pho[i] + Ev.Jet[j] + Ev.Jet[1]).M());
+    }
+  }
 
 
   return;
@@ -287,6 +301,7 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     // Analysis starts here!
     PlotDileptonEvents(Ev, OutFile);
     PlotLeptonPlusJets(Ev, OutFile);
+    PlotGammaJetJet(Ev, OutFile);
 
 
 

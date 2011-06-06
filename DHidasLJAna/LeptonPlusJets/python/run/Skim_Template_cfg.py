@@ -38,7 +38,7 @@ process.patfilter = cms.EDFilter('Filter',
   debug = cms.untracked.bool(False), 
 #  OutFileName = cms.untracked.string(''),
   IsData = cms.untracked.bool(IsData),
-  JSONFilename = cms.untracked.string('json/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt'),
+  JSONFilename = cms.untracked.string('json/Cert_160404-165970_7TeV_PromptReco_Collisions11_JSON.txt'),
   TriggerNames = cms.untracked.vstring(
     'HLT_Mu12_v1',
     'HLT_IsoMu12_v1',
@@ -47,9 +47,13 @@ process.patfilter = cms.EDFilter('Filter',
     'HLT_IsoMu12_v1',
     'HLT_Mu24_v2',
     'HLT_IsoMu17_v6',
+    'HLT_IsoMu17_v8',
+    'HLT_IsoMu24_v5',
     'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1',
     'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v2',
-    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3'
+    'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3',
+    'HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3',
+    'HLT_Ele42_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1'
     )
 )
 
