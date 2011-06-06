@@ -21,6 +21,28 @@
 
 
 
+
+
+void PlotGammaJetJet (Dtuple::SimpleEvent& Ev, TFile& OutFile)
+{
+  static TAnaHist Hist(&OutFile, "PlotGammaJetJet");
+
+  size_t const NJets = Ev.Jet.size();
+  size_t const NLeptons = Ev.Lep.size();
+  size_t const NPhotons = Ev.Pho.size();
+
+  if (NLeptons != 1 || NPhotons != 1 || NJets < 2) {
+    return;
+  }
+
+  TString const LepType = Dtuple::LeptonEventType(Ev);
+
+
+
+  return;
+}
+
+
 void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 {
   static TAnaHist Hist(&OutFile, "LeptonPlusJets");
@@ -84,6 +106,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
       for (size_t k = j+1; k < NJets; ++k) {
         float const Mass      = (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).M();
         float const SumPtJets = Ev.Jet[i].Pt() + Ev.Jet[j].Pt() + Ev.Jet[k].Pt();
+        float const VecSumPtJets = (Ev.Jet[i] + Ev.Jet[j] + Ev.Jet[k]).Pt();
         Hist.FillTH2D("TriJetSumPt_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
         Hist.FillTH1D("TriJetMass", 100, 0, 800, Mass);
         Hist.FillTH1D("LeptonPt", 100, 0, 800, Ev.Lep[0].Pt());
@@ -96,6 +119,8 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
         Hist.FillTH2D("TriJetMas_vs_TripletPt", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
 
         Hist.FillTH2D("METMag_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
+
+        Hist.FillTH2D("TriVecJetSumPt_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, VecSumPtJets, Mass);
 
         for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
           // Cut on 4-th jet Pt
@@ -262,6 +287,7 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     // Analysis starts here!
     PlotDileptonEvents(Ev, OutFile);
     PlotLeptonPlusJets(Ev, OutFile);
+
 
 
 

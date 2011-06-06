@@ -48,6 +48,15 @@ int Dtuple::GetEntry (long long& ientry)
         TMath::Sqrt( TMath::Power(fEvt.LeptonPt->at(i), 2) + TMath::Power(fEvt.LeptonPz->at(i), 2) ));
   }
 
+  fEvt.Pho.resize(fEvt.NPhotons);
+  for (int i = 0; i < fEvt.NPhotons; ++i) {
+    fEvt.Pho[i].SetPxPyPzE(
+        fEvt.PhotonPx->at(i),
+        fEvt.PhotonPy->at(i),
+        fEvt.PhotonPz->at(i),
+        TMath::Sqrt( TMath::Power(fEvt.PhotonPt->at(i), 2) + TMath::Power(fEvt.PhotonPz->at(i), 2) ));
+  }
+
   fEvt.Jet.resize(fEvt.NJets);
   for (int i = 0; i < fEvt.NJets; ++i) {
     fEvt.Jet[i].SetPxPyPzE(
@@ -71,6 +80,11 @@ void Dtuple::SetBranchAddresses (TTree* T)
   fEvt.LeptonPt = (std::vector<float>*) 0x0;
   fEvt.LeptonType = (std::vector<int>*) 0x0;
 
+  fEvt.PhotonPx = (std::vector<float>*) 0x0;
+  fEvt.PhotonPy = (std::vector<float>*) 0x0;
+  fEvt.PhotonPz = (std::vector<float>*) 0x0;
+  fEvt.PhotonPt = (std::vector<float>*) 0x0;
+
   fEvt.JetPx = (std::vector<float>*) 0x0;
   fEvt.JetPy = (std::vector<float>*) 0x0;
   fEvt.JetPz = (std::vector<float>*) 0x0;
@@ -90,6 +104,12 @@ void Dtuple::SetBranchAddresses (TTree* T)
   T->SetBranchAddress("LeptonPt", &fEvt.LeptonPt);
   T->SetBranchAddress("LeptonType", &fEvt.LeptonType);
   T->SetBranchAddress("NLeptons", &fEvt.NLeptons);
+
+  T->SetBranchAddress("PhotonPx", &fEvt.PhotonPx);
+  T->SetBranchAddress("PhotonPy", &fEvt.PhotonPy);
+  T->SetBranchAddress("PhotonPz", &fEvt.PhotonPz);
+  T->SetBranchAddress("PhotonPt", &fEvt.PhotonPt);
+  T->SetBranchAddress("NPhotons", &fEvt.NPhotons);
 
   T->SetBranchAddress("JetPx", &fEvt.JetPx);
   T->SetBranchAddress("JetPy", &fEvt.JetPy);
@@ -114,6 +134,11 @@ void Dtuple::SetBranches (TTree* T)
   fEvt.LeptonPt       = new std::vector<float>();
   fEvt.LeptonType     = new std::vector<int>();
                                          
+  fEvt.PhotonPx       = new std::vector<float>();
+  fEvt.PhotonPy       = new std::vector<float>();
+  fEvt.PhotonPz       = new std::vector<float>();
+  fEvt.PhotonPt       = new std::vector<float>();
+                                         
   fEvt.JetPx          = new std::vector<float>();
   fEvt.JetPy          = new std::vector<float>();
   fEvt.JetPz          = new std::vector<float>();
@@ -133,6 +158,12 @@ void Dtuple::SetBranches (TTree* T)
   T->Branch("LeptonPt", fEvt.LeptonPt);
   T->Branch("LeptonType", fEvt.LeptonType);
   T->Branch("NLeptons", &fEvt.NLeptons);
+
+  T->Branch("PhotonPx", fEvt.PhotonPx);
+  T->Branch("PhotonPy", fEvt.PhotonPy);
+  T->Branch("PhotonPz", fEvt.PhotonPz);
+  T->Branch("PhotonPt", fEvt.PhotonPt);
+  T->Branch("NPhotons", &fEvt.NPhotons);
 
   T->Branch("JetPx", fEvt.JetPx);
   T->Branch("JetPy", fEvt.JetPy);
@@ -165,6 +196,12 @@ void Dtuple::ClearDtuple ()
   fEvt.LeptonPz->clear();
   fEvt.LeptonPt->clear();
   fEvt.LeptonType->clear();
+
+  fEvt.NPhotons = 0;
+  fEvt.PhotonPx->clear();
+  fEvt.PhotonPy->clear();
+  fEvt.PhotonPz->clear();
+  fEvt.PhotonPt->clear();
 
   fEvt.NJets = 0;
   fEvt.JetPx->clear();

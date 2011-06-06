@@ -579,6 +579,15 @@ void DHidasPatAna::FillTree ()
     ++fEvt.NLeptons;
   }
 
+  fEvt.NPhotons = 0;
+  for (size_t i = 0; i != fCleanPhotons.size(); ++i) {
+    fEvt.PhotonPx->push_back(fCleanPhotons[i]->px());
+    fEvt.PhotonPy->push_back(fCleanPhotons[i]->py());
+    fEvt.PhotonPz->push_back(fCleanPhotons[i]->pz());
+    fEvt.PhotonPt->push_back(fCleanPhotons[i]->pt());
+    ++fEvt.NPhotons;
+  }
+
 
   fEvt.NJets = 0;
   fEvt.SumPtJets = 0;

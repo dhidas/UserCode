@@ -54,6 +54,12 @@ class Dtuple
       std::vector<int>*   LeptonType;
       int   NLeptons;
 
+      std::vector<float>* PhotonPx;
+      std::vector<float>* PhotonPy;
+      std::vector<float>* PhotonPz;
+      std::vector<float>* PhotonPt;
+      int   NPhotons;
+
       std::vector<float>* JetPx;
       std::vector<float>* JetPy;
       std::vector<float>* JetPz;
@@ -70,6 +76,7 @@ class Dtuple
 
       // Not stored in Dtuple...but useful
       std::vector<TLorentzVector> Lep;
+      std::vector<TLorentzVector> Pho;
       std::vector<TLorentzVector> Jet;
       TVector2 MET;
     };
