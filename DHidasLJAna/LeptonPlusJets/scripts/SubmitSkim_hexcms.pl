@@ -62,7 +62,8 @@ print "Number of files found: $NFiles\n";
 my $NSECTIONS = 12;
 print "Number of sections to queue: $NSECTIONS\n";
 
-if ($NFiles lt $NSECTIONS) {
+if ($NFiles < $NSECTIONS) {
+  print "NFILES < NSECTIONS I guess..: $NFiles $NSECTIONS\n";
   $NSECTIONS = $NFiles;
 }
 
