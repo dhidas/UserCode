@@ -121,6 +121,13 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
         float const Mass      = (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).M();
         float const SumPtJets = Ev.Jet[i].Pt() + Ev.Jet[j].Pt() + Ev.Jet[k].Pt();
         float const VecSumPtJets = (Ev.Jet[i] + Ev.Jet[j] + Ev.Jet[k]).Pt();
+
+        if (Mass > 168 && Mass < 178) {
+          if (Mass < SumPtJets - 80) {
+            Hist.FillTH1D("TripletPt_TopMass_cut80", 100, 0, 800, (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).Pt());
+          }
+        }
+
         Hist.FillTH2D("TriJetSumPt_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
         Hist.FillTH1D("TriJetMass", 100, 0, 800, Mass);
         Hist.FillTH1D("LeptonPt", 100, 0, 800, Ev.Lep[0].Pt());
