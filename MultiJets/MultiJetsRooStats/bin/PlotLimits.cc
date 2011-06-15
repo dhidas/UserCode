@@ -278,7 +278,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   //MyLegend.AddEntry(SMLine, "SM", "l");
   MyLegend.AddEntry(&grModel, "#sigma^{NLO}(Gluino)", "l");
   grModel.SetLineWidth(2);
-  grModel.SetLineColor(4);
+  grModel.SetLineColor(2);
   grModel.Draw("samec");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
@@ -323,7 +323,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->SetY2NDC(0.99);
   RunII->SetFillColor(0);
   //RunII->SetTextAlign(22);
-  RunII->SetTextSize(0.5);
+  RunII->SetTextSize(0.7);
   RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
