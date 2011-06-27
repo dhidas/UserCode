@@ -131,6 +131,10 @@ long double LogFactorial (int const in)
   // The reason for this function is that we're computationally limited to
   // i <= 170 for the machine (and TMath::Factorial)
 
+  if (in < 1) {
+    return 0;
+  }
+
   std::vector<float> Logs;
   Logs.reserve(in);
   double LogSum = 0.0;
@@ -188,7 +192,7 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
     mu = fToFit->Integral( hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX)) / hToFit->GetBinWidth(ibinX);
     //printf("Bin X mu: %4i %9.1f %9E\n", ibinX, hToFit->GetBinLowEdge(ibinX), mu);
 
-    if (mu > 0) {
+    if (mu > 0.1) {
       LogLikelihood += (hToFit->GetBinContent(ibinX) * TMath::Log(mu)
           - mu - LogFactorial((int) hToFit->GetBinContent(ibinX)  ) );
     }
@@ -436,7 +440,9 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
     exit(1);
   }
   TH1F* DataTH1F = (TH1F*) InFile.Get("Mjjj_45_20_130_6jet");
-  TF1* fFunc = DataTH1F->GetFunction("total");
+  TF1* fFunc = DataTH1F->GetFunction("fit1");
+  //TH1F* DataTH1F = (TH1F*) InFile.Get("DataBkgSubTracked_IntValues");
+  //TF1* fFunc = DataTH1F->GetFunction("fit3");
 
   // Number of events from data
   int const NFromData = (int) DataTH1F->Integral(17, 80);
@@ -470,7 +476,7 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
 
       // Print out and file!
       printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", -1, (int) SignalMass, BGLL, MyLL, TestStatistic);
-        fprintf(Out, "%12E ", TestStatistic);
+      fprintf(Out, "%12E ", TestStatistic);
     }
     fprintf(Out, "\n");
     fflush(Out);
@@ -535,7 +541,8 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "./plotsForDean.root";
+  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/users/h2/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   int const Section = atoi(argv[1]);
