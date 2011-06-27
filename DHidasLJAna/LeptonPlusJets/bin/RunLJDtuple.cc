@@ -84,9 +84,9 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
     return;
   }
 
-  if (LepType == "e" && Ev.Lep[0].Pt() < 30) {
+  if (LepType == "e" && Ev.Lep[0].Pt() < 45) {
     return;
-  } else if (LepType == "m" && Ev.Lep[0].Pt() < 20) {
+  } else if (LepType == "m" && Ev.Lep[0].Pt() < 30) {
     return;
   } else if (LepType != "e" && LepType != "m") {
     std::cerr << "I don't understand this type: PlotLeptonPlusJets(): " << LepType << std::endl;
@@ -145,7 +145,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
         for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
           // Cut on 4-th jet Pt
-          if (Ev.Jet[3].Pt() > JetPtCut) {
+          if (Ev.Jet[k].Pt() > JetPtCut) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_JetPtCut%03i", (int) JetPtCut);
             Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
               sprintf(NAME, "TriJetMass_JetPtCut%03i", (int) JetPtCut);

@@ -235,7 +235,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
     //        6: passes conversion rejection and Isolation
     //        7: passes the whole selection
 
-    if ( eleid == 7 && (*PatElectrons)[i].pt() > 30.0 && fabs((*PatElectrons)[i].eta())<2.1) {
+    if ( eleid == 7 && (*PatElectrons)[i].pt() > 45.0 && fabs((*PatElectrons)[i].eta())<2.1) {
       fGoodElectrons.push_back(&(*PatElectrons)[i]);
     }
   }
@@ -284,7 +284,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
       }
     }
 
-    if ((*PatMuons)[i].pt()>20.0 && fabs((*PatMuons)[i].eta())<2.1) {
+    if ((*PatMuons)[i].pt() > 30.0 && fabs((*PatMuons)[i].eta())<2.1) {
       if((*PatMuons)[i].isGlobalMuon()  &&
          (*PatMuons)[i].isTrackerMuon() && 
          nValidHits                >  0 && 
