@@ -303,7 +303,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
 
   // Jet Selection
   for (size_t i = 0; i != PatJets->size(); ++i) {
-    if ((*PatJets)[i].pt()>30.0 && fabs((*PatJets)[i].eta())<2.6) {
+    if ((*PatJets)[i].pt() > 20.0 && fabs((*PatJets)[i].eta()) < 2.6) {
       if 
         ((*PatJets)[i].correctedJet("Uncorrected").neutralHadronEnergyFraction()   < 0.99 && 
          (*PatJets)[i].correctedJet("Uncorrected").neutralEmEnergyFraction()       < 0.99 &&
