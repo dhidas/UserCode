@@ -8,6 +8,7 @@
 
 
 #include <iostream>
+#include <stdlib.h>
 
 #include "TFile.h"
 #include "TH1F.h"
@@ -166,7 +167,9 @@ int main (int argc, char* argv[])
 
   TFile InFile(InFileName, "read");
 
-  PlotForDiag(InFile, Diag, Name, Title);
+  TCanvas* c = PlotForDiag(InFile, Diag, Name, Title);
+  c->SaveAs(Name);
+
 
   return 0;
 }

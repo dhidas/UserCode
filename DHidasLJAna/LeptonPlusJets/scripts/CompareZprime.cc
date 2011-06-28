@@ -53,19 +53,20 @@ int CompareZprime (TString const PlotName)
   SetStyle();
 
   // Directory where files are
-  TString const Dir = "/cms/data21/dhidas/TestPlots/";
+  //TString const Dir = "/cms/data21/dhidas/TestPlots2/";
+  TString const Dir = "OUTFORSCOTT/";
 
   // Filenames, masses, root files
   std::vector<TString> FileName;
-  FileName.push_back("ZprimeM500PAT.root");
-  FileName.push_back("ZprimeM750PAT.root");
-  FileName.push_back("ZprimeM1000PAT.root");
-  FileName.push_back("ZprimeM1250PAT.root");
-  FileName.push_back("ZprimeM1500PAT.root");
-  FileName.push_back("ZprimeM2000PAT.root");
-  FileName.push_back("ZprimeM3000PAT.root");
-  FileName.push_back("ZprimeM4000PAT.root");
-  FileName.push_back("TTJets.root");
+  FileName.push_back("Plots_ZprimeM500PAT.root");
+  FileName.push_back("Plots_ZprimeM750PAT.root");
+  FileName.push_back("Plots_ZprimeM1000PAT.root");
+  FileName.push_back("Plots_ZprimeM1250PAT.root");
+  FileName.push_back("Plots_ZprimeM1500PAT.root");
+  FileName.push_back("Plots_ZprimeM2000PAT.root");
+  FileName.push_back("Plots_ZprimeM3000PAT.root");
+  FileName.push_back("Plots_ZprimeM4000PAT.root");
+  FileName.push_back("Plots_TTJets.root");
   std::vector<TString> Masses;
   Masses.push_back("500");
   Masses.push_back("750");
@@ -109,17 +110,18 @@ int CompareZprime (TString const PlotName)
       //gStyle->SetPalette(1);
       Pad->SetLogz(1);
       ((TH2F*) h)->Rebin2D(4);
-      ((TH2F*) h)->SetXTitle("Tri-jet SumPt");
+      ((TH2F*) h)->SetXTitle("Tri-jet VectorSum Pt");
       ((TH2F*) h)->SetYTitle("Tri-jet Mass");
       h->Draw("colz");
 
     } else {
-      ((TH1F*) h)->SetXTitle("Tri-jet Mass");
+      //((TH1F*) h)->SetXTitle("Tri-jet Mass");
+      ((TH1F*) h)->SetXTitle("Tri-jet VectorSum Pt");
       h->Draw();
     }
   }
 
-  TString SaveName = PlotName( PlotName.Last('/')+1, PlotName.Length() - PlotName.Last('/') - 1) + ".gif";
+  TString SaveName = PlotName( PlotName.Last('/')+1, PlotName.Length() - PlotName.Last('/') - 1) + ".eps";
   // Save the image
   Can.SaveAs(SaveName);
 

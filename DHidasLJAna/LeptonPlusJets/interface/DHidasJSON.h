@@ -16,7 +16,7 @@ class DHidasJSON
     DHidasJSON (std::string const&);
     ~DHidasJSON ();
 
-    bool ReadFile (std::string const&);
+    bool ReadFile (std::string const&, bool const Use = true);
     bool IsGoodLumiSection(int const, int const);
     void UseJSON (bool const);
 

@@ -10,7 +10,7 @@ DHidasJSON::DHidasJSON ()
 DHidasJSON::DHidasJSON (std::string const& InFileName, bool const inUseJSON)
 {
   fUseJSON = inUseJSON;
-  ReadFile(InFileName);
+  ReadFile(InFileName, fUseJSON);
 }
 
 
@@ -26,13 +26,12 @@ DHidasJSON::~DHidasJSON ()
 }
 
 
-bool DHidasJSON::ReadFile (std::string const& InFileName)
+bool DHidasJSON::ReadFile (std::string const& InFileName, bool const Use)
 {
+  fUseJSON = Use;
   if (InFileName.size() == 0) {
     fUseJSON = false;
     return true;
-  } else {
-    fUseJSON = true;
   }
 
   std::ifstream f(InFileName.c_str());

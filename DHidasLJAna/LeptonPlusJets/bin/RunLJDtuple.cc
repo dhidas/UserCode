@@ -21,6 +21,21 @@
 
 
 
+void PlotSingleLeptonEvents (Dtuple::SimpleEvent& Ev, TFile& OutFile)
+{
+  if (Ev.Lep.size() != 1) {
+    return;
+  }
+
+  static TAnaHist Hist(&OutFile, "SingleLeptonEvents");
+
+  TString const LepType = Dtuple::LeptonEventType(Ev);
+
+  Hist.FillTH1D("LeptonPt", 100, 0, 600, Ev.Lep[0].Pt());
+  Hist.FillTH1D("LeptonPt_"+LepType, 100, 0, 600, Ev.Lep[0].Pt());
+
+  return;
+}
 
 
 void PlotGammaJetJet (Dtuple::SimpleEvent& Ev, TFile& OutFile)
@@ -115,6 +130,9 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
   Hist.FillTH1D(NAME, 100, 0, 800, Ev.MET.Mod());
   Hist.FillTH1D("METMag_"+LepType, 100, 0, 800, Ev.MET.Mod());
 
+  Hist.FillTH1D("LeptonPt_"+LepType, 100, 0, 800, Ev.Lep[0].Pt());
+
+
   for (size_t i = 0; i < NJets - 2; ++i) {
     for (size_t j = i+1; j < NJets - 1; ++j) {
       for (size_t k = j+1; k < NJets; ++k) {
@@ -122,45 +140,36 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
         float const SumPtJets = Ev.Jet[i].Pt() + Ev.Jet[j].Pt() + Ev.Jet[k].Pt();
         float const VecSumPtJets = (Ev.Jet[i] + Ev.Jet[j] + Ev.Jet[k]).Pt();
 
-        if (Mass > 168 && Mass < 178) {
-          if (Mass < SumPtJets - 80) {
-            Hist.FillTH1D("TripletPt_TopMass_cut80", 100, 0, 800, (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).Pt());
-          }
-        }
+        //if (Mass > 168 && Mass < 178) {
+        //  if (Mass < SumPtJets - 80) {
+        //    Hist.FillTH1D("TripletPt_TopMass_cut80", 100, 0, 800, (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).Pt());
+        //  }
+        //}
 
         Hist.FillTH2D("TriJetSumPt_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
         Hist.FillTH1D("TriJetMass", 100, 0, 800, Mass);
         Hist.FillTH1D("LeptonPt", 100, 0, 800, Ev.Lep[0].Pt());
 
-        Hist.FillTH2D("TriJetSumPt_vs_Mass_"+LepType, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
+        //Hist.FillTH2D("TriJetSumPt_vs_Mass_"+LepType, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
         Hist.FillTH1D("TriJetMass_"+LepType, 100, 0, 800, Mass);
-        Hist.FillTH1D("LeptonPt_"+LepType, 100, 0, 800, Ev.Lep[0].Pt());
 
         Hist.FillTH1D("TripletPt", 100, 0, 800, (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).Pt());
         Hist.FillTH2D("TriJetMas_vs_TripletPt", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
 
-        Hist.FillTH2D("METMag_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
+        //Hist.FillTH2D("METMag_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
 
         Hist.FillTH2D("TriVecJetSumPt_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, VecSumPtJets, Mass);
 
-        for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
+        for (float JetPtCut = 20; JetPtCut < 45; JetPtCut += 10) {
           // Cut on 4-th jet Pt
           if (Ev.Jet[k].Pt() > JetPtCut) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_JetPtCut%03i", (int) JetPtCut);
-            Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
+            //Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
               sprintf(NAME, "TriJetMass_JetPtCut%03i", (int) JetPtCut);
               Hist.FillTH1D(NAME, 100, 0, 800, Mass);
           }
         }
 
-        for (size_t ijets = 4; ijets < 10; ++ijets) {
-          if (NJets == ijets) {
-            sprintf(NAME, "TriJetSumPt_vs_Mass_NJetEQ%02i", (int) ijets);
-            Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
-            sprintf(NAME, "TriJetMass_NJetEQ%02i", (int) ijets);
-            Hist.FillTH1D(NAME, 100, 0, 800, Mass);
-          } 
-        }
 
         for (size_t ijets = 4; ijets < 10; ++ijets) {
           if (NJets >= ijets) {
@@ -191,8 +200,8 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
             sprintf(NAME, "TriJetMass_NJetEQ%02i_d%c%03i", (int) NJets, SIGN, abs((int) cut));
             Hist.FillTH1D(NAME, 100, 0, 800, Mass);
 
-            for (float JetPtCut = 30; JetPtCut < 250; JetPtCut += 5) {
-              if (Ev.Jet[i].Pt() > JetPtCut) {
+            for (float JetPtCut = 20; JetPtCut < 45; JetPtCut += 10) {
+              if (Ev.Jet[k].Pt() > JetPtCut) {
               sprintf(NAME, "TriJetMass_d%c%03is_JetPtCut%03i", SIGN, abs((int) cut), (int) JetPtCut);
               Hist.FillTH1D(NAME, 100, 0, 800, Mass);
               }
@@ -220,7 +229,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
             // Met vs Mass
             sprintf(NAME, "METMag_vs_Mass_d%c%03i", SIGN, abs((int) cut));
-            Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
+            //Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
 
 
             for (size_t ijets = 4; ijets < NJets; ++ijets) {
@@ -270,8 +279,14 @@ void PlotDileptonEvents (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
 
 
-int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNames)
+int RunLJDtuple (bool const IsData, TString const OutFileName, std::vector<TString> const& InFileNames)
 {
+  if (IsData) {
+    std::cout << "I see that this is DATA" << std::endl;
+  } else {
+    std::cout << "This looks like MC..." << std::endl;
+  }
+
   // Open OutFile
   TFile OutFile(OutFileName, "create");
   if (!OutFile.IsOpen()) {
@@ -279,7 +294,7 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     throw;
   }
 
-  DHidasJSON JSON("json/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", true);
+  DHidasJSON JSON("json/Cert_160404-166502_7TeV_PromptReco_Collisions11_JSON.txt", IsData);
 
   // Keep track of runs
   DHRunTracker RT;
@@ -309,6 +324,7 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
     PlotDileptonEvents(Ev, OutFile);
     PlotLeptonPlusJets(Ev, OutFile);
     PlotGammaJetJet(Ev, OutFile);
+    PlotSingleLeptonEvents(Ev, OutFile);
 
 
 
@@ -326,17 +342,18 @@ int RunLJDtuple (TString const OutFileName, std::vector<TString> const& InFileNa
 int main (int argc, char* argv[])
 {
   if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " [OutFileName] [InFileName]s" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [IsData] [OutFileName] [InFileName]s" << std::endl;
     return 1;
   }
 
-  TString const OutFileName = argv[1];
+  bool const IsData = atoi(argv[1]) == 1 ? true : false;
+  TString const OutFileName = argv[2];
   std::vector<TString> InFileNames;
-  for (int i = 2; i < argc; ++i) {
+  for (int i = 3; i < argc; ++i) {
     InFileNames.push_back(argv[i]);
   }
 
-  RunLJDtuple(OutFileName, InFileNames);
+  RunLJDtuple(IsData, OutFileName, InFileNames);
 
   return 0;
 }
