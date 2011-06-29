@@ -162,11 +162,14 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
         for (float JetPtCut = 20; JetPtCut < 45; JetPtCut += 10) {
           // Cut on 4-th jet Pt
-          if (Ev.Jet[k].Pt() > JetPtCut) {
+          if (Ev.Jet[3].Pt() < JetPtCut) {
+            continue;
+          }
+          if (Ev.Jet[k].Pt() >= JetPtCut) {
             sprintf(NAME, "TriJetSumPt_vs_Mass_JetPtCut%03i", (int) JetPtCut);
             //Hist.FillTH2D(NAME, 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
-              sprintf(NAME, "TriJetMass_JetPtCut%03i", (int) JetPtCut);
-              Hist.FillTH1D(NAME, 100, 0, 800, Mass);
+            sprintf(NAME, "TriJetMass_JetPtCut%03i", (int) JetPtCut);
+            Hist.FillTH1D(NAME, 100, 0, 800, Mass);
           }
         }
 
@@ -201,8 +204,11 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
             Hist.FillTH1D(NAME, 100, 0, 800, Mass);
 
             for (float JetPtCut = 20; JetPtCut < 45; JetPtCut += 10) {
-              if (Ev.Jet[k].Pt() > JetPtCut) {
-              sprintf(NAME, "TriJetMass_d%c%03is_JetPtCut%03i", SIGN, abs((int) cut), (int) JetPtCut);
+              if (Ev.Jet[3].Pt() < JetPtCut) {
+                continue;
+              }
+              if (Ev.Jet[k].Pt() >= JetPtCut) {
+                sprintf(NAME, "TriJetMass_d%c%03is_JetPtCut%03i", SIGN, abs((int) cut), (int) JetPtCut);
               Hist.FillTH1D(NAME, 100, 0, 800, Mass);
               }
             }
