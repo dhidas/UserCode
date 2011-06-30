@@ -596,6 +596,7 @@ void DHidasPatAna::FillTree ()
     fEvt.JetPy->push_back(fCleanJets[i]->py());
     fEvt.JetPz->push_back(fCleanJets[i]->pz());
     fEvt.JetPt->push_back(fCleanJets[i]->pt());
+    fEvt.JetE->push_back(fCleanJets[i]->energy());
     fEvt.SumPtJets += fCleanJets[i]->pt();
     ++fEvt.NJets;
   }
@@ -608,12 +609,12 @@ void DHidasPatAna::FillTree ()
       Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->py(), fCleanJets[i]->pz(), fCleanJets[i]->energy());
       //printf("JetP - JetE = %12.3f - %12.3f = %12.9f\n",
       //    sqrt( fCleanJets[i]->px()*fCleanJets[i]->px()
-      //        + fCleanJets[i]->px()*fCleanJets[i]->px()
-      //        + fCleanJets[i]->px()*fCleanJets[i]->px()),
+      //        + fCleanJets[i]->py()*fCleanJets[i]->py()
+      //        + fCleanJets[i]->pz()*fCleanJets[i]->pz()),
       //    fCleanJets[i]->energy(),
       //    sqrt( fCleanJets[i]->px()*fCleanJets[i]->px()
-      //        + fCleanJets[i]->px()*fCleanJets[i]->px()
-      //        + fCleanJets[i]->px()*fCleanJets[i]->px())
+      //        + fCleanJets[i]->py()*fCleanJets[i]->py()
+      //        + fCleanJets[i]->pz()*fCleanJets[i]->pz())
       //        - fCleanJets[i]->energy());
 
     }

@@ -64,6 +64,7 @@ class Dtuple
       std::vector<float>* JetPy;
       std::vector<float>* JetPz;
       std::vector<float>* JetPt;
+      std::vector<float>* JetE;
       int   NJets;
 
       float SumPtJets;

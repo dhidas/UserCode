@@ -63,7 +63,7 @@ int Dtuple::GetEntry (long long& ientry)
         fEvt.JetPx->at(i),
         fEvt.JetPy->at(i),
         fEvt.JetPz->at(i),
-        TMath::Sqrt( TMath::Power(fEvt.JetPt->at(i), 2) + TMath::Power(fEvt.JetPz->at(i), 2) ));
+        fEvt.JetE->at(i));
   }
 
   fEvt.MET.SetMagPhi(fEvt.METMag, fEvt.METPhi);
@@ -89,6 +89,7 @@ void Dtuple::SetBranchAddresses (TTree* T)
   fEvt.JetPy = (std::vector<float>*) 0x0;
   fEvt.JetPz = (std::vector<float>*) 0x0;
   fEvt.JetPt = (std::vector<float>*) 0x0;
+  fEvt.JetE  = (std::vector<float>*) 0x0;
 
   fEvt.TriJetSumPt = (std::vector<float>*) 0x0;
   fEvt.TriJetMasses = (std::vector<float>*) 0x0;
@@ -115,6 +116,7 @@ void Dtuple::SetBranchAddresses (TTree* T)
   T->SetBranchAddress("JetPy", &fEvt.JetPy);
   T->SetBranchAddress("JetPz", &fEvt.JetPz);
   T->SetBranchAddress("JetPt", &fEvt.JetPt);
+  T->SetBranchAddress("JetE",  &fEvt.JetE);
   T->SetBranchAddress("NJets", &fEvt.NJets);
 
   T->SetBranchAddress("SumPtJets", &fEvt.SumPtJets);
@@ -143,6 +145,7 @@ void Dtuple::SetBranches (TTree* T)
   fEvt.JetPy          = new std::vector<float>();
   fEvt.JetPz          = new std::vector<float>();
   fEvt.JetPt          = new std::vector<float>();
+  fEvt.JetE           = new std::vector<float>();
                                          
   fEvt.TriJetSumPt    = new std::vector<float>();
   fEvt.TriJetMasses   = new std::vector<float>();
@@ -169,6 +172,7 @@ void Dtuple::SetBranches (TTree* T)
   T->Branch("JetPy", fEvt.JetPy);
   T->Branch("JetPz", fEvt.JetPz);
   T->Branch("JetPt", fEvt.JetPt);
+  T->Branch("JetE", fEvt.JetE);
   T->Branch("NJets", &fEvt.NJets);
 
   T->Branch("SumPtJets", &fEvt.SumPtJets);
@@ -208,6 +212,7 @@ void Dtuple::ClearDtuple ()
   fEvt.JetPy->clear();
   fEvt.JetPz->clear();
   fEvt.JetPt->clear();
+  fEvt.JetE->clear();
 
   fEvt.SumPtJets = 0;
   fEvt.TriJetSumPt->clear();
