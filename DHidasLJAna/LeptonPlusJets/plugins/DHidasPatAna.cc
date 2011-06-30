@@ -605,7 +605,17 @@ void DHidasPatAna::FillTree ()
   if (NJets >= 3) {
     std::vector<TLorentzVector> Jet(NJets);
     for (size_t i = 0; i != NJets; ++i) {
-      Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->py(), fCleanJets[i]->py(), fCleanJets[i]->energy());
+      Jet[i].SetPxPyPzE(fCleanJets[i]->px(), fCleanJets[i]->py(), fCleanJets[i]->pz(), fCleanJets[i]->energy());
+      //printf("JetP - JetE = %12.3f - %12.3f = %12.9f\n",
+      //    sqrt( fCleanJets[i]->px()*fCleanJets[i]->px()
+      //        + fCleanJets[i]->px()*fCleanJets[i]->px()
+      //        + fCleanJets[i]->px()*fCleanJets[i]->px()),
+      //    fCleanJets[i]->energy(),
+      //    sqrt( fCleanJets[i]->px()*fCleanJets[i]->px()
+      //        + fCleanJets[i]->px()*fCleanJets[i]->px()
+      //        + fCleanJets[i]->px()*fCleanJets[i]->px())
+      //        - fCleanJets[i]->energy());
+
     }
     for (size_t i = 0; i < NJets - 2; ++i) {
       for (size_t j = i+1; j < NJets - 1; ++j) {
