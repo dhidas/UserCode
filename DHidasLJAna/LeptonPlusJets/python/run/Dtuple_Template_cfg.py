@@ -35,7 +35,7 @@ process.patana = cms.EDAnalyzer('DHidasPatAna',
   #OutFileName = cms.untracked.string('Test_El27_vX_Dtuple.root'),
   OutFileName = cms.untracked.string(options.outputFile),
   IsData = cms.untracked.bool(IsData),
-  JSONFilename = cms.untracked.string("json/Cert_160404-166502_7TeV_PromptReco_Collisions11_JSON.txt"),
+  JSONFilename = cms.untracked.string("json/June27thGoldJSON.txt"),
   TriggerNames = cms.untracked.vstring(
     'HLT_Mu12_v1',
     'HLT_IsoMu12_v1',
