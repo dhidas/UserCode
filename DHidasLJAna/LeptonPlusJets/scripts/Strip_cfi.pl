@@ -5,7 +5,7 @@
 
 # Argument is filename you wish to strip
 my $INFILE = $ARGV[0];
-print "INFILE: $INFILE\n";
+#print "INFILE: $INFILE\n";
 
 # Open the input file
 open IN, "<$INFILE" || die "ERROR: cannot open input file: $INFILE";
