@@ -1,4 +1,4 @@
-OutDir = /uscms_data/d2/dhidas/MultiJets/RooStats/March11_Expo_Final
+OutDir = /uscms_data/d2/dhidas/MultiJets/RooStats/March3_Test3
 Executable = run_lpc.sh
 
 universe = vanilla
