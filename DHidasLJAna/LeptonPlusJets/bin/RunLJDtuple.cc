@@ -300,7 +300,7 @@ int RunLJDtuple (bool const IsData, TString const OutFileName, std::vector<TStri
     throw;
   }
 
-  DHidasJSON JSON("json/Cert_160404-166502_7TeV_PromptReco_Collisions11_JSON.txt", IsData);
+  DHidasJSON JSON("json/June27thGoldJSON.txt", IsData);
 
   // Keep track of runs
   DHRunTracker RT;
