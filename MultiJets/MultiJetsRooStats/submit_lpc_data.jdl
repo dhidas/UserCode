@@ -1,0 +1,14 @@
+OutDir = /uscms_data/d2/dhidas/LogNormalTest_July4
+Executable = run_lpc_data.sh
+
+universe = vanilla
+Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )&& Disk > 1000000
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Output = $(OutDir)/Log/Log_$(Process).stdout
+Error =  $(OutDir)/Log/Log_$(Process).stderr
+Log =    $(OutDir)/Log/Log_$(Process).log
+notify_user = dhidas@FNAL.GOV
+Arguments = $(Process) $(OutDir)
+Queue 31
+

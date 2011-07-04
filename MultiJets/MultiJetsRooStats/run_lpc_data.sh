@@ -5,16 +5,15 @@ echo 'Section: ' $1
 echo 'OUTDIR:  ' $2
 
 
-source /uscmst1/prod/sw/cms/shrc prod
-#source /uscmst1/prod/grid/gLite_SL5.sh
 
+source /uscmst1/prod/sw/cms/cshrc prod
 cd /uscms/home/dhidas/CMSSW_4_2_3/src
-eval `scramv1 runtime -sh`
+eval `scramv1 runtime -csh`
 cd -
 
 
 
-EXE=/uscms/home/dhidas/Expo_Final/RunMultiJetsRooStats
+EXE=/uscms/home/dhidas/UserCode/dhidas/MultiJets/MultiJetsRooStats/RunMultiJetsRooStats
 
 mkdir -pv $2
 cd $2
