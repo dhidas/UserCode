@@ -154,7 +154,7 @@ void PlotLeptonPlusJets (Dtuple::SimpleEvent& Ev, TFile& OutFile)
         Hist.FillTH1D("TriJetMass_"+LepType, 100, 0, 800, Mass);
 
         Hist.FillTH1D("TripletPt", 100, 0, 800, (Ev.Jet[i]+Ev.Jet[j]+Ev.Jet[k]).Pt());
-        Hist.FillTH2D("TriJetMas_vs_TripletPt", 1000, 0, 1000, 1000, 0, 1000, SumPtJets, Mass);
+        Hist.FillTH2D("TriJetMas_vs_TripletPt", 1000, 0, 1000, 1000, 0, 1000, VecSumPtJets, Mass);
 
         //Hist.FillTH2D("METMag_vs_Mass", 1000, 0, 1000, 1000, 0, 1000, Ev.MET.Mod(), Mass);
 
@@ -268,6 +268,14 @@ void PlotDileptonEvents (Dtuple::SimpleEvent& Ev, TFile& OutFile)
 
   if (Ev.NLeptons != 2) {
     return;
+  }
+
+  for (size_t i = 0; i != Ev.Lep.size(); ++i) {
+    if ((*Ev.LeptonType)[i] == Dtuple::kElectron && Ev.Lep[i].Pt() < 45) {
+      return;
+    } else if ((*Ev.LeptonType)[i] == Dtuple::kMuon && Ev.Lep[i].Pt() < 30) {
+      return;
+    }
   }
 
   TString const DilType = Dtuple::LeptonEventType(Ev);
