@@ -40,20 +40,15 @@ process.patfilter = cms.EDFilter('Filter',
   IsData = cms.untracked.bool(IsData),
   JSONFilename = cms.untracked.string('json/June27thGoldJSON.txt'),
   TriggerNames = cms.untracked.vstring(
-    'HLT_Mu12_v1',
-    'HLT_IsoMu12_v1',
-    'HLT_Mu15_v2',
-    'HLT_IsoMu12_v1',
-    'HLT_IsoMu12_v1',
-    'HLT_Mu24_v2',
-    'HLT_IsoMu17_v6',
-    'HLT_IsoMu17_v8',
-    'HLT_IsoMu24_v5',
+    'HLT_Mu12_v1','HLT_IsoMu12_v1','HLT_Mu15_v2','HLT_Mu24_v2','HLT_IsoMu17_v6',
+    'HLT_Mu30_v3','HLT_IsoMu17_v8','HLT_IsoMu24_v5','HLT_IsoMu24_v6',
+    'HLT_IsoMu24_v7','HLT_Mu40_v2',
     'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1',
     'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v2',
     'HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3',
     'HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3',
-    'HLT_Ele42_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1'
+    'HLT_Ele42_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1',
+    'HLT_Ele52_CaloIdVT_TrkIdT_v3'
     )
 )
 
