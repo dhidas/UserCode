@@ -120,6 +120,7 @@ bool DHidasPatAna::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
     }
     if (!HasTrigger) {
+      printf("NotPassedTrigger: Run Evt  %12i  %12i\n", fRun, iEvent.id().event());
       return false;
     }
   }
@@ -235,7 +236,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
     //        6: passes conversion rejection and Isolation
     //        7: passes the whole selection
 
-    if ( eleid == 7 && (*PatElectrons)[i].pt() > 45.0 && fabs((*PatElectrons)[i].eta())<2.1) {
+    if ( eleid == 7 && (*PatElectrons)[i].pt() > 20.0 && fabs((*PatElectrons)[i].eta())<2.1) {
       fGoodElectrons.push_back(&(*PatElectrons)[i]);
     }
   }
@@ -243,7 +244,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
 
   // Photon Selection
   for (size_t i = 0; i != PatPhotons->size(); ++i) {
-    if ((*PatPhotons)[i].et()>30.0 && fabs((*PatPhotons)[i].superCluster()->position().eta())<1.45) {
+    if ((*PatPhotons)[i].et()>20.0 && fabs((*PatPhotons)[i].superCluster()->position().eta())<1.45) {
         // tight photons
         if ( ((*PatPhotons)[i].ecalRecHitSumEtConeDR04()< 4.2+0.006*(*PatPhotons)[i].et()) &&
             ((*PatPhotons)[i].hcalTowerSumEtConeDR04()< 2.2+0.0025*(*PatPhotons)[i].et()) && 
@@ -284,7 +285,7 @@ void DHidasPatAna::GetObjects (const edm::Event& iEvent)
       }
     }
 
-    if ((*PatMuons)[i].pt() > 30.0 && fabs((*PatMuons)[i].eta())<2.1) {
+    if ((*PatMuons)[i].pt() > 20.0 && fabs((*PatMuons)[i].eta())<2.1) {
       if((*PatMuons)[i].isGlobalMuon()  &&
          (*PatMuons)[i].isTrackerMuon() && 
          nValidHits                >  0 && 

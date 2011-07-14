@@ -13,7 +13,7 @@
 //
 // Original Author:  Dean Hidas
 //         Created:  Tue Apr 19 12:07:58 EDT 2011
-// $Id: Filter.cc,v 1.1 2011/05/03 09:12:23 dhidas Exp $
+// $Id: Filter.cc,v 1.2 2011/05/03 09:18:15 dhidas Exp $
 //
 //
 
@@ -47,6 +47,10 @@ class Filter : public edm::EDFilter {
       virtual void endJob() ;
 
       DHidasPatAna* Ana;
+
+      unsigned long fTotalEvents;
+      unsigned long fPassedTrigger;
+      unsigned long fFailedTrigger;
       
       // ----------member data ---------------------------
 };
@@ -87,18 +91,32 @@ Filter::~Filter()
 bool
 Filter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   return Ana->filter(iEvent, iSetup);
+  bool const Pass = Ana->filter(iEvent, iSetup);
+  ++fTotalEvents;
+  if (Pass) {
+    ++fPassedTrigger;
+  } else {
+    ++fFailedTrigger;
+  }
+
+  return Pass;
+  //return Ana->filter(iEvent, iSetup);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
 Filter::beginJob()
 {
+  // Test for triggers...
+  fTotalEvents = 0;
+  fPassedTrigger = 0;
+  fFailedTrigger = 0;
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 Filter::endJob() {
+  printf("Trigger: Total Pass Fail  %12lu %12lu %12lu\n", fTotalEvents, fPassedTrigger, fFailedTrigger);
 }
 
 //define this as a plug-in
