@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 
 bool cmp (std::pair<float, float> A, std::pair<float, float> B)
@@ -28,7 +29,7 @@ int DataMe (std::vector<std::string> const& Files)
     std::ifstream In(Files[i].c_str());
     if (!In) {
       std::cerr << "ERROR: cannot open file" << std::endl;
-      exit(1);
+      throw;
     }
 
     In >> A >> B;
