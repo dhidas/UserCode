@@ -650,7 +650,6 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     ws.var("nbkg")->Print();
 
     upper = DoFit(ws, modelConfig, label, method, Section);
-  exit(0);
   } else {
     // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
     // I can get you a toy, believe me.  There are ways, Dude.
@@ -723,10 +722,10 @@ int main (int argc, char* argv[])
 
   int const Section = atoi(argv[1]);
   float const BeginMass = argc == 3 ?  250 + atof(argv[2])*StepSize : 250;
-  float const EndMass   = argc == 3 ?  250 + atof(argv[2])*StepSize : 500;
+  float const EndMass   = argc == 3 ?  250 + atof(argv[2])*StepSize : 700;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
-  TString const InFileName = "./Data/DijetMassFit_data_881pb-1_6jets_pt70.root";
+  TString const InFileName = "/users/h2/dhidas/UserCode/dhidas/MultiJets/MultiJetsRooStats/Data/DijetMassFit_data_881pb-1_6jets_pt70.root";
   //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
