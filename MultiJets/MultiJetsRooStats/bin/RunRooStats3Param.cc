@@ -388,7 +388,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       );
 
   // Define range and bins
-  float const XMIN = 170;//Func->GetXmin();
+  float const XMIN = 230;//Func->GetXmin();
   float const XMAX = 800;//Func->GetXmax();
   int   const BINSMJJJ   = (int) (XMAX - XMIN) / 10;
   ws.var("mjjj")->setBins(BINSMJJJ);
@@ -722,8 +722,8 @@ int main (int argc, char* argv[])
   float const StepSize  =  10;
 
   int const Section = atoi(argv[1]);
-  float const BeginMass = argc == 3 ?  200 + atof(argv[2])*StepSize : 200;
-  float const EndMass   = argc == 3 ?  200 + atof(argv[2])*StepSize : 500;
+  float const BeginMass = argc == 3 ?  250 + atof(argv[2])*StepSize : 250;
+  float const EndMass   = argc == 3 ?  250 + atof(argv[2])*StepSize : 500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
   TString const InFileName = "./Data/DijetMassFit_data_881pb-1_6jets_pt70.root";
