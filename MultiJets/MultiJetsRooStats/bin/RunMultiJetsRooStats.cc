@@ -119,6 +119,7 @@ TH1F* GetPEExpoWithBump (int const NBG, float const cexp, int const NSig, float 
     for (int ie = 0; ie < NThisBin; ++ie) {
       h->Fill( h->GetBinCenter(i) );
     }
+    //printf("Error %3i %5.0f %8.3f  %8.3f\n", i, h->GetBinContent(i), sqrt(h->GetBinContent(i)), h->GetBinError(i));
   }
 
   if (true) {
@@ -563,6 +564,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
     float const MyNBG  = Func->Integral(170, 800) / 10.;
     float const MyCEXP = Func->GetParameter(1);
+    printf("ADASD: %12E %12E\n", DataTH1->Integral(), MyCEXP);
     ws.var("nbkg")->setVal(MyNBG);
 
     TH1F* hPEWithBump = GetPEExpoWithBump(DataTH1->Integral(), MyCEXP, 379.995/10., 380, 22.681);

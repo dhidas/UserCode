@@ -66,6 +66,41 @@
 // Utility functions
 
 
+TH1F* GetPE3Param (int const N, float const p0, float const p1, float const p2, TString const label = "blah")
+{
+  TH1F* h = new TH1F("PE", "PE", 65, 230, 800);
+
+  TF1 f("myfuncPE", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 800);
+  f.SetParameter(0, 1);
+  f.SetParameter(1, p1);
+  f.SetParameter(2, p2);
+  f.SetParameter(0, 1.0/f.Integral(230,800));
+  std::cout << "PE NORM" << "  " << f.Integral(230,800) << std::endl;
+
+  for (int i = 0; i < N; ++i) {
+    h->Fill(f.GetRandom());
+  }
+
+  TF1 ff("mypseudo1", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 800);
+  ff.SetParameter(0, 1);
+  ff.SetParameter(1, p1);
+  ff.SetParameter(2, p2);
+  ff.SetParameter(0, 10*N/ff.Integral(230,800));
+  std::cout << N << "  " << ff.Integral(230,800) << std::endl;
+
+  if (false) {
+    TCanvas c;
+    c.cd();
+    h->Draw();
+    ff.Draw("same");
+    c.SaveAs(TString("MyPE_")+label+".eps");
+  }
+
+  return h;
+}
+
+
+
 TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
 {
   TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
@@ -177,8 +212,6 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //(const Double_t)6.80003555073324922e-08
 
 
-
-  // This is equivalent to the above, but a hell of a lot faster
   return -5.22149835526679752e-03 + 1.59455383482881799e-05 * Mjjj + 6.80003555073324922e-08 * Mjjj * Mjjj;
 }
 
@@ -352,7 +385,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const ACCERROR   =  0.18; // Include MC stat pileup
 
   float const MINXS      =     0;
-  float const MAXXS      =  1000;
+  float const MAXXS      =   SignalMass < 350 ? 100 : 50;
 
   // Just a label
   char label[100];
@@ -394,8 +427,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("mjjj")->setBins(BINSMJJJ);
   printf("Fit Min/Max: %12.2f %12.2f\n", XMIN, XMAX);
 
-  float const NBGFromFit = DataTH1->Integral();
-  printf("Data vs fit: %12.1f %12.1f\n", DataTH1->Integral(), Func->Integral(XMIN, XMAX) / DataTH1->GetBinWidth(0));
+  float const NBGFromFit = DataTH1->Integral( DataTH1->FindBin(XMIN), DataTH1->FindBin(XMAX)   );
+  printf("Data vs fit: %12.1f %12.1f\n", NBGFromFit, Func->Integral(XMIN, XMAX) / DataTH1->GetBinWidth(0));
 
   mjjj->setRange(XMIN, XMAX);
 
@@ -655,26 +688,38 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     // I can get you a toy, believe me.  There are ways, Dude.
 
 
-    float const rand_NBGThisPE = NBGFromFit + ws.var("nbkgS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1);
+    float const rand_NBGThisPE = NBGFromFit + (ws.var("nbkgS0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
 
     // Grab a toy.  If you can't get a toy there is something wrong
     int const NBGThisPE = RooRandom::randomGenerator()->Poisson(rand_NBGThisPE);
     ws.var("nbkg")->setVal(NBGThisPE);
 
-    float rand_cexp = 999;
-    while (rand_cexp < ws.var("cexp")->getMin() || rand_cexp > ws.var("cexp")->getMax()) {
-      rand_cexp = ws.var("cexp")->getVal() + ws.var("cexpS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1);
-      std::cout << "rand_cexp:  " << rand_cexp << std::endl;
+    float rand_p0 = 999;
+    while (rand_p0 < ws.var("p0")->getMin() || rand_p0 > ws.var("p0")->getMax()) {
+      rand_p0 = ws.var("p0")->getVal() + (ws.var("p0S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
+      std::cout << "rand_p0:  " << rand_p0 << std::endl;
+    }
+
+    float rand_p1 = 999;
+    while (rand_p1 < ws.var("p1")->getMin() || rand_p1 > ws.var("p1")->getMax()) {
+      rand_p1 = ws.var("p1")->getVal() + (ws.var("p1S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
+      std::cout << "rand_p1:  " << rand_p1 << std::endl;
+    }
+
+    float rand_p2 = 999;
+    while (rand_p2 < ws.var("p2")->getMin() || rand_p2 > ws.var("p2")->getMax()) {
+      rand_p2 = ws.var("p2")->getVal() + (ws.var("p2S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
+      std::cout << "rand_p2:  " << rand_p2 << std::endl;
     }
 
     int NTest = RooRandom::randomGenerator()->Poisson(
-      1.*(NBGFromFit + ws.var("nbkgS0")->getVal() * RooRandom::randomGenerator()->Gaus(0,1))
+      1.*(NBGFromFit + (ws.var("nbkgS0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1))
         );
-    TH1F* hPEF = GetPEExpo(NTest, rand_cexp, label);
+    TH1F* hPEF = GetPE3Param(NTest, rand_p0, rand_p1, rand_p2, label);
     RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEF);
 
     //RooDataHist* hPE = PE->binnedClone("DataToFit");
-    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE.sum(false));
+    printf("Data vs PE: %12.1f %12.1f\n", NBGFromFit, hPE.sum(false));
 
     // Just for debug
     if (false) {

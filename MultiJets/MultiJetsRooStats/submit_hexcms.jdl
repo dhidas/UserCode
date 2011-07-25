@@ -1,7 +1,7 @@
 universe = vanilla
 +AccountingGroup = "group_rutgers.dhidas"
 Executable = run_hexcms.sh
-OutDir = /cms/data24/dhidas/Limits_July21_3Param/
+OutDir = /cms/data24/dhidas/Limits_July21_3Param_2/
 
 Should_Transfer_Files = NO
 Output = $(OutDir)/Log/Log_$(Process).stdout
