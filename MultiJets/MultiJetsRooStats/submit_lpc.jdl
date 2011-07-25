@@ -1,4 +1,4 @@
-OutDir = /uscms_data/d2/dhidas/MultiJets/RooStats/March3_Test3
+OutDir = /uscms_data/d2/dhidas/MultiJets_881pb/RooStats/July25_Test
 Executable = run_lpc.sh
 
 universe = vanilla
@@ -10,5 +10,5 @@ Error =  $(OutDir)/Log/Log_$(Process).stderr
 Log =    $(OutDir)/Log/Log_$(Process).log
 notify_user = dhidas@FNAL.GOV
 Arguments = $(Process) $(OutDir)
-Queue 1000
+Queue 500
 

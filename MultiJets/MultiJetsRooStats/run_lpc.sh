@@ -13,7 +13,7 @@ cd -
 
 
 
-EXE=/uscms/home/dhidas/LogNormalRooStats/RunMultiJetsRooStats
+EXE=/uscms/home/dhidas/MultiJetsRooStats/RunRooStats3Param
 
 mkdir -pv $2
 cd $2
