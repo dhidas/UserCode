@@ -14,6 +14,8 @@
 #include <map>
 #include <algorithm>
 
+#include "TCanvas.h"
+#include "TGraph.h"
 
 bool cmp (std::pair<float, float> A, std::pair<float, float> B)
 {
@@ -47,6 +49,20 @@ int DataMe (std::vector<std::string> const& Files)
   }
   printf("\n");
 
+  float X[C.size()];
+  float Y[C.size()];
+  for (size_t i = 0; i != C.size(); ++i) {
+    printf("%10.3f  %12.3E\n", C[i].first, C[i].second);
+    X[i] = C[i].first;
+    Y[i] = C[i].second;
+  }
+
+  TCanvas c;
+  c.cd();
+  TGraph g(C.size(), X, Y);
+  g.Draw("AL*");
+  c.SetLogy(1);
+  c.SaveAs("QuickLimit.eps");
 
   return 0;
 }
