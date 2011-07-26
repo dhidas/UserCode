@@ -66,7 +66,7 @@
 // Utility functions
 
 
-TH1F* GetPE3Param (int const N, float const p0, float const p1, float const p2, TString const label = "blah")
+TH1F* GetPE3Param (int const N, float const p1, float const p2, TString const label = "blah")
 {
   TH1F* h = new TH1F("PE", "PE", 65, 230, 800);
 
@@ -101,74 +101,9 @@ TH1F* GetPE3Param (int const N, float const p0, float const p1, float const p2, 
 
 
 
-TH1F* GetPEExpo (int const N, float const cexp, TString const label = "blah")
-{
-  TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
-
-  TF1 f("myexp", "[0]*TMath::Exp([1]*x)", 170, 800);
-  f.SetParameter(0, 1);
-  f.SetParameter(1, cexp);
-  f.SetParameter(0, 1.0/f.Integral(170,800));
-  std::cout << cexp << "  " << f.Integral(170,800) << std::endl;
-
-  for (int i = 0; i < N; ++i) {
-    h->Fill(f.GetRandom());
-  }
-
-  TF1 ff("myexp1", "[0]*TMath::Exp([1]*x)", 170, 800);
-  ff.SetParameter(0, 1);
-  ff.SetParameter(1, cexp);
-  ff.SetParameter(0, 10*N/ff.Integral(170,800));
-  std::cout << N << "  " << ff.Integral(170,800) << std::endl;
-
-  if (false) {
-    TCanvas c;
-    c.cd();
-    h->Draw();
-    ff.Draw("same");
-    c.SaveAs(TString("MyPE_")+label+".eps");
-  }
-
-  return h;
-}
 
 
 
-TH1F* GetPEExpoWithBump (int const NBG, float const cexp, int const NSig, float const gMean, float const gSigma, TString const label = "blah")
-{
-  TH1F* h = new TH1F("PE", "PE", 65, 170, 800);
-
-  TF1 f("myexpgaus", "[0]*TMath::Exp([1]*x) + [2]*TMath::Gaus(x, [3], [4], 1)", 170, 800);
-  // The order of this is very specific...
-  f.SetParameter(0, 1);
-  f.SetParameter(1, cexp);
-  f.SetParameter(2, 0);
-  f.SetParameter(3, gMean);
-  f.SetParameter(4, gSigma);
-  f.SetParameter(0, 10*NBG/f.Integral(170,800));
-  f.SetParameter(2, NSig*10);
-
-  for (int i = 1; i <= h->GetNbinsX(); ++i) {
-    int const NThisBin = (int) f.Integral( h->GetBinLowEdge(i), h->GetBinLowEdge(i) + h->GetBinWidth(i)) / 10.;
-    printf("PEExpoWithBump ibin/N %3i %5i\n", i, NThisBin);
-    for (int ie = 0; ie < NThisBin; ++ie) {
-      h->Fill( h->GetBinCenter(i) );
-    }
-  }
-
-  if (true) {
-    TF1 fE("myexp", "[0]*TMath::Exp([1]*x)", 170, 800);
-    fE.SetParameter(0, f.GetParameter(0));
-    fE.SetParameter(1, f.GetParameter(1));
-    TCanvas c;
-    c.cd();
-    h->Draw("ep");
-    fE.Draw("same");
-    c.SaveAs("TestPEWithSig.eps");
-  }
-
-  return h;
-}
 
 
 
@@ -451,10 +386,10 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   }
 
   // Define variables for the background function and the function itself
-  ws.factory("p0[0,2]");
+  //ws.factory("p0[0,2]");
   ws.factory("p1[40,60]");
   ws.factory("p2[-2,0]");
-  ws.factory("RooGenericPdf::background('p0 * ( ((1.0 - mjjj/7000.0)^p1) / mjjj^p2)', {p0, mjjj, p1, p2})");
+  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / mjjj^p2)', {mjjj, p1, p2})");
 
 
 
@@ -468,11 +403,11 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
   // prior on fit param 0
-  ws.factory("RooLognormal::p0_prior(p0, p0M0[0], p0S0[1])");
-  ws.var("p0S0")->setVal(1.05);
-  ws.var("p0")->setRange(Func->GetParameter(0)*(1-3*0.05), Func->GetParameter(0)*(1+3*0.05));
-  ws.var("p0")->setVal(Func->GetParameter(0));
-  ws.var("p0M0")->setVal(Func->GetParameter(0));
+  //ws.factory("RooLognormal::p0_prior(p0, p0M0[0], p0S0[1])");
+  //ws.var("p0S0")->setVal(1.05);
+  //ws.var("p0")->setRange(Func->GetParameter(0)*(1-3*0.05), Func->GetParameter(0)*(1+3*0.05));
+  //ws.var("p0")->setVal(Func->GetParameter(0));
+  //ws.var("p0M0")->setVal(Func->GetParameter(0));
 
   // prior on fit param 1
   ws.factory("RooLognormal::p1_prior(p1, p1M0[0], p1S0[1])");
@@ -538,8 +473,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   // use this one
   ws.factory("PROD::prior0(xs_prior)");
   ws.defineSet("nuisSet0","sigWidth");
-  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,p0_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
-  ws.defineSet("nuisSet5b","nbkg,p0,p1,p2,lumi,acceptance,sigWidth");
+  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
+  ws.defineSet("nuisSet5b","nbkg,p1,p2,lumi,acceptance,sigWidth");
   
 
   // let's not fix the cross section..just to make sure
@@ -552,9 +487,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("acceptance")->setConstant(true);
   ws.var("acceptanceM0")->setConstant(true);
   ws.var("acceptanceS0")->setConstant(true);
-  ws.var("p0")->setConstant(true);
-  ws.var("p0M0")->setConstant(true);
-  ws.var("p0S0")->setConstant(true);
+  //ws.var("p0")->setConstant(true);
+  //ws.var("p0M0")->setConstant(true);
+  //ws.var("p0S0")->setConstant(true);
   ws.var("p1")->setConstant(true);
   ws.var("p1M0")->setConstant(true);
   ws.var("p1S0")->setConstant(true);
@@ -581,7 +516,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     ws.factory("PROD::background_model(background_noprior,prior5b)");
     ws.var("sigWidth")->setConstant(false);
     ws.var("nbkg")->setConstant(false);
-    ws.var("p0")->setConstant(false);
+    //ws.var("p0")->setConstant(false);
     ws.var("p1")->setConstant(false);
     ws.var("p2")->setConstant(false);
     ws.var("lumi")->setConstant(false);
@@ -606,9 +541,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.var("nbkg")->Print();
   ws.var("nbkgM0")->Print();
   ws.var("nbkgS0")->Print();
-  ws.var("p0")->Print();
-  ws.var("p0M0")->Print();
-  ws.var("p0S0")->Print();
+  //ws.var("p0")->Print();
+  //ws.var("p0M0")->Print();
+  //ws.var("p0S0")->Print();
   ws.var("p1")->Print();
   ws.var("p1M0")->Print();
   ws.var("p1S0")->Print();
@@ -629,46 +564,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   float upper = -1;
   if (Section == -2) {
-    // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
-    // I can get you a toy, believe me.  There are ways, Dude.
-
-
-    float const MyNBG  = Func->Integral(170, 800) / 10.;
-    float const MyCEXP = Func->GetParameter(1);
-    ws.var("nbkg")->setVal(MyNBG);
-
-    TH1F* hPEWithBump = GetPEExpoWithBump(DataTH1->Integral(), MyCEXP, 379.995/10., 380, 22.681);
-    RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEWithBump);
-
-    //RooDataHist* hPE = PE->binnedClone("DataToFit");
-    printf("Data vs PE: %12.1f %12.1f\n", fitData.sum(false), hPE.sum(false));
-
-    // Just for debug
-    if (false) {
-      TCanvas CanPE;
-      CanPE.cd();
-      RooPlot* PEplot = ws.var("mjjj")->frame();
-      hPE.plotOn(PEplot);
-      PEplot->Draw();
-      CanPE.SaveAs(TString("PE_")+label+".eps");
-    }
-
-    ws.import(hPE);
-    if (false) {
-      ws.var("nbkg")->Print();
-      TCanvas Can;
-      Can.cd();
-      RooPlot* datafit = ws.var("mjjj")->frame();
-      ws.data("DataToFit")->plotOn(datafit);
-      ws.pdf("model")->fitTo(*ws.data("DataToFit"));
-      ws.pdf("model")->plotOn(datafit);
-      datafit->Draw();
-      Can.SaveAs(TString("Fit_")+label+".eps");
-      ws.var("nbkg")->Print();
-    }
-    upper = DoFit(ws, modelConfig, label, method, Section);
-
-    delete hPEWithBump;
+    // Do nothing right now
   } else if (Section == -1) {
     ws.import(fitData);
     ws.var("nbkg")->Print();
@@ -695,11 +591,11 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     int const NBGThisPE = RooRandom::randomGenerator()->Poisson(rand_NBGThisPE);
     ws.var("nbkg")->setVal(NBGThisPE);
 
-    float rand_p0 = 999;
-    while (rand_p0 < ws.var("p0")->getMin() || rand_p0 > ws.var("p0")->getMax()) {
-      rand_p0 = ws.var("p0")->getVal() + (ws.var("p0S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
-      std::cout << "rand_p0:  " << rand_p0 << std::endl;
-    }
+    //float rand_p0 = 999;
+    //while (rand_p0 < ws.var("p0")->getMin() || rand_p0 > ws.var("p0")->getMax()) {
+    //  rand_p0 = ws.var("p0")->getVal() + (ws.var("p0S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
+    //  std::cout << "rand_p0:  " << rand_p0 << std::endl;
+    //}
 
     float rand_p1 = 999;
     while (rand_p1 < ws.var("p1")->getMin() || rand_p1 > ws.var("p1")->getMax()) {
@@ -716,7 +612,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     int NTest = RooRandom::randomGenerator()->Poisson(
       1.*(NBGFromFit + (ws.var("nbkgS0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1))
         );
-    TH1F* hPEF = GetPE3Param(NTest, rand_p0, rand_p1, rand_p2, label);
+    TH1F* hPEF = GetPE3Param(NTest, rand_p1, rand_p2, label);
     RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEF);
 
     //RooDataHist* hPE = PE->binnedClone("DataToFit");
