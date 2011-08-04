@@ -21,7 +21,7 @@ cd -
 
 EXE=/users/h2/dhidas/UserCode/dhidas/MultiJets/MultiJetsRooStats/RunRooStats3Param
 
-mkdir -pv $2
+mkdir -pv $2/Log
 cd $2
 
 echo "$EXE -1 $1"
