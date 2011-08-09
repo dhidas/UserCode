@@ -115,7 +115,7 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File, TString const Suffix)
   // on the go.. so this may or may not be used for more than data..
 
   char BUFF[200];
-  sprintf(BUFF,  "Mjjj_70_20_170_" + Suffix);
+  sprintf(BUFF,  "Mjjj_70_20_160_" + Suffix);
   //if (Mjjj <= 250)        sprintf(BUFF,  "Mjjj_45_20_130_" + Suffix);
   //else                    sprintf(BUFF,  "Mjjj_45_20_170_" + Suffix);
 
@@ -146,7 +146,9 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //root [4]   f->GetParameter(2)
   //(const Double_t)6.80003555073324922e-08
 
-
+  if (Mjjj > 500) {
+    return -5.22149835526679752e-03 + 1.59455383482881799e-05 * 500.0 + 6.80003555073324922e-08 * 500.0 * 500.0;
+  }
   return -5.22149835526679752e-03 + 1.59455383482881799e-05 * Mjjj + 6.80003555073324922e-08 * Mjjj * Mjjj;
 }
 
@@ -310,18 +312,20 @@ TH1F* GetMeAHist (TH1F* h)
 float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, int const method, int const statLevel, int const Section)
 {
   // Declare some constants
-  float const MININVMASS =     0;
-  float const MAXINVMASS =  1500;
+  float const MININVMASS =      0;
+  float const MAXINVMASS =   1500;
 
-  float const LUMINOSITY = 881.0;
-  float const LUMIERROR  =  0.06;
+  float const LUMINOSITY = 1089.0;
+  float const LUMIERROR  =   0.06;
 
-  //float const ACCERROR   = 0.13; // Old
-  float const ACCERROR   =  0.20; // Include MC stat pileup and JES
+  //float const ACCERROR   =  0.13; // Old
+  float const ACCERROR   =   0.20; // Include MC stat pileup and JES
 
-  float const MINXS      =     0;
+  float const MINXS      =      0;
   float const MAXXS      =   SignalMass < 350 ? 100 :
-                              SignalMass < 500 ? 50 : 25;
+                              SignalMass < 500 ? 50 : 
+                               SignalMass < 700 ? 10:
+                                SignalMass < 1000 ? 5 : 1;
 
   // Just a label
   char label[100];
@@ -349,7 +353,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.import(binnedData);
 
   // Get the fitted function and print values
-  TF1* Func = DataTH1F->GetFunction("total");
+  TF1* Func = DataTH1F->GetFunction("g3");
   printf("Fit parameters: %12.3f %12.3f %12.3f\n",
       Func->GetParameter(0),
       Func->GetParameter(1),
@@ -369,8 +373,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   mjjj->setRange(XMIN, XMAX);
 
   // Other fit, Used for syst numbers
-  TH1* SystTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "4jetscaled");
-  TF1* SystFunc = SystTH1->GetFunction("total");
+  TH1* SystTH1 = (TH1*) GetHistForMjjj(SignalMass, &InFile, "6jet");
+  TF1* SystFunc = SystTH1->GetFunction("g3");
   printf("Syst Numbers: %12.3f %12.3f %12.3f\n",
       SystFunc->GetParameter(0) / Func->GetParameter(0),
       SystFunc->GetParameter(1) / Func->GetParameter(1),
@@ -660,15 +664,15 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  float const StepSize  =  10;
+  float const StepSize  =  50;
 
   int const Section = atoi(argv[2]);
   float const BeginMass = argc == 4 ?  250 + atof(argv[3])*StepSize : 250;
-  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 700;
+  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 1450;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
-  //TString const InFileName = argv[1];
-  TString const InFileName = "/uscms/home/dhidas/MultiJetsRooStats/Data/DijetMassFit_data_881pb-1_6jets_pt70.root";
+  TString const InFileName = argv[1];
+  //TString const InFileName = "/uscms/home/dhidas/MultiJetsRooStats/Data/DijetMassFit_data_881pb-1_6jets_pt70.root";
   //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
@@ -678,25 +682,25 @@ int main (int argc, char* argv[])
 
   int const Method      =  1;
   int const Systematics =  6;
-  int const NPerSection =  2;
+  int const NPerSection =  1;
 
   // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(771723*(Section+2));
-  gRandom->SetSeed(791723*(Section+2));
+  RooRandom::randomGenerator()->SetSeed(721723*(Section+2));
+  gRandom->SetSeed(791423*(Section+2));
 
 
   // Setup output file
-  char OutName[150];
+  TString OutName;
   if (Section == -1 || Section == -2) {
-    if (argc == 2) {
-      sprintf(OutName, "Limits_Data.dat");
-    } else if (argc == 3) {
-      sprintf(OutName, "Limits_Data_%i.dat", (int) BeginMass);
+    if (argc == 3) {
+      OutName = "Limits_Data.dat";
+    } else if (argc == 4) {
+      OutName = TString::Format("Limits_Data_%i.dat", (int) BeginMass);
     }
   } else {
-    sprintf(OutName, "PELimits_%i.dat", Section);
+    OutName = TString::Format("PELimits_%i.dat", Section);
   }
-  FILE* Out = fopen(OutName, "w");
+  FILE* Out = fopen(OutName.Data(), "w");
   if (Out == NULL) {
     std::cerr << "ERROR: cannot open output file: " << OutName << std::endl;
     exit(1);
