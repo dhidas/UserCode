@@ -34,7 +34,7 @@ Log =    \$(OutDir)/Log/Log_\$(Process).log
 notify_user = dhidas@FNAL.GOV
 Arguments = \$(Process) \$(OutDir)
 +LENGTH="SHORT"
-Queue 25
+Queue 26
 +EOF
 
 

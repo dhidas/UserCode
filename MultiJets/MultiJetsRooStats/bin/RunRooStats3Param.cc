@@ -68,25 +68,25 @@
 
 TH1F* GetPE3Param (int const N, float const p1, float const p2, TString const label = "blah")
 {
-  TH1F* h = new TH1F("PE", "PE", 65, 230, 800);
+  TH1F* h = new TH1F("PE", "PE", 65, 230, 1520);
 
-  TF1 f("myfuncPE", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 800);
+  TF1 f("myfuncPE", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 1520);
   f.SetParameter(0, 1);
   f.SetParameter(1, p1);
   f.SetParameter(2, p2);
-  f.SetParameter(0, 1.0/f.Integral(230,800));
-  std::cout << "PE NORM" << "  " << f.Integral(230,800) << std::endl;
+  f.SetParameter(0, 1.0/f.Integral(230,1520));
+  std::cout << "PE NORM" << "  " << f.Integral(230,1520) << std::endl;
 
   for (int i = 0; i < N; ++i) {
     h->Fill(f.GetRandom());
   }
 
-  TF1 ff("mypseudo1", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 800);
+  TF1 ff("mypseudo1", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 1520);
   ff.SetParameter(0, 1);
   ff.SetParameter(1, p1);
   ff.SetParameter(2, p2);
-  ff.SetParameter(0, 10*N/ff.Integral(230,800));
-  std::cout << N << "  " << ff.Integral(230,800) << std::endl;
+  ff.SetParameter(0, 10*N/ff.Integral(230,1520));
+  std::cout << N << "  " << ff.Integral(230,1520) << std::endl;
 
   if (false) {
     TCanvas c;
@@ -146,8 +146,8 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //root [4]   f->GetParameter(2)
   //(const Double_t)6.80003555073324922e-08
 
-  if (Mjjj > 500) {
-    return -5.22149835526679752e-03 + 1.59455383482881799e-05 * 500.0 + 6.80003555073324922e-08 * 500.0 * 500.0;
+  if (Mjjj > 750) {
+    return -5.22149835526679752e-03 + 1.59455383482881799e-05 * 750.0 + 6.80003555073324922e-08 * 750.0 * 750.0;
   }
   return -5.22149835526679752e-03 + 1.59455383482881799e-05 * Mjjj + 6.80003555073324922e-08 * Mjjj * Mjjj;
 }
@@ -159,9 +159,13 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
   // Get the range for the gaussian width you want to use for a given Mjjj
   // This will eventually be a parametrization
 
-  if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
-  if (Mjjj < 350) return std::make_pair<float, float>(10 + 10 * (Mjjj - 250.) / 100., 15 + 10 * (Mjjj - 250.) / 100.);
-  return std::make_pair<float, float>(20, 25);
+  // Talk with dan, we decided to go with 0.7 * mass: 0.065 - 0.075
+
+  return std::make_pair<float, float>(Mjjj * 0.065, Mjjj * 0.075);
+
+  //if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
+  //if (Mjjj < 350) return std::make_pair<float, float>(10 + 10 * (Mjjj - 250.) / 100., 15 + 10 * (Mjjj - 250.) / 100.);
+  //return std::make_pair<float, float>(20, 25);
 }
 
 
@@ -240,7 +244,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(10000000);
+    mc.SetNumIters(1000000);
     mc.SetNumBurnInSteps(500);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
@@ -285,11 +289,21 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
 
 TH1F* GetMeAHist (TH1F* h)
 {
-  TH1F* g = new TH1F("MyNewHist", "MyNewHist", 63, 170, 800);
+  int NBins = h->GetNbinsX();
+  float const xmin =  230;
+  float const xmax = 1520;
+  float const binsize = h->GetBinWidth(0);
+  int   const nbins = (xmax - xmin)/binsize;
+  TH1F* g = new TH1F("MyNewHist", "MyNewHist", nbins, xmin, xmax);
 
-  for (int i = 17; i != 80; ++i) {
+  int const firstbin = h->FindBin(xmin);
+  int const lastbin  = h->FindBin(xmax);
+  printf("nbins %i  min %f  max %f  first %i  last %i\n", nbins, xmin, xmax, firstbin, lastbin);
+
+  for (int i = firstbin; i != lastbin; ++i) {
+    std::cout << "width: " << h->GetBinWidth(i) << std::endl;
     for (int j = 0; j != h->GetBinContent(i); ++j) {
-      g->Fill(10*i - 0.5);
+      g->Fill(binsize*i - 0.5);
     }
   }
 
@@ -312,8 +326,8 @@ TH1F* GetMeAHist (TH1F* h)
 float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, int const method, int const statLevel, int const Section)
 {
   // Declare some constants
-  float const MININVMASS =      0;
-  float const MAXINVMASS =   1500;
+  float const MININVMASS =    230;
+  float const MAXINVMASS =   1520;
 
   float const LUMINOSITY = 1089.0;
   float const LUMIERROR  =   0.06;
@@ -362,8 +376,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // Define range and bins
   float const XMIN = 230;//Func->GetXmin();
-  float const XMAX = 800;//Func->GetXmax();
-  int   const BINSMJJJ   = (int) (XMAX - XMIN) / 10;
+  float const XMAX = 1520;//Func->GetXmax();
+  float const BINSIZE = DataTH1F->GetBinWidth(0);
+  int   const BINSMJJJ   = (int) (XMAX - XMIN) / BINSIZE;
   ws.var("mjjj")->setBins(BINSMJJJ);
   printf("Fit Min/Max: %12.2f %12.2f\n", XMIN, XMAX);
 
@@ -385,7 +400,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     Can1.cd();
     DataTH1->Draw("ep");
     Func->Draw("samel");
-    SystFunc->Draw("lsame");
+    //SystFunc->Draw("lsame");
     Can1.SaveAs(TString("DefaultFit_")+label+".eps");
   }
 
@@ -668,7 +683,7 @@ int main (int argc, char* argv[])
 
   int const Section = atoi(argv[2]);
   float const BeginMass = argc == 4 ?  250 + atof(argv[3])*StepSize : 250;
-  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 1450;
+  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 1500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
   TString const InFileName = argv[1];
