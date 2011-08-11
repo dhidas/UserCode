@@ -11,7 +11,7 @@ cd -
 
 
 EXE=$_CONDOR_SCRATCH_DIR/RunRooStats3Param
-DAT=$_CONDOR_SCRATCH_DIR/DijetMassFit_data_881pb-1_6jets_pt70.root
+DAT=$_CONDOR_SCRATCH_DIR/data6jetpt70_160offset_1089pb3fits10GeVBins.root
 
 
 echo "$EXE $DAT $1"
