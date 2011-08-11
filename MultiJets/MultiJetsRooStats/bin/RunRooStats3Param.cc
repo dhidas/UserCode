@@ -592,7 +592,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     Can.cd();
     RooPlot* datafit = ws.var("mjjj")->frame();
     ws.data("DataToFit")->plotOn(datafit);
-    ws.pdf("model")->fitTo(*ws.data("DataToFit"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+    //ws.pdf("model")->fitTo(*ws.data("DataToFit"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
     ws.pdf("model")->plotOn(datafit);
     datafit->Draw();
     Can.SaveAs(TString("Fit_")+label+".eps");
@@ -654,7 +654,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       Can.cd();
       RooPlot* datafit = ws.var("mjjj")->frame();
       ws.data("DataToFit")->plotOn(datafit);
-      ws.pdf("model")->fitTo(*ws.data("DataToFit"));
+      //ws.pdf("model")->fitTo(*ws.data("DataToFit"));
       ws.pdf("model")->plotOn(datafit);
       datafit->Draw();
       Can.SaveAs(TString("Fit_")+label+".eps");
