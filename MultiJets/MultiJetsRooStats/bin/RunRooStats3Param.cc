@@ -139,17 +139,19 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //f->GetParameter(0)
   //f->GetParameter(1)
   //f->GetParameter(2)
-  //root [2]   f->GetParameter(0)
-  //(const Double_t)(-5.22149835526679752e-03)
-  //root [3]   f->GetParameter(1)
-  //(const Double_t)1.59455383482881799e-05
-  //root [4]   f->GetParameter(2)
-  //(const Double_t)6.80003555073324922e-08
+  //2nd degree polynomial numbers:
+  //p0                        =   -0.0173967   +/-   0.000576407 
+  //p1                        =  8.54121e-05   +/-   2.28888e-06 
+  //p2                        = -2.44194e-08   +/-   1.63146e-09 
+  //
+  //3rd degree polynomial numbers:
+  //p0                        =   -0.0145665   +/-   0.00123197  
+  //p1                        =  6.76445e-05   +/-   7.20844e-06 
+  //p2                        =  6.98476e-09   +/-   1.21912e-08 
+  //p3                        = -1.44941e-11   +/-   5.57607e-12 
 
-  if (Mjjj > 750) {
-    return -5.22149835526679752e-03 + 1.59455383482881799e-05 * 750.0 + 6.80003555073324922e-08 * 750.0 * 750.0;
-  }
-  return -5.22149835526679752e-03 + 1.59455383482881799e-05 * Mjjj + 6.80003555073324922e-08 * Mjjj * Mjjj;
+  return -0.0173967 + 8.54121e-05 * Mjjj + -2.44194e-08 * Mjjj * Mjjj;
+
 }
 
 
@@ -336,10 +338,13 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const ACCERROR   =   0.20; // Include MC stat pileup and JES
 
   float const MINXS      =      0;
-  float const MAXXS      =   SignalMass < 350 ? 100 :
-                              SignalMass < 500 ? 50 : 
-                               SignalMass < 700 ? 10:
-                                SignalMass < 1000 ? 5 : 1;
+  float const MAXXS      =   SignalMass <  350 ? 100   :
+                             SignalMass <  500 ?  50   : 
+                             SignalMass <  700 ?  10   :
+                             SignalMass <  900 ?   5   :
+                             SignalMass < 1000 ?   1.5 :
+                             SignalMass < 1200 ?   0.5 :
+                             0.5;
 
   // Just a label
   char label[100];
