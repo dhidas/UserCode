@@ -61,7 +61,8 @@ int KeithRooStats (TString const InFileName)
 
   // Observable
 
-  ws.factory("JetPt[507.,1684.]");
+  //ws.factory("JetPt[507.,1684.]");
+  ws.factory("JetPt[0.,3000.]");
   RooRealVar* JetPt = ws.var("JetPt");
   //ws.factory("RooGenericPdf::CutOffPt(-568. + 370*Scale)");  
   //ws.factory("JetPt[707.,1684.]");
@@ -74,7 +75,9 @@ int KeithRooStats (TString const InFileName)
     std::cerr << "ERROR: cannot open input file: " << InFileName << std::endl;
     exit(1);
   }
-  TH1F* DataTH1F = (TH1F*) InFile.Get("PtSpectrum_Ratio");
+  //TH1F* DataTH1F = (TH1F*) InFile.Get("PtSpectrum_Ratio");
+  TH1F* DataTH1F = (TH1F*) InFile.Get("BSignal");
+  //TH1F* DataTH1F = (TH1F*) InFile.Get("Extinction2");
   // TH1F* DataTH1FDen = (TH1F*) InFile.Get("Pt_Ybin_0");
   if (!DataTH1F) {
     std::cerr << "ERROR: cannot get histogram!!" << std::endl;
@@ -99,11 +102,13 @@ int KeithRooStats (TString const InFileName)
   ws.factory("RooUniform::standardmodel(JetPt)");
 
   // Signal
-  ws.factory("CutOffPt[500.,2000.]");
-  ws.factory("CutOffSpeed[10., 120.]");
+  ws.factory("CutOffPt[100.,3000.]");
+  ws.factory("CutOffSpeed[10., 200]");
   //ws.factory("NLO[0.3, 0.5]");
   //ws.factory("Height[0.5]");
-  ws.factory("RooGenericPdf::signalmodel('0.6 / (1.0 + TMath::Exp((JetPt - CutOffPt) / CutOffSpeed)) + 0.4', {JetPt, CutOffPt, CutOffSpeed})");
+  ws.factory("MyMult[1]");
+  ws.factory("MyOffset[0]");
+  ws.factory("RooGenericPdf::signalmodel('MyMult / (1.0 + TMath::Exp((JetPt - CutOffPt) / CutOffSpeed)) + MyOffset', {MyMult, JetPt, CutOffPt, CutOffSpeed, MyOffset})");
 
   //ws.factory("RooGaussian::signalmodel(JetPt, CutOffPt, CutOffSpeed)");
   //ws.import(signalmodel);
@@ -119,6 +124,8 @@ int KeithRooStats (TString const InFileName)
   Can.SaveAs("SignalModelFit.eps");
   Can.Clear();
   delete datafit;
+  ws.var("CutOffPt")->Print();
+  ws.var("CutOffSpeed")->Print();
 
   // standard model fit
   datafit = ws.var("JetPt")->frame();
@@ -154,11 +161,12 @@ int KeithRooStats (TString const InFileName)
   ws.factory("PROD::priors_withSys(priors, Syst_prior)");
   ws.factory("PROD::priors_withAll(priors_withSys, Theo_prior)");
   ws.factory("PROD::signalmodelWprior(signalmodel,priors_withAll)");
-  ws.defineSet("nuisSet","CutOffSpeed, Theo_prior, Syst_prior");
+  ws.defineSet("nuisSet","CutOffSpeed,Syst_prior,Theo_prior");
   ws.import(modelConfig);
 
   ws.Print();
   modelConfig.Print();
+
 
   RooStats::MCMCCalculator mc(*ws.data("DataToFit"), modelConfig);
   mc.SetNumBins(50);

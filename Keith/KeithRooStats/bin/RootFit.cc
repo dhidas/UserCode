@@ -24,9 +24,10 @@ int RootFit (TString const InFileName)
     throw;
   }
 
-  TH1F* Hist = (TH1F*) InFile.Get("Extinction6_Ratio");
+  //TH1F* Hist = (TH1F*) InFile.Get("Extinction6_Ratio");
+  TH1F* Hist = (TH1F*) InFile.Get("Extinction2");
 
-  TF1 Func("Func", "0.6 / (1.0 + TMath::Exp((x - [0]) / [1])) + 0.4", 507., 1684.);
+  TF1 Func("Func", "1.0 / (1.0 + TMath::Exp((x - [0]) / [1]))", 0., 2000.);
   Func.SetParameter(0, 500);
   Func.SetParameter(1, 50);
 
