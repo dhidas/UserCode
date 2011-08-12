@@ -40,7 +40,8 @@ int MakeFakeData ()
   float Rand;
   for (int i = 0; i < NEntries; ++i) {
     Rand = gRandom->Rndm() * XMax;
-    if (gRandom->Rndm() < SignalModel.Eval(Rand)) {
+    //printf("%12.3E %12.3E\n", Rand, SignalModel.Eval(Rand) / StandardModel.Eval(Rand));
+    if (gRandom->Rndm() < SignalModel.Eval(Rand) / StandardModel.Eval(Rand)) {
       HistS.Fill(Rand);
     }
   }
