@@ -57,10 +57,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (true) {
-    HiggsLimits.DrawFrame(200,5,500,750);
+    HiggsLimits.DrawFrame(250,0.05,1500,100);
     HiggsLimits.SetLogy(1);
   } else {
-    HiggsLimits.DrawFrame(200,0,500,750);
+    HiggsLimits.DrawFrame(250,0,1500,100);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
@@ -327,7 +327,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
-  Lumi->SetLabel("#int L = 35.1 pb^{-1}");
+  Lumi->SetLabel("#int L = 1089 pb^{-1}");
   Lumi->SetX1NDC(0.5);
   Lumi->SetX2NDC(0.9);
   Lumi->SetY1NDC(0.92);

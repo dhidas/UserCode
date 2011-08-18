@@ -342,8 +342,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
                              SignalMass <  500 ?  50   : 
                              SignalMass <  700 ?  10   :
                              SignalMass <  900 ?   5   :
-                             SignalMass < 1000 ?   1.5 :
-                             SignalMass < 1200 ?   0.5 :
+                             SignalMass < 1200 ?   1.5 :
+                             SignalMass < 1400 ?   0.5 :
                              0.5;
 
   // Just a label
