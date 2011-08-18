@@ -93,7 +93,7 @@ TH1F* GetPE3Param (int const N, float const p1, float const p2, TString const la
     c.cd();
     h->Draw();
     ff.Draw("same");
-    c.SaveAs(TString("MyPE_")+label+".eps");
+    c.SaveAs(TString("MyPE_")+label+".pdf");
   }
 
   return h;
@@ -132,6 +132,27 @@ TH1D* GetHistForMjjj (float const Mjjj, TFile* File, TString const Suffix)
 
 
 
+float GetACCERROR (float const m)
+{
+  // 250    0.203786
+  // 300    0.175059
+  // 350    0.127826
+  // 400    0.136186
+  // 450    0.140467
+  // 500    0.171287
+  // 750    0.212378
+  //1250    0.335977
+  //1500    0.565487
+
+  // Fixed 250-500 to the 250 val and fit pol3. might undershoot around 1000, but ain't too bad
+  //p0                        =     0.140834   +/-   0.0160314   
+  //p1                        =  0.000392742   +/-   7.3481e-05  
+  //p2                        = -7.49412e-07   +/-   9.60659e-08 
+  //p3                        =  4.50564e-10   +/-   3.69923e-11 
+
+  return 0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m;
+}
+
 float GetAcceptanceForMjjj (float const Mjjj)
 {
   // Get the acceptance for a given mass
@@ -145,12 +166,14 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //p2                        = -2.44194e-08   +/-   1.63146e-09 
   //
   //3rd degree polynomial numbers:
-  //p0                        =   -0.0145665   +/-   0.00123197  
-  //p1                        =  6.76445e-05   +/-   7.20844e-06 
-  //p2                        =  6.98476e-09   +/-   1.21912e-08 
-  //p3                        = -1.44941e-11   +/-   5.57607e-12 
+  //p0                        =     -0.01027   +/-   0.00171542  
+  //p1                        =  4.38331e-05   +/-   1.08208e-05 
+  //p2                        =  4.43791e-08   +/-   1.96505e-08 
+  //p3                        = -3.69426e-11   +/-   9.06989e-12
 
-  return -0.0173967 + 8.54121e-05 * Mjjj + -2.44194e-08 * Mjjj * Mjjj;
+
+  return -0.01027 + 4.38331e-05*Mjjj + 4.43791e-08*Mjjj*Mjjj - 3.69426e-11*Mjjj*Mjjj*Mjjj;
+  //return -0.0173967 + 8.54121e-05 * Mjjj + -2.44194e-08 * Mjjj * Mjjj;
 
 }
 
@@ -163,6 +186,7 @@ std::pair<float, float> GetGausWidthRange (float const Mjjj)
 
   // Talk with dan, we decided to go with 0.7 * mass: 0.065 - 0.075
 
+  //return std::make_pair<float, float>(Mjjj * 0.07, Mjjj * 0.07);
   return std::make_pair<float, float>(Mjjj * 0.065, Mjjj * 0.075);
 
   //if (Mjjj < 250) return std::make_pair<float, float>(10, 15);
@@ -230,7 +254,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
       TCanvas* canvas = new TCanvas("bcPlost","Posterior Distribution",500,500);
       RooPlot* plot = bc.GetPosteriorPlot();
       plot->Draw();
-      canvas->SaveAs(TString("BCpost")+label+".eps");
+      canvas->SaveAs(TString("BCpost")+label+".pdf");
     }
     upper=bInt->UpperLimit();
 
@@ -246,7 +270,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(1000000);
+    mc.SetNumIters(5000000);
     mc.SetNumBurnInSteps(500);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
@@ -259,7 +283,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
       TCanvas * c1 = new TCanvas("MCMCpost", "MCMCpost", 500, 500);
       RooStats::MCMCIntervalPlot mcPlot(*interval);
       mcPlot.Draw();
-      c1->SaveAs(TString("mcmcPost")+label+".eps");
+      c1->SaveAs(TString("mcmcPost")+label+".pdf");
     }
 
   } else if(method==2) {
@@ -277,7 +301,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
       RooStats::LikelihoodIntervalPlot* plotInt=new RooStats::LikelihoodIntervalPlot(plInt);
       plotInt->SetTitle("Profile Likelihood Ratio and Posterior for S");
       plotInt->Draw();
-      c1->SaveAs(TString("PLikePost")+label+".eps");
+      c1->SaveAs(TString("PLikePost")+label+".pdf");
     }
 
     upper = plInt->UpperLimit(*ws.var("xs"));
@@ -291,7 +315,6 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
 
 TH1F* GetMeAHist (TH1F* h)
 {
-  int NBins = h->GetNbinsX();
   float const xmin =  230;
   float const xmax = 1520;
   float const binsize = h->GetBinWidth(0);
@@ -303,7 +326,6 @@ TH1F* GetMeAHist (TH1F* h)
   printf("nbins %i  min %f  max %f  first %i  last %i\n", nbins, xmin, xmax, firstbin, lastbin);
 
   for (int i = firstbin; i != lastbin; ++i) {
-    std::cout << "width: " << h->GetBinWidth(i) << std::endl;
     for (int j = 0; j != h->GetBinContent(i); ++j) {
       g->Fill(binsize*i - 0.5);
     }
@@ -315,7 +337,7 @@ TH1F* GetMeAHist (TH1F* h)
     h->Draw();
     g->SetLineColor(6);
     g->Draw("same");
-    c->SaveAs("NewHist.eps");
+    c->SaveAs("NewHist.pdf");
   }
   return g;
 }
@@ -335,7 +357,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const LUMIERROR  =   0.06;
 
   //float const ACCERROR   =  0.13; // Old
-  float const ACCERROR   =   0.20; // Include MC stat pileup and JES
+  float const ACCERROR   =   GetACCERROR(SignalMass); // Include MC stat pileup and JES
 
   float const MINXS      =      0;
   float const MAXXS      =   SignalMass <  350 ? 100   :
@@ -406,7 +428,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     DataTH1->Draw("ep");
     Func->Draw("samel");
     //SystFunc->Draw("lsame");
-    Can1.SaveAs(TString("DefaultFit_")+label+".eps");
+    Can1.SaveAs(TString("DefaultFit_")+label+".pdf");
   }
 
   // Define variables for the background function and the function itself
@@ -470,7 +492,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.factory("RooLognormal::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
   ws.var("acceptanceS0")->setVal(1.0 + ACCERROR);
   ws.var("acceptance")->setVal(Acc);
-  ws.var("acceptance")->setRange(Acc * (1. - 3. * ACCERROR), Acc * (1. + 3. * ACCERROR));
+  ws.var("acceptance")->setRange(0, Acc * (1. + 3. * ACCERROR));
   ws.var("acceptanceM0")->setVal(Acc);
 
 
@@ -600,7 +622,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     //ws.pdf("model")->fitTo(*ws.data("DataToFit"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
     ws.pdf("model")->plotOn(datafit);
     datafit->Draw();
-    Can.SaveAs(TString("Fit_")+label+".eps");
+    Can.SaveAs(TString("Fit_")+label+".pdf");
     ws.var("nbkg")->Print();
 
     upper = DoFit(ws, modelConfig, label, method, Section);
@@ -649,7 +671,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       RooPlot* PEplot = ws.var("mjjj")->frame();
       hPE.plotOn(PEplot);
       PEplot->Draw();
-      CanPE.SaveAs(TString("PE_")+label+".eps");
+      CanPE.SaveAs(TString("PE_")+label+".pdf");
     }
 
     ws.import(hPE);
@@ -662,7 +684,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       //ws.pdf("model")->fitTo(*ws.data("DataToFit"));
       ws.pdf("model")->plotOn(datafit);
       datafit->Draw();
-      Can.SaveAs(TString("Fit_")+label+".eps");
+      Can.SaveAs(TString("Fit_")+label+".pdf");
       ws.var("nbkg")->Print();
     }
     upper = DoFit(ws, modelConfig, label, method, Section);
@@ -684,7 +706,7 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  float const StepSize  =  50;
+  float const StepSize  =  10;
 
   int const Section = atoi(argv[2]);
   float const BeginMass = argc == 4 ?  250 + atof(argv[3])*StepSize : 250;
@@ -743,7 +765,7 @@ int main (int argc, char* argv[])
     }
     fprintf(Out, "\n");
     fflush(Out);
-    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "Limits_Data.eps");
+    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "Limits_Data.pdf");
   } else {
     for (int ipe = Section * NPerSection; ipe < (Section+1) * NPerSection; ++ipe) {
       std::vector< std::pair<float, float> > MassLimitVec;

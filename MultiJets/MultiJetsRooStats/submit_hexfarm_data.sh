@@ -33,14 +33,13 @@ OutDir = ./
 Executable = run_hexfarm_data.sh
 
 universe = vanilla
-Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )&& Disk > 1000000
 Should_Transfer_Files = NO
 Output = \$(OutDir)/Log/Log_\$(Process).out
 Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
 notify_user = dhidas@FNAL.GOV
 Arguments = \$(Process)
-Queue 26
+Queue 126
 +EOF
 
 

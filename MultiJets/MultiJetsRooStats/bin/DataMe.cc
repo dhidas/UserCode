@@ -38,16 +38,22 @@ int DataMe (std::vector<std::string> const& Files)
     C.push_back( std::make_pair<float, float>(A,B) );
   }
 
+  FILE* fout = fopen("MyLimits.dat", "w");
+
   std::sort(C.begin(), C.end(), cmp);
 
   for (size_t i = 0; i != C.size(); ++i) {
     printf(" %10.3f", C[i].first);
+    fprintf(fout, " %10.3f", C[i].first);
   }
   printf("\n");
+  fprintf(fout, "\n");
   for (size_t i = 0; i != C.size(); ++i) {
     printf(" %10E", C[i].second);
+    fprintf(fout, " %10E", C[i].second);
   }
   printf("\n");
+  fprintf(fout, "\n");
 
   float X[C.size()];
   float Y[C.size()];
