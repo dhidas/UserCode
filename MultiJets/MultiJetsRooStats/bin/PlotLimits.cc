@@ -66,7 +66,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   HiggsLimits.cd();
 
   // Setup the Legend
-  TLegend MyLegend(0.66,0.6,0.88,0.88, "");
+  TLegend MyLegend(0.66,0.6,0.88,0.88, "     #sqrt{s} = 7 TeV");
   MyLegend.SetBorderSize(0);
   MyLegend.SetFillColor(0);
 
@@ -77,8 +77,21 @@ void DrawLimits (std::vector<TString> const& FileNames)
   std::string ShadeLabel;
 
   // TGraph for Model
-  float ModelX[7] = { 200, 250, 300, 350, 400, 450, 500 };
-  float ModelY[7] = {
+  float const XUncert[11] = {
+       15.5 / 100.,
+       15.5 / 100.,
+       15.7 / 100.,
+       16.2 / 100.,
+       16.0 / 100.,
+       16.4 / 100.,
+       17.1 / 100.,
+       18.4 / 100.,
+       20.4 / 100.,
+       23.6 / 100.,
+       27.9 / 100.
+  };
+  float ModelX[11] = { 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500 };
+  float ModelY[11] = {
         336.6  * 1.6877,
          88.28 * 1.7680,
          28.8  * 1.8462,
@@ -87,7 +100,42 @@ void DrawLimits (std::vector<TString> const& FileNames)
           2.09 * 2.0925,
           1.01 * 2.1879
   };
-  TGraph grModel(7, ModelX, ModelY);
+  float ModelYP[11] = {
+        ModelY[0]  * (1.0 + XUncert[0]),
+        ModelY[1]  * (1.0 + XUncert[1]),
+        ModelY[2]  * (1.0 + XUncert[2]),
+        ModelY[3]  * (1.0 + XUncert[3]),
+        ModelY[4]  * (1.0 + XUncert[4]),
+        ModelY[5]  * (1.0 + XUncert[5]),
+        ModelY[6]  * (1.0 + XUncert[6]),
+        ModelY[7]  * (1.0 + XUncert[7]),
+        ModelY[8]  * (1.0 + XUncert[8]),
+        ModelY[9]  * (1.0 + XUncert[9]),
+        ModelY[10] * (1.0 + XUncert[10])
+  };
+  float ModelYM[11] = {
+        ModelY[0]  * (1.0 - XUncert[0]),
+        ModelY[1]  * (1.0 - XUncert[1]),
+        ModelY[2]  * (1.0 - XUncert[2]),
+        ModelY[3]  * (1.0 - XUncert[3]),
+        ModelY[4]  * (1.0 - XUncert[4]),
+        ModelY[5]  * (1.0 - XUncert[5]),
+        ModelY[6]  * (1.0 - XUncert[6]),
+        ModelY[7]  * (1.0 - XUncert[7]),
+        ModelY[8]  * (1.0 - XUncert[8]),
+        ModelY[9]  * (1.0 - XUncert[9]),
+        ModelY[10] * (1.0 - XUncert[10])
+  };
+  TGraph grModel(11, ModelX, ModelY);
+  TGraph grModelP(11, ModelX, ModelYP);
+  TGraph grModelM(11, ModelX, ModelYM);
+  TGraph grModelShade(22);
+  for (int i = 0; i < 11; ++i) {
+    grModelShade.SetPoint(i, ModelX[i], ModelYP[i]);
+    grModelShade.SetPoint(11 + i, ModelX[11 - i - 1], ModelYM[11 - i - 1]);
+  }
+  grModelShade.SetFillColor(2);
+  grModelShade.SetFillStyle(3003);
 
   // Loop over all filenames
   for (size_t ifile=0; ifile != FileNames.size(); ++ifile) {
@@ -231,6 +279,11 @@ void DrawLimits (std::vector<TString> const& FileNames)
       ShadeLabel = MyLabel;
     }
 
+    // Add pbserved to legend to be above expected
+    if (DrawObserved) {
+      MyLegend.AddEntry(grObserved, (MyLabel+" Observed").c_str(), "l");
+    }
+
     // Draw the median
     grMedian->SetLineWidth(3);
     grMedian->SetFillColor(0);
@@ -252,7 +305,6 @@ void DrawLimits (std::vector<TString> const& FileNames)
       grObserved->SetLineColor(Color);
       grObserved->SetMarkerStyle(0);
       grObserved->Draw("l");
-      MyLegend.AddEntry(grObserved, (MyLabel+" Observed").c_str(), "l");
     }
 
     // Print the limits in a nice way
@@ -277,22 +329,33 @@ void DrawLimits (std::vector<TString> const& FileNames)
   //SMLine->Draw();
   //MyLegend.AddEntry(SMLine, "SM", "l");
   MyLegend.AddEntry(&grModel, "#sigma^{NLO}(Gluino)", "l");
+  MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
   grModel.SetLineWidth(2);
   grModel.SetLineColor(2);
   grModel.Draw("samec");
+  grModelP.SetLineWidth(1);
+  grModelP.SetLineColor(2);
+  grModelP.SetLineStyle(2);
+  grModelP.Draw("samec");
+  grModelM.SetLineWidth(1);
+  grModelM.SetLineColor(2);
+  grModelM.SetLineStyle(2);
+  grModelM.Draw("samec");
+  //grModelShade.Draw("samef");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
-  HMassLabel->SetLabel("Three Jet Mass [GeV/c^{2}]");
-  HMassLabel->SetX1NDC(0.60);
+  HMassLabel->SetLabel("M_{jjj} (GeV/c^{2})");
+  HMassLabel->SetX1NDC(0.71);
   HMassLabel->SetX2NDC(0.90);
-  HMassLabel->SetY1NDC(0.01);
-  HMassLabel->SetY2NDC(0.05);
+  HMassLabel->SetY1NDC(0.018);
+  HMassLabel->SetY2NDC(0.056);
   HMassLabel->SetFillColor(0);
-  HMassLabel->SetTextSize();
+  //HMassLabel->SetTextSize();
+  HMassLabel->SetTextSize(1.31);
   HMassLabel->Draw("same");
 
   TPaveLabel *YLabel = new TPaveLabel();
-  YLabel->SetLabel("95\% CL Limit #sigma #times BR (pb)");
+  YLabel->SetLabel("95\% CL Limit #sigma #times B (pb)");
   YLabel->SetX1NDC(0.00);
   YLabel->SetX2NDC(0.05);
   YLabel->SetY1NDC(0.10);
