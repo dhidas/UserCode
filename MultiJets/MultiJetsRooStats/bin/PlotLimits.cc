@@ -47,8 +47,9 @@ void DrawLimits (std::vector<TString> const& FileNames)
     return;
   }
 
-  // Should we draw the observed line?
+  // Should we draw the observed and/or expected line?
   bool const DrawObserved = true;
+  bool const DrawExpected = false;
 
   // Set the default style to plain
   gROOT->SetStyle("Plain");
@@ -98,7 +99,11 @@ void DrawLimits (std::vector<TString> const& FileNames)
          11.37 * 1.9250,
           4.69 * 2.0074,
           2.09 * 2.0925,
-          1.01 * 2.1879
+          1.01 * 2.1879,
+          0.103,
+          0.00745,
+          0.00652,
+          0.000602
   };
   float ModelYP[11] = {
         ModelY[0]  * (1.0 + XUncert[0]),
@@ -270,7 +275,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grShade2S->SetFillColor(5);
 
     // Draw the shades only for first file
-    if (true && ifile == 0) {
+    if (DrawExpected && ifile == 0) {
       std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
       UseShade2S = grShade2S;
       UseShade1S = grShade1S;
@@ -291,7 +296,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grMedian->SetMarkerColor(Color);
     grMedian->SetLineColor(Color);
     grMedian->SetMarkerStyle(0);
-    if (ifile == 0) {
+    if (DrawExpected && ifile == 0) {
       grMedian->Draw("l");
       MyLegend.AddEntry(grMedian, (MyLabel+" Expected").c_str(), "l");
     }
@@ -316,8 +321,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   }
 
   // Draw the sigma shaded bands and add to legend
-  MyLegend.AddEntry(UseShade1S, (ShadeLabel+" \\pm 1\\sigma").c_str(), "f");
-  MyLegend.AddEntry(UseShade2S, (ShadeLabel+" \\pm 2\\sigma").c_str(), "f");
+  if (DrawExpected) {
+    MyLegend.AddEntry(UseShade1S, (ShadeLabel+" \\pm 1\\sigma").c_str(), "f");
+    MyLegend.AddEntry(UseShade2S, (ShadeLabel+" \\pm 2\\sigma").c_str(), "f");
+  }
 
 
 
@@ -379,7 +386,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   TPaveLabel *RunII = new TPaveLabel();
   //RunII->SetLabel("CDF Run II Preliminary");
-  RunII->SetLabel("CMS");
+  RunII->SetLabel("CMS Preliminary");
   RunII->SetX1NDC(0.1);
   RunII->SetX2NDC(0.5);
   RunII->SetY1NDC(0.92);
