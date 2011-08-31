@@ -517,7 +517,7 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
     hToFit = DataClone;
 
     // Grab the background only LL
-    float const BGLL = 123;//-1.0 * MinimizeNLL(Section, -1, -999, fFunc, true, DoSyst);
+    float const BGLL = -1.0 * MinimizeNLL(Section, -1, -999, fFunc, true, DoSyst);
     if (BGLL == -9999) {
       std::cerr << "ERROR: bad BG only fit for data.  This is a real problem..." << std::endl;
       throw;
