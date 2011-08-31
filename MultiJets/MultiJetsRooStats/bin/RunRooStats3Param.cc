@@ -70,7 +70,7 @@ TH1F* GetPE3Param (int const N, float const p1, float const p2, TString const la
 {
   TH1F* h = new TH1F("PE", "PE", 65, 230, 1520);
 
-  TF1 f("myfuncPE", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 1520);
+  TF1 f("myfuncPE", "[0]*(((1. - x/7000.)^[1])/((x/7000.)^[2]))", 230, 1520);
   f.SetParameter(0, 1);
   f.SetParameter(1, p1);
   f.SetParameter(2, p2);
@@ -81,7 +81,7 @@ TH1F* GetPE3Param (int const N, float const p1, float const p2, TString const la
     h->Fill(f.GetRandom());
   }
 
-  TF1 ff("mypseudo1", "[0]*(((1. - x/7000.)^[1])/(x^[2]))", 230, 1520);
+  TF1 ff("mypseudo1", "[0]*(((1. - x/7000.)^[1])/((x/7000.)^[2]))", 230, 1520);
   ff.SetParameter(0, 1);
   ff.SetParameter(1, p1);
   ff.SetParameter(2, p2);
@@ -435,7 +435,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   //ws.factory("p0[0,2]");
   ws.factory("p1[40,60]");
   ws.factory("p2[-2,0]");
-  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / mjjj^p2)', {mjjj, p1, p2})");
+  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / (mjjj/7000.)^p2)', {mjjj, p1, p2})");
 
 
 
@@ -619,9 +619,10 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     Can.cd();
     RooPlot* datafit = ws.var("mjjj")->frame();
     ws.data("DataToFit")->plotOn(datafit);
-    //ws.pdf("model")->fitTo(*ws.data("DataToFit"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+    ws.pdf("model")->fitTo(*ws.data("DataToFit"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
     ws.pdf("model")->plotOn(datafit);
     datafit->Draw();
+    Can.SetLogy(1);
     Can.SaveAs(TString("Fit_")+label+".pdf");
     ws.var("nbkg")->Print();
 
