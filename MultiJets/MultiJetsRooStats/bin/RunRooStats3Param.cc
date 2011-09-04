@@ -150,6 +150,11 @@ float GetACCERROR (float const m)
   //p2                        = -7.49412e-07   +/-   9.60659e-08 
   //p3                        =  4.50564e-10   +/-   3.69923e-11 
 
+  // acceptance error test remove later on
+  //if (m >= 800) {
+  //  return 1.1653400;
+  //}
+
   return 0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m;
 }
 
