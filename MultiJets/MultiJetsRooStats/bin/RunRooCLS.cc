@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "StandardHypoTestInvDemo.h"
 
 #include "TF1.h"
 #include "TH1D.h"
@@ -52,6 +53,12 @@
 #include "RooStats/LikelihoodInterval.h"
 #include "RooStats/LikelihoodIntervalPlot.h"
 #include "RooStats/UpperLimitMCSModule.h"
+#include "RooStats/HypoTestResult.h"
+#include "RooStats/HybridCalculator.h"
+#include "RooStats/ToyMCSampler.h"
+#include "RooStats/HypoTestInverterPlot.h"
+#include "RooStats/HypoTestInverterResult.h"
+
 
 #include "TStopwatch.h"
 #include "TLatex.h"
@@ -244,7 +251,7 @@ void MakeGraph (std::vector< std::pair<float, float> > const& P, TString const T
 
 
 
-float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const label, int const method, int const Section)
+float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::ModelConfig& modelConfigBG, TString const label, int const method, int const Section, float const MAXXS)
 {
   // Used for the limits
   float upper = -1;
@@ -295,34 +302,119 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     delete interval;
 
   } else if(method==2) {
+
     //RooStats::ProfileLikelihoodCalculator plc(*ws.data("DataToFit"), modelConfig);
-    RooStats::ProfileLikelihoodCalculator plc;
-    plc.SetData( *ws.data("DataToFit") );
-    RooArgSet* nullParams = (RooArgSet*) ws.set("POI")->snapshot();
-    nullParams->setRealValue("xs", 0);
-    modelConfig.SetSnapshot(*nullParams);
-    plc.SetNullParameters( *nullParams);
-    plc.SetModel(modelConfig);
-    plc.SetConfidenceLevel(0.95);
-    RooStats::LikelihoodInterval* plInt = plc.GetInterval();
+    //RooStats::ProfileLikelihoodCalculator plc;
+    //plc.SetData( *ws.data("DataToFit") );
+    //RooArgSet* nullParams = (RooArgSet*) ws.set("POI")->snapshot();
+    //nullParams->setRealValue("xs", 0);
+    //modelConfig.SetSnapshot(*nullParams);
+    //plc.SetNullParameters( *nullParams);
+    //plc.SetModel(modelConfig);
+    //plc.SetConfidenceLevel(0.95);
+    //RunInverter(&ws, "modelConfig", "", "DataToFit", 0,  0, 100, 0, 100, 10, true, false, "nuisSet5b" );
+    //exit(0);
+    //RooStats::LikelihoodInterval* plInt = plc.GetInterval();
     //RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
     //plInt->LowerLimit( *ws.var("xs") ); // get ugly print out of the way. Fix.
     //RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
     //RooMsgService::instance().setGlobalKillBelow(msglevel);
 
-    // draw posterior plot
+    //RooStats::HypoTestResult* htr = plc.GetHypoTest();
+    //std::cout << htr->CLs() << std::endl;
+
+    //RooStats::HybridCalculator hc1(*ws.data("DataToFit"), modelConfig, modelConfigBG);
+    //RooStats::BinCountTestStat binCount("x");
+    //RooStats::ToyMCSampler *toymcs1 = (RooStats::ToyMCSampler*)hc1.GetTestStatSampler();
+    //toymcs1->SetNEventsPerToy(1); // because the model is in number counting form
+    //toymcs1->SetTestStatistic(&binCount); // set the test statistic
+    //hc1.SetToys(2000,100);
+    //hc1.ForcePriorNuisanceAlt(*ws.pdf("prior5b"));
+    //hc1.ForcePriorNuisanceNull(*ws.pdf("prior5b"));
+
+    //RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
+    //RooStats::HypoTestInverter hti(hc1);
+    //hti.SetConfidenceLevel(0.95);
+    //hti.UseCLs(true);
+    //hti.SetVerbose(true);
+    //RooStats::HypoTestInverterResult* htir = hti.GetInterval();
+    //htir->Print();
+
+    int const calculatorType = 0;
+    int const testStatType = 3;
+    bool const useCls = true;
+    int  const npoints = 500;
+    float const poimin = 0;
+    float const poimax = MAXXS;
+    int const ntoys = 1000;
+    bool const useNumberCounting = false;
+    const char* nuisPriorName = "";
+
+    RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "DataToFit", calculatorType, testStatType, useCls, npoints, poimin, poimax, ntoys, useNumberCounting, nuisPriorName);
+
+    double upperLimit = r->UpperLimit();
+    double ulError = r->UpperLimitEstimatedError();
+       const int nEntries = r->ArraySize();
+
+
+
+    std::cout << "The computed upper limit is: " << upperLimit << " +/- " << ulError << std::endl;
+    const char *  typeName = "Frequentist";
+    const char * resultName = r->GetName();
+    TString plotTitle = TString::Format("%s CL Scan for workspace %s",typeName,resultName);
+    RooStats::HypoTestInverterPlot *plot = new RooStats::HypoTestInverterPlot("HTI_Result_Plot",plotTitle,r);
+    plot->Draw("CLb 2CL");  // plot all and Clb
+
     if (Section == -1) {
-      TCanvas c1("PLikePost", "PLikePost", 500, 500);
-      RooStats::LikelihoodIntervalPlot plotInt(plInt);
-      plotInt.SetTitle("Profile Likelihood Ratio and Posterior for S");
-      plotInt.Draw();
-      c1.SaveAs(TString("PLikePost")+label+".pdf");
+      TCanvas * c2 = new TCanvas();
+      c2->Divide( 2, TMath::Ceil(nEntries/2));
+      for (int i=0; i<nEntries; i++) {
+        c2->cd(i+1);
+        RooStats::SamplingDistPlot * pl = plot->MakeTestStatPlot(i);
+        pl->SetLogYaxis(true);
+        pl->Draw();
+      }
+      c2->SaveAs("HTI_Result.eps");
     }
 
-    upper = plInt->UpperLimit(*ws.var("xs"));
 
-    delete nullParams;
-    delete plInt;
+    std::cout << " expected limit (median) " <<  r->GetExpectedUpperLimit(0) << std::endl;
+    std::cout << " expected limit (-1 sig) " << r->GetExpectedUpperLimit(-1) << std::endl;
+    std::cout << " expected limit (+1 sig) " << r->GetExpectedUpperLimit(1) << std::endl;
+
+
+    exit(0);
+
+
+    //RooStats::HypoTestResult *r1 = hc1.GetHypoTest();
+    //r1->Print();
+
+
+      
+    //RooStats::HybridCalculator myhc(*ws.data("DataToFit"), *ws.pdf("model"), *ws.pdf("background_model"), 0, 0);
+
+
+
+
+
+
+    exit(0);
+
+    //delete htr;
+
+    // draw posterior plot
+    if (Section == -1) {
+      //TCanvas c1("PLikePost", "PLikePost", 500, 500);
+      //RooStats::LikelihoodIntervalPlot plotInt(plInt);
+      //plotInt.SetTitle("Profile Likelihood Ratio and Posterior for S");
+      //plotInt.Draw();
+      //c1.SaveAs(TString("PLikePost")+label+".pdf");
+    }
+
+    //upper = plInt->UpperLimit(*ws.var("xs"));
+
+    //delete nullParams;
+    //delete plInt;
   }
   printf("UPPER LIMIT: %12.3f\n", upper);
 
@@ -569,7 +661,9 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // setup model config
   RooStats::ModelConfig modelConfig("modelConfig");
+  RooStats::ModelConfig modelConfigBG("modelConfigBG");
   modelConfig.SetWorkspace(ws);
+  modelConfigBG.SetWorkspace(ws);
 
   // Which prior and nuis are we using
   if (statLevel == 0) {
@@ -577,6 +671,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     ws.factory("PROD::background_model(background_noprior,prior0)");
     ws.var("sigWidth")->setConstant(false);
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
+    modelConfigBG.SetNuisanceParameters(*ws.set("nuisSet0"));
   } else if (statLevel == 6) {
     ws.factory("PROD::model(model_noprior,prior5b)");
     ws.factory("PROD::background_model(background_noprior,prior5b)");
@@ -588,6 +683,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     ws.var("lumi")->setConstant(false);
     ws.var("acceptance")->setConstant(false);
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet5b"));
+    modelConfigBG.SetNuisanceParameters(*ws.set("nuisSet5b"));
   } else {
     std::cerr << "HELP!" << std::endl;
     exit(1);
@@ -595,15 +691,26 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   modelConfig.SetPdf(*ws.pdf("model"));
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
+  modelConfig.SetObservables(*ws.var("mjjj"));
+  ws.var("xs")->setVal(0.0);
+  modelConfig.SetSnapshot(*ws.set("POI"));
+
+  modelConfigBG.SetPdf(*ws.pdf("background_model"));
+  modelConfigBG.SetParametersOfInterest(*ws.set("POI"));
+  modelConfigBG.SetObservables(*ws.var("mjjj"));
+  ws.var("xs")->setVal(0.0);
+  modelConfigBG.SetSnapshot(*ws.set("POI"));
 
   // import the modelconfig
   ws.import(modelConfig);
+  ws.import(modelConfigBG);
 
 
 
   // Just some print statements
   ws.Print();
   modelConfig.Print();
+  modelConfigBG.Print();
   ws.var("nbkg")->Print();
   ws.var("nbkgM0")->Print();
   ws.var("nbkgS0")->Print();
@@ -646,7 +753,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     Can.SaveAs(TString("Fit_")+label+".pdf");
     ws.var("nbkg")->Print();
 
-    upper = DoFit(ws, modelConfig, label, method, Section);
+    upper = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
   } else {
     // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
     // I can get you a toy, believe me.  There are ways, Dude.
@@ -708,7 +815,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       Can.SaveAs(TString("Fit_")+label+".pdf");
       ws.var("nbkg")->Print();
     }
-    upper = DoFit(ws, modelConfig, label, method, Section);
+    upper = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
 
     delete hPEF;
 
