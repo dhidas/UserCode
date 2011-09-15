@@ -341,9 +341,9 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::Mod
     //htir->Print();
 
     int const calculatorType = 0;
-    int const testStatType = 3;
+    int const testStatType = 2;
     bool const useCls = true;
-    int  const npoints = 500;
+    int  const npoints = 5;
     float const poimin = 0;
     float const poimax = MAXXS;
     int const ntoys = 1000;
