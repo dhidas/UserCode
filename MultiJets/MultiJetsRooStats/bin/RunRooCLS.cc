@@ -284,8 +284,8 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::Mod
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(5000000);
-    mc.SetNumBurnInSteps(500);
+    mc.SetNumIters(50000);
+    mc.SetNumBurnInSteps(5);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
@@ -303,58 +303,24 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::Mod
 
   } else if(method==2) {
 
-    //RooStats::ProfileLikelihoodCalculator plc(*ws.data("DataToFit"), modelConfig);
-    //RooStats::ProfileLikelihoodCalculator plc;
-    //plc.SetData( *ws.data("DataToFit") );
-    //RooArgSet* nullParams = (RooArgSet*) ws.set("POI")->snapshot();
-    //nullParams->setRealValue("xs", 0);
-    //modelConfig.SetSnapshot(*nullParams);
-    //plc.SetNullParameters( *nullParams);
-    //plc.SetModel(modelConfig);
-    //plc.SetConfidenceLevel(0.95);
-    //RunInverter(&ws, "modelConfig", "", "DataToFit", 0,  0, 100, 0, 100, 10, true, false, "nuisSet5b" );
-    //exit(0);
-    //RooStats::LikelihoodInterval* plInt = plc.GetInterval();
-    //RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
-    //plInt->LowerLimit( *ws.var("xs") ); // get ugly print out of the way. Fix.
-    //RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
-    //RooMsgService::instance().setGlobalKillBelow(msglevel);
 
-    //RooStats::HypoTestResult* htr = plc.GetHypoTest();
-    //std::cout << htr->CLs() << std::endl;
-
-    //RooStats::HybridCalculator hc1(*ws.data("DataToFit"), modelConfig, modelConfigBG);
-    //RooStats::BinCountTestStat binCount("x");
-    //RooStats::ToyMCSampler *toymcs1 = (RooStats::ToyMCSampler*)hc1.GetTestStatSampler();
-    //toymcs1->SetNEventsPerToy(1); // because the model is in number counting form
-    //toymcs1->SetTestStatistic(&binCount); // set the test statistic
-    //hc1.SetToys(2000,100);
-    //hc1.ForcePriorNuisanceAlt(*ws.pdf("prior5b"));
-    //hc1.ForcePriorNuisanceNull(*ws.pdf("prior5b"));
-
-    //RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
-    //RooStats::HypoTestInverter hti(hc1);
-    //hti.SetConfidenceLevel(0.95);
-    //hti.UseCLs(true);
-    //hti.SetVerbose(true);
-    //RooStats::HypoTestInverterResult* htir = hti.GetInterval();
-    //htir->Print();
-
-    int const calculatorType = 0;
-    int const testStatType = 2;
+    int const calculatorType = 1;
+    int const testStatType = 3;
     bool const useCls = true;
-    int  const npoints = 5;
-    float const poimin = 0;
+    int  const npoints = 10;
+    float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own)
     float const poimax = MAXXS;
-    int const ntoys = 1000;
+    int const ntoys = 2;
     bool const useNumberCounting = false;
-    const char* nuisPriorName = "";
+    const char* nuisPriorName = "prior5b";
 
-    RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "DataToFit", calculatorType, testStatType, useCls, npoints, poimin, poimax, ntoys, useNumberCounting, nuisPriorName);
+    ws.SaveAs("Dean.root");
+
+    RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
     double upperLimit = r->UpperLimit();
     double ulError = r->UpperLimitEstimatedError();
-       const int nEntries = r->ArraySize();
+    const int nEntries = r->ArraySize();
 
 
 
@@ -633,6 +599,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   ws.defineSet("nuisSet0","sigWidth");
   ws.factory("PROD::prior5b(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
   ws.defineSet("nuisSet5b","nbkg,p1,p2,lumi,acceptance,sigWidth");
+  ws.defineSet("nuisSet5bBG","nbkg,p1,p2");
   
 
   // let's not fix the cross section..just to make sure
@@ -683,7 +650,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     ws.var("lumi")->setConstant(false);
     ws.var("acceptance")->setConstant(false);
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet5b"));
-    modelConfigBG.SetNuisanceParameters(*ws.set("nuisSet5b"));
+    modelConfigBG.SetNuisanceParameters(*ws.set("nuisSet5bBG"));
   } else {
     std::cerr << "HELP!" << std::endl;
     exit(1);
@@ -693,13 +660,33 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
   modelConfig.SetObservables(*ws.var("mjjj"));
   ws.var("xs")->setVal(0.0);
-  modelConfig.SetSnapshot(*ws.set("POI"));
+  //ws.pdf("model")->fitTo(*ws.data("DataToFit"));
+  ws.pdf("model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+  //ws.factory("poiAndNuis::set(POI,nuisSet5b)");
+  RooArgSet* poiAndNuis = new RooArgSet("poiAndNuis");
+  poiAndNuis->add(*modelConfig.GetNuisanceParameters());
+  poiAndNuis->add(*modelConfig.GetParametersOfInterest());
+  modelConfig.SetPriorPdf(*ws.pdf("prior5b"));
+  modelConfig.SetSnapshot(*poiAndNuis);
+  //modelConfig.SetGlobalObservables( *poiAndNuis );
+  modelConfig.SetGlobalObservables( RooArgSet() );
+  delete poiAndNuis;
+
 
   modelConfigBG.SetPdf(*ws.pdf("background_model"));
   modelConfigBG.SetParametersOfInterest(*ws.set("POI"));
   modelConfigBG.SetObservables(*ws.var("mjjj"));
+  modelConfigBG.SetPriorPdf(*ws.pdf("prior5b"));
+  ws.pdf("background_model")->fitTo(*ws.data("data"));
   ws.var("xs")->setVal(0.0);
-  modelConfigBG.SetSnapshot(*ws.set("POI"));
+  poiAndNuis = new RooArgSet("poiAndNuisBG");
+  poiAndNuis->add(*modelConfigBG.GetNuisanceParameters());
+  //poiAndNuis->add(*modelConfigBG.GetParametersOfInterest());
+  ws.pdf("background_model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+  //modelConfigBG.SetGlobalObservables( *poiAndNuis );
+  modelConfigBG.SetGlobalObservables( RooArgSet() );
+  modelConfigBG.SetSnapshot(*poiAndNuis);
+  delete poiAndNuis;
 
   // import the modelconfig
   ws.import(modelConfig);
