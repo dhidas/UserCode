@@ -265,14 +265,15 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const calculatorType = 1;
     int   const testStatType = 3;
     bool  const useCls = true;
-    int   const npoints = 10;
-    float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own)
+    int   const npoints = 20;
+    float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
-    int   const ntoys = 2;
+    int   const ntoys = 200;
     bool  const useNumberCounting = false;
     const char* nuisPriorName = "prior5b";
 
-    ws.SaveAs("Dean.root");
+    // For debugging
+    //ws.SaveAs(TString("DeanWS_")+label+".root");
 
     RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
@@ -298,7 +299,7 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
         pl->SetLogYaxis(true);
         pl->Draw();
       }
-      c2.SaveAs("HTI_Result.eps");
+      c2.SaveAs(TString("HTI_Result_")+label+".pdf");
     }
 
     Limits.push_back(r->GetExpectedUpperLimit(-2));
@@ -308,27 +309,13 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     Limits.push_back(r->GetExpectedUpperLimit(2));
     Limits.push_back(upper);
 
-    printf(" expected limit (+2 sig) %12.3E\n", Limits[0]);
-    printf(" expected limit (+1 sig) %12.3E\n", Limits[1]);
+    printf(" expected limit (-2 sig) %12.3E\n", Limits[0]);
+    printf(" expected limit (-1 sig) %12.3E\n", Limits[1]);
     printf(" expected limit (median) %12.3E\n", Limits[2]);
-    printf(" expected limit (-1 sig) %12.3E\n", Limits[3]);
+    printf(" expected limit (+1 sig) %12.3E\n", Limits[3]);
     printf(" expected limit (+2 sig) %12.3E\n", Limits[4]);
     printf(" observed limit          %12.3E\n", Limits[5]);
 
-
-    // draw posterior plot
-    if (Section == -1) {
-      //TCanvas c1("PLikePost", "PLikePost", 500, 500);
-      //RooStats::LikelihoodIntervalPlot plotInt(plInt);
-      //plotInt.SetTitle("Profile Likelihood Ratio and Posterior for S");
-      //plotInt.Draw();
-      //c1.SaveAs(TString("PLikePost")+label+".pdf");
-    }
-
-    //upper = plInt->UpperLimit(*ws.var("xs"));
-
-    //delete nullParams;
-    //delete plInt;
   } else {
     std::cerr << "ERROR: what method do you want anyway!??" << std::endl;
     throw;
@@ -380,7 +367,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   float const MININVMASS =    230;
   float const MAXINVMASS =   1520;
 
-  float const LUMINOSITY = 1089.0;
+  float const LUMINOSITY = 2177.0;
   float const LUMIERROR  =   0.06;
 
   //float const ACCERROR   =  0.13; // Old
