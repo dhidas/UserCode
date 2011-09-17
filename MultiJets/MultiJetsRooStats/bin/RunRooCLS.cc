@@ -251,122 +251,70 @@ void MakeGraph (std::vector< std::pair<float, float> > const& P, TString const T
 
 
 
-float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::ModelConfig& modelConfigBG, TString const label, int const method, int const Section, float const MAXXS)
+std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::ModelConfig& modelConfigBG, TString const label, int const method, int const Section, float const MAXXS)
 {
   // Used for the limits
-  float upper = -1;
+  std::vector<float> Limits;
 
   // The different methods
   if(method==0) {
-    RooStats::BayesianCalculator bc(*ws.data("DataToFit"), modelConfig);
-    bc.SetConfidenceLevel(0.95);
-    bc.SetLeftSideTailFraction(0.0);
-    RooStats::SimpleInterval* bInt = bc.GetInterval();
-    if (Section == -1) {
-      TCanvas canvas("bcPlost","Posterior Distribution",500,500);
-      RooPlot* plot = bc.GetPosteriorPlot();
-      plot->Draw();
-      canvas.SaveAs(TString("BCpost")+label+".pdf");
-      delete plot;
-    }
-    upper=bInt->UpperLimit();
-    delete bInt;
-
   } else if(method==1) {
-    //RooStats::ProposalHelper ph;
-    //ph.SetVariables((RooArgSet&)fit->floatParsFinal());
-    //ph.SetCovMatrix(fit->covarianceMatrix());
-    //ph.SetUpdateProposalParameters(true);
-    //ph.SetCacheSize(100);
-    //RooStats::ProposalFunction* pdfProp = ph.GetProposalFunction();
-
-    RooStats::MCMCCalculator mc(*ws.data("DataToFit"), modelConfig);
-    mc.SetNumBins(50);
-    mc.SetConfidenceLevel(0.95);
-    mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(50000);
-    mc.SetNumBurnInSteps(5);
-    //mc.SetProposalFunction(*pdfProp);
-    RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
-
-    // Upper limit
-    upper=interval->UpperLimit(*ws.var("xs"));
-
-    // draw posterior plot for data
-    if (Section == -1) {
-      TCanvas * c1 = new TCanvas("MCMCpost", "MCMCpost", 500, 500);
-      RooStats::MCMCIntervalPlot mcPlot(*interval);
-      mcPlot.Draw();
-      c1->SaveAs(TString("mcmcPost")+label+".pdf");
-    }
-    delete interval;
-
   } else if(method==2) {
 
 
-    int const calculatorType = 1;
-    int const testStatType = 3;
-    bool const useCls = true;
-    int  const npoints = 10;
+    int   const calculatorType = 1;
+    int   const testStatType = 3;
+    bool  const useCls = true;
+    int   const npoints = 10;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own)
     float const poimax = MAXXS;
-    int const ntoys = 2;
-    bool const useNumberCounting = false;
+    int   const ntoys = 2;
+    bool  const useNumberCounting = false;
     const char* nuisPriorName = "prior5b";
 
     ws.SaveAs("Dean.root");
 
     RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
-    double upperLimit = r->UpperLimit();
+    double upper = r->UpperLimit();
     double ulError = r->UpperLimitEstimatedError();
     const int nEntries = r->ArraySize();
 
 
 
-    std::cout << "The computed upper limit is: " << upperLimit << " +/- " << ulError << std::endl;
-    const char *  typeName = "Frequentist";
+    std::cout << "The computed upper limit is: " << upper << " +/- " << ulError << std::endl;
+    const char *  typeName = "Hybrid";
     const char * resultName = r->GetName();
     TString plotTitle = TString::Format("%s CL Scan for workspace %s",typeName,resultName);
     RooStats::HypoTestInverterPlot *plot = new RooStats::HypoTestInverterPlot("HTI_Result_Plot",plotTitle,r);
     plot->Draw("CLb 2CL");  // plot all and Clb
 
     if (Section == -1) {
-      TCanvas * c2 = new TCanvas();
-      c2->Divide( 2, TMath::Ceil(nEntries/2));
+      TCanvas c2;
+      c2.Divide( 2, TMath::Ceil(nEntries/2));
       for (int i=0; i<nEntries; i++) {
-        c2->cd(i+1);
+        c2.cd(i+1);
         RooStats::SamplingDistPlot * pl = plot->MakeTestStatPlot(i);
         pl->SetLogYaxis(true);
         pl->Draw();
       }
-      c2->SaveAs("HTI_Result.eps");
+      c2.SaveAs("HTI_Result.eps");
     }
 
+    Limits.push_back(r->GetExpectedUpperLimit(-2));
+    Limits.push_back(r->GetExpectedUpperLimit(-1));
+    Limits.push_back(r->GetExpectedUpperLimit(0));
+    Limits.push_back(r->GetExpectedUpperLimit(1));
+    Limits.push_back(r->GetExpectedUpperLimit(2));
+    Limits.push_back(upper);
 
-    std::cout << " expected limit (median) " <<  r->GetExpectedUpperLimit(0) << std::endl;
-    std::cout << " expected limit (-1 sig) " << r->GetExpectedUpperLimit(-1) << std::endl;
-    std::cout << " expected limit (+1 sig) " << r->GetExpectedUpperLimit(1) << std::endl;
+    printf(" expected limit (+2 sig) %12.3E\n", Limits[0]);
+    printf(" expected limit (+1 sig) %12.3E\n", Limits[1]);
+    printf(" expected limit (median) %12.3E\n", Limits[2]);
+    printf(" expected limit (-1 sig) %12.3E\n", Limits[3]);
+    printf(" expected limit (+2 sig) %12.3E\n", Limits[4]);
+    printf(" observed limit          %12.3E\n", Limits[5]);
 
-
-    exit(0);
-
-
-    //RooStats::HypoTestResult *r1 = hc1.GetHypoTest();
-    //r1->Print();
-
-
-      
-    //RooStats::HybridCalculator myhc(*ws.data("DataToFit"), *ws.pdf("model"), *ws.pdf("background_model"), 0, 0);
-
-
-
-
-
-
-    exit(0);
-
-    //delete htr;
 
     // draw posterior plot
     if (Section == -1) {
@@ -381,10 +329,12 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, RooStats::Mod
 
     //delete nullParams;
     //delete plInt;
+  } else {
+    std::cerr << "ERROR: what method do you want anyway!??" << std::endl;
+    throw;
   }
-  printf("UPPER LIMIT: %12.3f\n", upper);
 
-  return upper;
+  return Limits;
 }
 
 
@@ -424,7 +374,7 @@ TH1F* GetMeAHist (TH1F* h)
 
 
 
-float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, int const method, int const statLevel, int const Section)
+std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const SignalMass, int const method, int const statLevel, int const Section)
 {
   // Declare some constants
   float const MININVMASS =    230;
@@ -722,7 +672,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
 
-  float upper = -1;
+  std::vector<float> Limits;
   if (Section == -2) {
     // Do nothing right now
   } else if (Section == -1) {
@@ -740,7 +690,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
     Can.SaveAs(TString("Fit_")+label+".pdf");
     ws.var("nbkg")->Print();
 
-    upper = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
+    Limits = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
   } else {
     // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
     // I can get you a toy, believe me.  There are ways, Dude.
@@ -802,7 +752,7 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
       Can.SaveAs(TString("Fit_")+label+".pdf");
       ws.var("nbkg")->Print();
     }
-    upper = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
+    Limits = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
 
     delete hPEF;
 
@@ -810,14 +760,14 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
 
 
-  return upper;
+  return Limits;
 }
 
 
 int main (int argc, char* argv[])
 {
-  if (argc != 3 && argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " [InFile] [Section] (if -1, mass)" << std::endl;
+  if (argc != 4) {
+    std::cerr << "Usage: " << argv[0] << " [InFile] [Section] (if -1, mass id)" << std::endl;
     return 1;
   }
 
@@ -825,35 +775,22 @@ int main (int argc, char* argv[])
 
   int const Section = atoi(argv[2]);
   float const BeginMass = argc == 4 ?  250 + atof(argv[3])*StepSize : 250;
-  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 1500;
-  std::cout << BeginMass << "  " << EndMass << std::endl;
+  std::cout << "BeginMass: " << BeginMass << std::endl;
 
   TString const InFileName = argv[1];
-  //TString const InFileName = "/uscms/home/dhidas/MultiJetsRooStats/Data/DijetMassFit_data_881pb-1_6jets_pt70.root";
-  //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-
-  //float const BeginMass = 200;
-  //float const EndMass   = 500;
 
   int const Method      =  2;
   int const Systematics =  6;
-  int const NPerSection =  1;
 
   // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(721723*(Section+2));
-  gRandom->SetSeed(791423*(Section+2));
+  RooRandom::randomGenerator()->SetSeed(121723*(Section+2));
+  gRandom->SetSeed(711423*(Section+2));
 
 
   // Setup output file
   TString OutName;
-  if (Section == -1 || Section == -2) {
-    if (argc == 3) {
-      OutName = "Limits_Data.dat";
-    } else if (argc == 4) {
-      OutName = TString::Format("Limits_Data_%i.dat", (int) BeginMass);
-    }
+  if (Section == -1) {
+    OutName = TString::Format("Limits_Data_%i.dat", (int) BeginMass);
   } else {
     OutName = TString::Format("PELimits_%i.dat", Section);
   }
@@ -862,35 +799,24 @@ int main (int argc, char* argv[])
     std::cerr << "ERROR: cannot open output file: " << OutName << std::endl;
     exit(1);
   }
-  for (float ThisMass = BeginMass; ThisMass <= EndMass; ThisMass += StepSize) {
-    fprintf(Out, "%10.3f ", ThisMass);
-  }
-  fprintf(Out, "\n");
 
 
 
   // Print header to outfile
 
 
-  if (Section == -1 || Section == -2) {
-    std::vector< std::pair<float, float> > MassLimitVec;
-    for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
-      MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, Section)) );
-      fprintf(Out, "%10E ", MassLimitVec.back().second);
-    }
-    fprintf(Out, "\n");
-    fflush(Out);
-    MakeGraph(MassLimitVec, "95\% C.L.", "M_{jjj}", "95\% C.L. #sigma (pb)", "Limits_Data.pdf");
+  if (Section == -1) {
+    std::vector<float> Limits = RunMultiJetsRooStats(InFileName, BeginMass, Method, Systematics, Section);
+    fprintf(Out, "%10E\n", BeginMass);
+    fprintf(Out, "%10E\n", Limits[0]);
+    fprintf(Out, "%10E\n", Limits[1]);
+    fprintf(Out, "%10E\n", Limits[2]);
+    fprintf(Out, "%10E\n", Limits[3]);
+    fprintf(Out, "%10E\n", Limits[4]);
+    fprintf(Out, "%10E\n", Limits[5]);
   } else {
-    for (int ipe = Section * NPerSection; ipe < (Section+1) * NPerSection; ++ipe) {
-      std::vector< std::pair<float, float> > MassLimitVec;
-      for (float Mass = BeginMass; Mass <= EndMass; Mass += StepSize) {
-        MassLimitVec.push_back( std::make_pair<float, float>(Mass, RunMultiJetsRooStats(InFileName, Mass, Method, Systematics, Section)) );
-        fprintf(Out, "%10E ", MassLimitVec.back().second);
-      }
-      fprintf(Out, "\n");
-      fflush(Out);
-    }
+    std::cout << "Oh no, what's going on" << std::endl;
+    throw;
   }
 
   return 0;
