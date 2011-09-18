@@ -22,6 +22,7 @@ mkdir -pv $OutDir/Log $OutDir
 
 cp -v run_hexfarm_cls.sh $OutDir
 cp -v RunRooCLS $OutDir
+cp -v bin/RunRooCLS.cc $OutDir
 cp -v Data/$InFileName $OutDir
 
 
