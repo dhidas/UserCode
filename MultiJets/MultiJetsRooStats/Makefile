@@ -38,7 +38,7 @@ dict/%_dict.cc : include/%.h dict/%_linkdef.h
 allclean: cleanimg clean
 
 cleanimg:
-	rm -f *.eps *.gif
+	rm -f *.eps *.gif *.pdf
 
 clean:
 	rm -f $(EXECS) $(SCRIPTS) lib/*.o dict/*_dict.cc dict/*_dict.h Roo*Func*.*

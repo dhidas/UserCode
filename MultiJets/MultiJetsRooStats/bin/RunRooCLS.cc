@@ -265,15 +265,15 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const calculatorType = 1;
     int   const testStatType = 3;
     bool  const useCls = true;
-    int   const npoints = 30;
+    int   const npoints = 5;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
-    int   const ntoys = 200;
+    int   const ntoys = 100;
     bool  const useNumberCounting = false;
     const char* nuisPriorName = "prior5b";
 
     // For debugging
-    //ws.SaveAs(TString("DeanWS_")+label+".root");
+    ws.SaveAs(TString("DeanWS_")+label+".root");
 
     RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
@@ -520,6 +520,8 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   ws.var("sigWidth")->setVal( GetGausWidthRange(SignalMass).first/2. + GetGausWidthRange(SignalMass).second/2.);
   ws.var("sigWidth")->setRange( GetGausWidthRange(SignalMass).first, GetGausWidthRange(SignalMass).second);
 
+  ws.factory("RooUniform::sigWidth_prior(sigWidth)");
+
 
   // Define models (sig+bg, and bg only)
   ws.factory("SUM::model_noprior(nsig*signal, nbkg*background)");
@@ -534,7 +536,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   // use this one
   ws.factory("PROD::prior0(xs_prior)");
   ws.defineSet("nuisSet0","sigWidth");
-  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
+  ws.factory("PROD::prior5b(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
   ws.defineSet("nuisSet5b","nbkg,p1,p2,lumi,acceptance,sigWidth");
   ws.defineSet("nuisSet5bBG","nbkg,p1,p2");
   

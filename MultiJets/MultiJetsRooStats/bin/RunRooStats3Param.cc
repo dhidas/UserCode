@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "StandardHypoTestInvDemo.h"
 
 #include "TF1.h"
 #include "TH1D.h"
@@ -251,26 +252,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
 
   // The different methods
   if(method==0) {
-    RooStats::BayesianCalculator bc(*ws.data("DataToFit"), modelConfig);
-    bc.SetConfidenceLevel(0.95);
-    bc.SetLeftSideTailFraction(0.0);
-    RooStats::SimpleInterval* bInt = bc.GetInterval();
-    if (Section == -1) {
-      TCanvas* canvas = new TCanvas("bcPlost","Posterior Distribution",500,500);
-      RooPlot* plot = bc.GetPosteriorPlot();
-      plot->Draw();
-      canvas->SaveAs(TString("BCpost")+label+".pdf");
-    }
-    upper=bInt->UpperLimit();
-
   } else if(method==1) {
-    //RooStats::ProposalHelper ph;
-    //ph.SetVariables((RooArgSet&)fit->floatParsFinal());
-    //ph.SetCovMatrix(fit->covarianceMatrix());
-    //ph.SetUpdateProposalParameters(true);
-    //ph.SetCacheSize(100);
-    //RooStats::ProposalFunction* pdfProp = ph.GetProposalFunction();
-
     RooStats::MCMCCalculator mc(*ws.data("DataToFit"), modelConfig);
     mc.SetNumBins(50);
     mc.SetConfidenceLevel(0.95);
@@ -292,24 +274,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     }
 
   } else if(method==2) {
-    RooStats::ProfileLikelihoodCalculator plc(*ws.data("DataToFit"), modelConfig);
-    plc.SetConfidenceLevel(0.95);
-    RooStats::LikelihoodInterval* plInt=plc.GetInterval();
-    RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
-    RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
-    plInt->LowerLimit( *ws.var("xs") ); // get ugly print out of the way. Fix.
-    RooMsgService::instance().setGlobalKillBelow(msglevel);
-
-    // draw posterior plot
-    if (Section == -1) {
-      TCanvas * c1 = new TCanvas("PLikePost", "PLikePost", 500, 500);
-      RooStats::LikelihoodIntervalPlot* plotInt=new RooStats::LikelihoodIntervalPlot(plInt);
-      plotInt->SetTitle("Profile Likelihood Ratio and Posterior for S");
-      plotInt->Draw();
-      c1->SaveAs(TString("PLikePost")+label+".pdf");
-    }
-
-    upper = plInt->UpperLimit(*ws.var("xs"));
+    RunInverter(&ws, "model", "background_model", "DataToFit", 0, 3, true, 5, 0, 100, 1000, false, "");
   }
   printf("UPPER LIMIT: %12.3f\n", upper);
 
@@ -728,7 +693,7 @@ int main (int argc, char* argv[])
   //float const BeginMass = 200;
   //float const EndMass   = 500;
 
-  int const Method      =  1;
+  int const Method      =  2;
   int const Systematics =  6;
   int const NPerSection =  1;
 
