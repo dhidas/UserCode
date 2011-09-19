@@ -265,7 +265,7 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const calculatorType = 1;
     int   const testStatType = 3;
     bool  const useCls = true;
-    int   const npoints = 20;
+    int   const npoints = 30;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
     int   const ntoys = 200;
@@ -375,9 +375,9 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
 
   float const MINXS      =      0;
   float const MAXXS      =   SignalMass <  350 ? 100   :
-                             SignalMass <  500 ?  50   : 
+                             SignalMass <  500 ?  30   : 
                              SignalMass <  800 ?  20   :
-                             SignalMass <  900 ?  10   :
+                             SignalMass <  900 ?  15   :
                              SignalMass < 1200 ?  10   :
                              SignalMass < 1400 ?  10   :
                              10;

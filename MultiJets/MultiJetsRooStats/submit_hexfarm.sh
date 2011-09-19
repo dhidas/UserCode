@@ -39,7 +39,7 @@ Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
 notify_user = dhidas@FNAL.GOV
 Arguments = \$(Process)
-Queue 200
+Queue 100
 +EOF
 
 
