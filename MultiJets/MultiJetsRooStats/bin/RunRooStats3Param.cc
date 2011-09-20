@@ -693,7 +693,7 @@ int main (int argc, char* argv[])
   //float const BeginMass = 200;
   //float const EndMass   = 500;
 
-  int const Method      =  2;
+  int const Method      =  1;
   int const Systematics =  6;
   int const NPerSection =  1;
 
