@@ -9,7 +9,6 @@
 
 #include <iostream>
 
-#include "StandardHypoTestInvDemo.h"
 
 #include "TF1.h"
 #include "TH1D.h"
@@ -258,7 +257,7 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     mc.SetConfidenceLevel(0.95);
     mc.SetLeftSideTailFraction(0.0);
     mc.SetNumIters(5000000);
-    mc.SetNumBurnInSteps(500);
+    mc.SetNumBurnInSteps(50);
     //mc.SetProposalFunction(*pdfProp);
     RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
@@ -274,7 +273,6 @@ float DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, TString const
     }
 
   } else if(method==2) {
-    RunInverter(&ws, "model", "background_model", "DataToFit", 0, 3, true, 5, 0, 100, 1000, false, "");
   }
   printf("UPPER LIMIT: %12.3f\n", upper);
 
@@ -323,8 +321,8 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
   float const MININVMASS =    230;
   float const MAXINVMASS =   1520;
 
-  float const LUMINOSITY = 1089.0;
-  float const LUMIERROR  =   0.06;
+  float const LUMINOSITY = 2177.0;
+  float const LUMIERROR  =   0.045;
 
   //float const ACCERROR   =  0.13; // Old
   float const ACCERROR   =   GetACCERROR(SignalMass); // Include MC stat pileup and JES
@@ -677,11 +675,11 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  float const StepSize  =  10;
+  float const StepSize  =  20;
 
   int const Section = atoi(argv[2]);
-  float const BeginMass = argc == 4 ?  250 + atof(argv[3])*StepSize : 250;
-  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 1500;
+  float const BeginMass = argc == 4 ?  260 + atof(argv[3])*StepSize : 250;
+  float const EndMass   = argc == 4 ?  260 + atof(argv[3])*StepSize : 1500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
   TString const InFileName = argv[1];
@@ -698,8 +696,8 @@ int main (int argc, char* argv[])
   int const NPerSection =  1;
 
   // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(721723*(Section+2));
-  gRandom->SetSeed(791423*(Section+2));
+  RooRandom::randomGenerator()->SetSeed(339723*(Section+2));
+  gRandom->SetSeed(276823*(Section+2));
 
 
   // Setup output file

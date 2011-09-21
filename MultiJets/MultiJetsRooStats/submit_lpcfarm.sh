@@ -10,11 +10,12 @@ eval `scramv1 runtime -sh`
 cd -
 
 OutDir=$1
-InFileName=data6jetpt70_160offset_1089pb3fits10GeVBins.root
+InFileName=dataGE6jets_2177pb_10GeVBins_Hist.root
 
 mkdir -pv $OutDir/Log $OutDir
 
 cp -v run_lpcfarm.sh $OutDir
+cp -v bin/RunRooStats3Param.cc $OutDir
 cp -v RunRooStats3Param $OutDir
 cp -v Data/$InFileName $OutDir
 
@@ -33,7 +34,7 @@ Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
 notify_user = dhidas@FNAL.GOV
 Arguments = \$(Process)
-Queue 1000
+Queue 500
 +EOF
 
 
