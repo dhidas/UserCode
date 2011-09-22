@@ -268,7 +268,7 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const npoints = 4;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
-    int   const ntoys = 100;
+    int   const ntoys = 1000;
     bool  const useNumberCounting = false;
     const char* nuisPriorName = "prior5b";
 
