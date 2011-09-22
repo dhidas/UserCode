@@ -623,7 +623,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   //poiAndNuis->add(*modelConfigBG.GetNuisanceParameters());
   poiAndNuis->add(*modelConfigBG.GetParametersOfInterest());
   ws.pdf("background_model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
-  //modelConfigBG.SetGlobalObservables( *poiAndNuis );
+  modelConfigBG.SetGlobalObservables( *poiAndNuis );
   modelConfigBG.SetGlobalObservables( RooArgSet() );
   modelConfigBG.SetSnapshot(*poiAndNuis);
   delete poiAndNuis;
