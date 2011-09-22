@@ -273,7 +273,7 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     const char* nuisPriorName = "prior5bWthXS";
 
     // For debugging
-    //ws.SaveAs(TString("DeanWS_")+label+".root");
+    ws.SaveAs(TString("DeanWS_")+label+".root");
 
     RooStats::HypoTestInverterResult* r = RunInverter(&ws, "modelConfig", "modelConfigBG", "data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
