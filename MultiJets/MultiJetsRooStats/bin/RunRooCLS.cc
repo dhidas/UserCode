@@ -270,7 +270,7 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     float const poimax = MAXXS;
     int   const ntoys = 100;
     bool  const useNumberCounting = false;
-    const char* nuisPriorName = "prior5bWithXS";
+    const char* nuisPriorName = "prior5b";
 
     // For debugging
     ws.SaveAs(TString("DeanWS_")+label+".root");
@@ -580,7 +580,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
     modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
     modelConfigBG.SetNuisanceParameters(*ws.set("nuisSet0"));
   } else if (statLevel == 6) {
-    ws.factory("PROD::model(model_noprior,prior5bWithXS)");
+    ws.factory("PROD::model(model_noprior,prior5b)");
     ws.factory("PROD::background_model(background_noprior,prior5b)");
     ws.var("sigWidth")->setConstant(false);
     ws.var("nbkg")->setConstant(false);
@@ -621,7 +621,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   ws.var("xs")->setVal(0.0);
   poiAndNuis = new RooArgSet("poiAndNuisBG");
   //poiAndNuis->add(*modelConfigBG.GetNuisanceParameters());
-  //poiAndNuis->add(*modelConfigBG.GetParametersOfInterest());
+  poiAndNuis->add(*modelConfigBG.GetParametersOfInterest());
   ws.pdf("background_model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
   //modelConfigBG.SetGlobalObservables( *poiAndNuis );
   modelConfigBG.SetGlobalObservables( RooArgSet() );
