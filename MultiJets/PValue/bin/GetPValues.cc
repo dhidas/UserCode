@@ -105,7 +105,7 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
     MyLine.SetLineColor(2);
     MyLine.SetLineWidth(2);
     MyLine.Draw("same");
-    //Can.SetLogy(true);
+    Can.SetLogy(true);
     char BUFF[100];
 
     float const PVal = ((float) PassFail[ Masses[im] ].first) / ((float) PassFail[ Masses[im] ].first + PassFail[ Masses[im] ].second);

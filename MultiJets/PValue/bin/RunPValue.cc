@@ -470,12 +470,12 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
 
 
   // Set the randome seed based on section number
-  gRandom->SetSeed(12332 * (Section + 2));
+  gRandom->SetSeed(6231 * (Section + 2));
 
 
   // Setup output file
   char OutName[150];
-  if (Section == -1) {
+  if (Section == 0) {
     sprintf(OutName, "Data_TestStatistic.dat");
   } else {
     sprintf(OutName, "TestStatistic_%i.dat", Section);
@@ -609,7 +609,7 @@ int main (int argc, char* argv[])
   int const Section = atoi(argv[2]);
 
   // Run Systematics?
-  bool const DoSyst = false;
+  bool const DoSyst = true;
 
   RunPValue(InFileName, Section, DoSyst);
 
