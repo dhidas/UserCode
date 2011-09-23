@@ -35,6 +35,7 @@ int DataMe (std::vector<std::string> const& Files)
     }
 
     In >> A >> B;
+    if (A <= 1520)
     C.push_back( std::make_pair<float, float>(A,B) );
   }
 

@@ -13,7 +13,7 @@ using namespace RooStats;
 
 
 bool plotHypoTestResult = true; 
-bool useProof = true;
+bool useProof = false;
 bool optimize = false;
 bool writeResult = false;
 int nworkers = 4;
@@ -327,7 +327,7 @@ HypoTestInverterResult *  RunInverter(RooWorkspace * w, const char * modelSBName
          poimax = int(poihat +  4 * poi->getError());
       }
       std::cout << "Doing a fixed scan  in interval : " << poimin << " , " << poimax << std::endl;
-      calc.SetFixedScan(1,4,4);
+      calc.SetFixedScan(1,6,6);
       //calc.SetFixedScan(npoints,poimin,poimax);
    }
    else { 

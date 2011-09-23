@@ -13,13 +13,13 @@ export SCRAM_ARCH=slc5_amd64_gcc434
 source $VO_CMS_SW_DIR/cmsset_default.sh
 
 
-cd /users/h2/dhidas/CMSSW_4_2_5/src
-eval `scramv1 runtime -sh`
-cd -
+export ROOTSYS=/cms/data24/dhidas/CernRoot/root_2011.09.17_HEAD/root
+export LD_LIBRARY_PATH=$ROOTSYS/lib
+PATH=$PATH:$ROOTSYS/bin
 
 
 EXE=$PWD/RunRooStats3Param
-DAT=$PWD/data6jetpt70_160offset_1089pb3fits10GeVBins.root
+DAT=$PWD/dataGE6jets_2177pb_10GeVBins_Hist.root
 
 echo "HOSTNAME " $HOSTNAME
 
