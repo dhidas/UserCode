@@ -36,9 +36,11 @@ float const XMAX     = 1520;
 float const BINWIDTH = 10;
 int   const NBINS    = (XMAX - XMIN) / BINWIDTH;
 
+bool const DEBUG = false;
 
 
-TH1F* GetPE (float const inN, std::vector< std::pair<float, float> >& InPar, int const ipe,  bool const DoSyst)
+
+TH1F* GetPE (float const inN, std::vector< std::pair<float, float> >& InPar, int const Section, int const ipe,  bool const DoSyst)
 {
   // This function gets a PE in any way you tell it to!  ha!
 
@@ -74,7 +76,7 @@ TH1F* GetPE (float const inN, std::vector< std::pair<float, float> >& InPar, int
 
   // This is a test so that I know that I have the normalizaton correct
   // In general, don't run this..
-  if (false) {
+  if (DEBUG) {
     // Define the function..
     TF1 ff("myexp1", "[0]*(((1.-x/7000.)^[1])/((x/7000.)^[2]))", XMIN, XMAX);
     for (size_t i = 0; i != Par.size(); ++i) {
@@ -89,7 +91,7 @@ TH1F* GetPE (float const inN, std::vector< std::pair<float, float> >& InPar, int
     h->Draw("ep");
     ff.Draw("same");
     char BUFF[100];
-    sprintf(BUFF, "PE_%i.eps", ipe);
+    sprintf(BUFF, "PE_%i_%i.eps", Section, ipe);
     c.SaveAs(BUFF);
   }
 
@@ -214,9 +216,11 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
   // is if one should go beyond this
 
   // You should not print anything in this function save for debug time
-  //for (int i = 0; i != 6; ++i) {
-  //  printf("Par: %i %7E %7E %7E\n", i, Par[i], ParC[i], ParE[i]);
-  //}
+  if (DEBUG) {
+    for (int i = 0; i != 6; ++i) {
+      printf("Par: %i %7E %7E %7E\n", i, Par[i], ParC[i], ParE[i]);
+    }
+  }
 
 
   // These are the parameters of the fit...
@@ -237,7 +241,9 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
   for (int ibinX = iStart; ibinX <= iStop; ++ibinX) {
 
     mu = fToFit->Integral( hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX)) / hToFit->GetBinWidth(ibinX);
-    //printf("Bin X-X mu: %4i %9.1f-%9.1f %12.3E\n", ibinX, hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX), (float) mu);
+    if (DEBUG) {
+      printf("Bin X-X mu: %4i %9.1f-%9.1f %12.3E\n", ibinX, hToFit->GetBinLowEdge(ibinX), hToFit->GetBinLowEdge(ibinX) + hToFit->GetBinWidth(ibinX), (float) mu);
+    }
 
     if (mu > 0.1) {
       LogLikelihood += (hToFit->GetBinContent(ibinX) * TMath::Log(mu)
@@ -253,7 +259,10 @@ void NegativeLogLikelihood (int& NParameters, double* gin, double& f, double* Pa
 
 
   f = -1.0*LogLikelihood;
-  //printf("%15E\n", f);
+
+  if (DEBUG) {
+    printf("%15E\n", f);
+  }
 
   return;
 }
@@ -405,7 +414,7 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   }
 
   // Save a plot if you like!
-  if (Section == -1 || false) {
+  if (Section == 0 || false) {
     char BUFF[100];
     if (SignalMass > 0) {
       sprintf(BUFF, "Fit_Data_%i.eps", (int) SignalMass);
@@ -428,7 +437,9 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
   double OPar[NPAR], OEPar[NPAR];
   for (int i = 0; i < NPAR; ++i) {
     MyMinuit.GetParameter(i, OPar[i], OEPar[i]);
-    printf("Fitted Param: %i %9E  +/-  %9E\n", i, OPar[i], OEPar[i]);
+    if (DEBUG) {
+      printf("Fitted Param: %i %9E  +/-  %9E\n", i, OPar[i], OEPar[i]);
+    }
   }
 
 
@@ -463,10 +474,10 @@ float MinimizeNLL (int const Section, int const ipe, float const SignalMass, TF1
 int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
 {
   // Some basic parameters
-  float const StepSize    =  10;
+  float const StepSize    =   10;
   float const BeginMass   =  250;
   float const EndMass     = 1500;
-  int   const NPerSection =   50;
+  int   const NPerSection =   20;
 
 
   // Set the randome seed based on section number
@@ -509,7 +520,7 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
   // of other things too...
   fToFit = new TF1("FitFunction", "[0]*TMath::Gaus(x, [1], [2], 1) + [3]*(((1.-x/7000.)^[4])/((x/7000.)^[5]))", XMIN, XMAX);
 
-  if (Section == -1) {
+  if (Section == 0) {
     // Do some Data Fit
 
     // In order to do this correctly you need a clone...ya I know..
@@ -533,7 +544,9 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
       float const TestStatistic = MyLL != -9999 ? -2.0 * (BGLL - MyLL) : -9999.;
 
       // Print out and file!
-      printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", -1, (int) SignalMass, BGLL, MyLL, TestStatistic);
+      if (DEBUG) {
+        printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", -1, (int) SignalMass, BGLL, MyLL, TestStatistic);
+      }
       fprintf(Out, "%12E ", TestStatistic);
     }
     fprintf(Out, "\n");
@@ -557,7 +570,7 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
       }
 
       // Get PE
-      hToFit = GetPE(NPE, ParAndE, ipe, DoSyst);
+      hToFit = GetPE(NPE, ParAndE, Section, ipe, DoSyst);
 
       // Grab the background only LL
       float const BGLL = -1.0 * MinimizeNLL(Section, ipe, -999, fFunc, true, DoSyst);
@@ -577,7 +590,9 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
         float const TestStatistic = MyLL != -9999 ? -2.0 * (BGLL - MyLL) : -9999.;
 
       // Print out and file!
-        printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", ipe, (int) SignalMass, BGLL, MyLL, TestStatistic);
+        if (DEBUG) {
+          printf("ipe: %12i Mass:%5i  BGLL:%12E  MyLL:%12E  D:%12E\n", ipe, (int) SignalMass, BGLL, MyLL, TestStatistic);
+        }
         fprintf(Out, "%12E ", TestStatistic);
       }
       fprintf(Out, "\n");
