@@ -163,7 +163,7 @@ float GetACCERROR (float const m)
   //  return 1.1653400;
   //}
 
-  return (0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m) / GetAcceptanceForMjjj(m);
+  return (0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m);
 }
 
 float GetAcceptanceForMjjj (float const Mjjj)
@@ -266,12 +266,12 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const calculatorType = 1;
     int   const testStatType = 3;
     bool  const useCls = true;
-    int   const npoints = 4;
+    int   const npoints = 2;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
-    int   const ntoys = 10;
+    int   const ntoys = 5;
     bool  const useNumberCounting = false;
-    const char* nuisPriorName = "prior5b";
+    const char* nuisPriorName = "";
 
 
     // For debugging
@@ -422,7 +422,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   float const XMAX = 1520;//Func->GetXmax();
   float const BINSIZE = DataTH1F->GetBinWidth(0);
   int   const BINSMJJJ   = (int) (XMAX - XMIN) / BINSIZE;
-  ws.var("mjjj")->setBins(BINSMJJJ);
+  //ws.var("mjjj")->setBins(BINSMJJJ);
   printf("Fit Min/Max: %12.2f %12.2f\n", XMIN, XMAX);
 
   float const NBGFromFit = DataTH1->Integral( DataTH1->FindBin(XMIN), DataTH1->FindBin(XMAX)   );
@@ -457,7 +457,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
 
 
   // nbkg prior
-  ws.factory("RooLognormal::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
+  ws.factory("RooLognormal::nbkg_prior(nbkg[0,100000], nbkgM0[0], nbkgS0[0])");
   ws.var("nbkgS0")->setVal(1. + 0.03);
   ws.var("nbkg")->setVal(NBGFromFit);
   ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*0.03), NBGFromFit * (1 + 3*0.03));
@@ -504,7 +504,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
 
   // Acceptance prior
   float const Acc = GetAcceptanceForMjjj(SignalMass);
-  printf("Acceptance for mass %E is %E +/- %E\n", SignalMass, Acc, ACCERROR);
+  printf("Acceptance for mass %E is %E +/- %E\n", SignalMass, Acc, Acc*ACCERROR);
   ws.factory("RooLognormal::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
   ws.var("acceptanceS0")->setVal(1.0 + ACCERROR);
   ws.var("acceptance")->setVal(Acc);
@@ -580,7 +580,6 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
     ws.factory("PROD::background_model(background_noprior,prior5b)");
     ws.var("sigWidth")->setConstant(false);
     ws.var("nbkg")->setConstant(false);
-    //ws.var("p0")->setConstant(false);
     ws.var("p1")->setConstant(false);
     ws.var("p2")->setConstant(false);
     ws.var("lumi")->setConstant(false);
@@ -592,12 +591,12 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
     exit(1);
   }
 
-  modelConfig.SetPdf(*ws.pdf("model"));
+  modelConfig.SetPdf(*ws.pdf("model_noprior"));
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
   modelConfig.SetObservables(*ws.var("mjjj"));
   ws.var("xs")->setVal(0.0);
   //ws.pdf("model")->fitTo(*ws.data("DataToFit"));
-  ws.pdf("model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+  ws.pdf("model_noprior")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
   //ws.factory("poiAndNuis::set(POI,nuisSet5b)");
   RooArgSet* poiAndNuis = new RooArgSet("poiAndNuis");
   //poiAndNuis->add(*modelConfig.GetNuisanceParameters());
@@ -609,11 +608,11 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   delete poiAndNuis;
 
 
-  modelConfigBG.SetPdf(*ws.pdf("background_model"));
+  modelConfigBG.SetPdf(*ws.pdf("background_noprior"));
   modelConfigBG.SetParametersOfInterest(*ws.set("POI"));
   modelConfigBG.SetObservables(*ws.var("mjjj"));
   modelConfigBG.SetPriorPdf(*ws.pdf("prior5b"));
-  ws.pdf("background_model")->fitTo(*ws.data("data"));
+  ws.pdf("background_noprior")->fitTo(*ws.data("data"));
   ws.var("xs")->setVal(0.0);
   poiAndNuis = new RooArgSet("poiAndNuisBG");
   //poiAndNuis->add(*modelConfigBG.GetNuisanceParameters());
@@ -659,9 +658,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
 
 
   std::vector<float> Limits;
-  if (Section == -2) {
-    // Do nothing right now
-  } else if (Section == -1) {
+  if (Section == -1) {
     ws.import(fitData);
     ws.var("nbkg")->Print();
 
@@ -677,74 +674,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
     ws.var("nbkg")->Print();
 
     Limits = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
-  } else {
-    // Setup some stuff for toy MC experiments TOY, everyone likes TOYS, but not to be toyed with.
-    // I can get you a toy, believe me.  There are ways, Dude.
-
-
-    float const rand_NBGThisPE = NBGFromFit + (ws.var("nbkgS0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
-
-    // Grab a toy.  If you can't get a toy there is something wrong
-    int const NBGThisPE = RooRandom::randomGenerator()->Poisson(rand_NBGThisPE);
-    ws.var("nbkg")->setVal(NBGThisPE);
-
-    //float rand_p0 = 999;
-    //while (rand_p0 < ws.var("p0")->getMin() || rand_p0 > ws.var("p0")->getMax()) {
-    //  rand_p0 = ws.var("p0")->getVal() + (ws.var("p0S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
-    //  std::cout << "rand_p0:  " << rand_p0 << std::endl;
-    //}
-
-    float rand_p1 = 999;
-    while (rand_p1 < ws.var("p1")->getMin() || rand_p1 > ws.var("p1")->getMax()) {
-      rand_p1 = ws.var("p1")->getVal() + (ws.var("p1S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
-      std::cout << "rand_p1:  " << rand_p1 << std::endl;
-    }
-
-    float rand_p2 = 999;
-    while (rand_p2 < ws.var("p2")->getMin() || rand_p2 > ws.var("p2")->getMax()) {
-      rand_p2 = ws.var("p2")->getVal() + (ws.var("p2S0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
-      std::cout << "rand_p2:  " << rand_p2 << std::endl;
-    }
-
-    int NTest = RooRandom::randomGenerator()->Poisson(
-      1.*(NBGFromFit + (ws.var("nbkgS0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1))
-        );
-    TH1F* hPEF = GetPE3Param(NTest, rand_p1, rand_p2, label);
-    RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEF);
-
-    //RooDataHist* hPE = PE->binnedClone("DataToFit");
-    printf("Data vs PE: %12.1f %12.1f\n", NBGFromFit, hPE.sum(false));
-
-    // Just for debug
-    if (false) {
-      TCanvas CanPE;
-      CanPE.cd();
-      RooPlot* PEplot = ws.var("mjjj")->frame();
-      hPE.plotOn(PEplot);
-      PEplot->Draw();
-      CanPE.SaveAs(TString("PE_")+label+".pdf");
-    }
-
-    ws.import(hPE);
-    if (false) {
-      ws.var("nbkg")->Print();
-      TCanvas Can;
-      Can.cd();
-      RooPlot* datafit = ws.var("mjjj")->frame();
-      ws.data("DataToFit")->plotOn(datafit);
-      //ws.pdf("model")->fitTo(*ws.data("DataToFit"));
-      ws.pdf("model")->plotOn(datafit);
-      datafit->Draw();
-      Can.SaveAs(TString("Fit_")+label+".pdf");
-      ws.var("nbkg")->Print();
-    }
-    Limits = DoFit(ws, modelConfig, modelConfigBG, label, method, Section, MAXXS);
-
-    delete hPEF;
-
   }
-
-
 
   return Limits;
 }

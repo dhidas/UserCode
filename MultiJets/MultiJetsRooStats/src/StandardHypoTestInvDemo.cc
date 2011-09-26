@@ -327,8 +327,7 @@ HypoTestInverterResult *  RunInverter(RooWorkspace * w, const char * modelSBName
          poimax = int(poihat +  4 * poi->getError());
       }
       std::cout << "Doing a fixed scan  in interval : " << poimin << " , " << poimax << std::endl;
-      calc.SetFixedScan(1,6,6);
-      //calc.SetFixedScan(npoints,poimin,poimax);
+      calc.SetFixedScan(npoints,poimin,poimax);
    }
    else { 
       //poi->setMax(10*int( (poihat+ 10 *poi->getError() )/10 ) );
