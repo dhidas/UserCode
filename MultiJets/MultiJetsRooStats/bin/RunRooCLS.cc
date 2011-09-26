@@ -68,6 +68,7 @@
 
 
 
+float GetAcceptanceForMjjj (float const Mjjj);
 
 
 // Utility functions
@@ -162,7 +163,7 @@ float GetACCERROR (float const m)
   //  return 1.1653400;
   //}
 
-  return 0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m;
+  return (0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m) / GetAcceptanceForMjjj(m);
 }
 
 float GetAcceptanceForMjjj (float const Mjjj)
@@ -503,7 +504,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
 
   // Acceptance prior
   float const Acc = GetAcceptanceForMjjj(SignalMass);
-  printf("Acceptance for mass %.1f is %E\n", SignalMass, Acc);
+  printf("Acceptance for mass %E is %E +/- %E\n", SignalMass, Acc, ACCERROR);
   ws.factory("RooLognormal::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
   ws.var("acceptanceS0")->setVal(1.0 + ACCERROR);
   ws.var("acceptance")->setVal(Acc);
@@ -574,13 +575,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   modelConfigBG.SetWorkspace(ws);
 
   // Which prior and nuis are we using
-  if (statLevel == 0) {
-    ws.factory("PROD::model(model_noprior,prior0)");
-    ws.factory("PROD::background_model(background_noprior,prior0)");
-    ws.var("sigWidth")->setConstant(false);
-    modelConfig.SetNuisanceParameters(*ws.set("nuisSet0"));
-    modelConfigBG.SetNuisanceParameters(*ws.set("nuisSet0"));
-  } else if (statLevel == 6) {
+  if (statLevel == 6) {
     ws.factory("PROD::model(model_noprior,prior5bWithXS)");
     ws.factory("PROD::background_model(background_noprior,prior5b)");
     ws.var("sigWidth")->setConstant(false);
@@ -623,8 +618,8 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   poiAndNuis = new RooArgSet("poiAndNuisBG");
   //poiAndNuis->add(*modelConfigBG.GetNuisanceParameters());
   poiAndNuis->add(*modelConfigBG.GetParametersOfInterest());
-  ws.pdf("background_model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
-  modelConfigBG.SetGlobalObservables( *poiAndNuis );
+  //ws.pdf("background_model")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+  //modelConfigBG.SetGlobalObservables( *poiAndNuis );
   modelConfigBG.SetGlobalObservables( RooArgSet() );
   modelConfigBG.SetSnapshot(*poiAndNuis);
   delete poiAndNuis;
