@@ -675,11 +675,11 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  float const StepSize  =  20;
+  float const StepSize  =  10;
 
   int const Section = atoi(argv[2]);
-  float const BeginMass = argc == 4 ?  260 + atof(argv[3])*StepSize : 250;
-  float const EndMass   = argc == 4 ?  260 + atof(argv[3])*StepSize : 1500;
+  float const BeginMass = argc == 4 ?  250 + atof(argv[3])*StepSize : 250;
+  float const EndMass   = argc == 4 ?  250 + atof(argv[3])*StepSize : 1500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
   TString const InFileName = argv[1];
