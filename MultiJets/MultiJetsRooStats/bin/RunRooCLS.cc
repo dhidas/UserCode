@@ -266,10 +266,10 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const calculatorType = 1;
     int   const testStatType = 3;
     bool  const useCls = true;
-    int   const npoints = 2;
+    int   const npoints = 4;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
-    int   const ntoys = 5;
+    int   const ntoys = 100;
     bool  const useNumberCounting = false;
     const char* nuisPriorName = "";
 
@@ -290,7 +290,10 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     const char * resultName = r->GetName();
     TString plotTitle = TString::Format("%s CL Scan for workspace %s",typeName,resultName);
     RooStats::HypoTestInverterPlot *plot = new RooStats::HypoTestInverterPlot("HTI_Result_Plot",plotTitle,r);
+    TCanvas CanCLb;
+    CanCLb.cd();
     plot->Draw("CLb 2CL");  // plot all and Clb
+    CanCLb.SaveAs("CLb2L_"+label+".eps");
 
     if (Section == -1) {
       TCanvas c2;
@@ -376,13 +379,13 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   float const ACCERROR   =   GetACCERROR(SignalMass); // Include MC stat pileup and JES
 
   float const MINXS      =      0;
-  float const MAXXS      =   SignalMass <  350 ? 100   :
-                             SignalMass <  500 ?  30   : 
-                             SignalMass <  800 ?  20   :
-                             SignalMass <  900 ?  15   :
-                             SignalMass < 1200 ?  10   :
-                             SignalMass < 1400 ?  10   :
-                             10;
+  float const MAXXS      =   SignalMass <  350 ? 100 *0.5  :
+                             SignalMass <  500 ?  30 *0.5  : 
+                             SignalMass <  800 ?  20 *0.5  :
+                             SignalMass <  900 ?  15 *0.5  :
+                             SignalMass < 1200 ?  10 *0.5  :
+                             SignalMass < 1400 ?  10 *0.5  :
+                             10*0.5;
 
   // Just a label
   char label[100];
@@ -522,7 +525,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   ws.var("sigWidth")->setVal( GetGausWidthRange(SignalMass).first/2. + GetGausWidthRange(SignalMass).second/2.);
   ws.var("sigWidth")->setRange( GetGausWidthRange(SignalMass).first, GetGausWidthRange(SignalMass).second);
 
-  ws.factory("RooUniform::sigWidth_prior(sigWidth)");
+  //ws.factory("RooUniform::sigWidth_prior(sigWidth)");
 
 
   // Define models (sig+bg, and bg only)
@@ -538,8 +541,10 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   // use this one
   ws.factory("PROD::prior0(xs_prior)");
   ws.defineSet("nuisSet0","sigWidth");
-  ws.factory("PROD::prior5b(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
-  ws.factory("PROD::prior5bWithXS(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
+  //ws.factory("PROD::prior5b(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
+  //ws.factory("PROD::prior5bWithXS(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
+  ws.factory("PROD::prior5b(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
+  ws.factory("PROD::prior5bWithXS(xs_prior,nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
   ws.defineSet("nuisSet5b","nbkg,p1,p2,lumi,acceptance,sigWidth");
   ws.defineSet("nuisSet5bBG","nbkg,p1,p2");
 
@@ -596,7 +601,7 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   modelConfig.SetObservables(*ws.var("mjjj"));
   ws.var("xs")->setVal(0.0);
   //ws.pdf("model")->fitTo(*ws.data("DataToFit"));
-  ws.pdf("model_noprior")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
+  //ws.pdf("model_noprior")->fitTo(*ws.data("data"), RooFit::Range(XMIN,XMAX), RooFit::Extended(kTRUE));
   //ws.factory("poiAndNuis::set(POI,nuisSet5b)");
   RooArgSet* poiAndNuis = new RooArgSet("poiAndNuis");
   //poiAndNuis->add(*modelConfig.GetNuisanceParameters());
