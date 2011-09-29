@@ -34,11 +34,11 @@ Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
 notify_user = dhidas@FNAL.GOV
 Arguments = \$(Process) \$(OutDir)
-+LENGTH="SHORT"
-Queue 1
+Queue 125
 +EOF
 
-
+# Add this for tests
+#  +LENGTH="SHORT"
 
 cd $OutDir
 condor_submit submit_lpcfarm_cls.jdl
