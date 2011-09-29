@@ -418,28 +418,28 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // background prior
   ws.factory("RooExponential::background(mjjj, cexp[-1,1])");
-  ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
-  ws.factory("RooGaussian::cexp_prior(cexp, cexpM0[0], cexpS0[0])");
+  //ws.factory("RooGaussian::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");
+  //ws.factory("RooGaussian::cexp_prior(cexp, cexpM0[0], cexpS0[0])");
+  ws.factory("RooLognormal::nbkg_prior(nbkg[1,60000], nbkgM0[0], nbkgS0[0])");
+  ws.factory("RooLognormal::cexp_prior(cexp, cexpM0[0], cexpS0[0])");
   ws.var("nbkg")->setVal(NBGFromFit);
   ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*0.03), NBGFromFit * (1 + 3*0.03));
-  //ws.var("nbkg")->setRange(NBGFromFit * (1 - 3*Func->GetParError(0)/Func->GetParameter(0)), NBGFromFit * (1 + 3*Func->GetParError(0)/Func->GetParameter(0)));
   ws.var("nbkgM0")->setVal(NBGFromFit);
   //ws.var("nbkgS0")->setVal(NBGFromFit * Func->GetParError(0)/Func->GetParameter(0));
-  ws.var("nbkgS0")->setVal(NBGFromFit * 0.03);
+  ws.var("nbkgS0")->setVal(1.03);
   ws.var("cexp")->setVal(Func->GetParameter(1));
-  //ws.var("cexp")->setRange(Func->GetParameter(1)-3*Func->GetParError(1), Func->GetParameter(1)+3*Func->GetParError(1));
   ws.var("cexp")->setRange(Func->GetParameter(1)*(1+3*0.05), Func->GetParameter(1)*(1-3*0.05));
   ws.var("cexpM0")->setVal(Func->GetParameter(1));
-  ws.var("cexpS0")->setVal(TMath::Abs(Func->GetParameter(1)*0.05));
+  ws.var("cexpS0")->setVal(1.05);
   //ws.var("cexpS0")->setVal(Func->GetParError(1));
 
 
   // Lumi prior
-  ws.factory("RooGaussian::lumi_prior(lumi[0], lumiM0[0], lumiS0[0])");
+  ws.factory("RooLognormal::lumi_prior(lumi[0], lumiM0[0], lumiS0[0])");
   ws.var("lumi")->setVal(LUMINOSITY);
   ws.var("lumi")->setRange(LUMINOSITY * (1. - 3. * LUMIERROR), LUMINOSITY * (1. + 3. * LUMIERROR));
   ws.var("lumiM0")->setVal(LUMINOSITY);
-  ws.var("lumiS0")->setVal(LUMINOSITY * LUMIERROR);
+  ws.var("lumiS0")->setVal(1+LUMIERROR);
 
   // cross section prior and set the allowed range for the cross section
   ws.factory("xs[0]");
@@ -452,11 +452,11 @@ float RunMultiJetsRooStats (TString const InFileName, float const SignalMass, in
 
   // Acceptance prior
   float const Acc = GetAcceptanceForMjjj(SignalMass);
-  ws.factory("RooGaussian::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
+  ws.factory("RooLognormal::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
   ws.var("acceptance")->setVal(Acc);
   ws.var("acceptance")->setRange(Acc * (1. - 3. * ACCERROR), Acc * (1. + 3. * ACCERROR));
   ws.var("acceptanceM0")->setVal(Acc);
-  ws.var("acceptanceS0")->setVal(Acc * ACCERROR);
+  ws.var("acceptanceS0")->setVal(1+ACCERROR);
 
   // set the signal mass
   ws.factory("sigMass[0]");
@@ -689,8 +689,8 @@ int main (int argc, char* argv[])
   float const EndMass   = argc == 3 ?  200 + atof(argv[2])*StepSize : 500;
   std::cout << BeginMass << "  " << EndMass << std::endl;
 
-  TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
-  //TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  //TString const InFileName = "/home/dhidas/Data35pb/ExpFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
+  TString const InFileName = "/uscms/home/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
   //TString const InFileName = "/Users/dhidas/Data35pb/ExpoFit_data_35pb-1_6jets_and_scaled_4jets_pt45.root";
 
   //float const BeginMass = 200;

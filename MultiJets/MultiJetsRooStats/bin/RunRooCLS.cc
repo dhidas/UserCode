@@ -266,10 +266,10 @@ std::vector<float> DoFit (RooWorkspace& ws, RooStats::ModelConfig& modelConfig, 
     int   const calculatorType = 1;
     int   const testStatType = 3;
     bool  const useCls = true;
-    int   const npoints = 4;
+    int   const npoints = 10;
     float const poimin = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
     float const poimax = MAXXS;
-    int   const ntoys = 100;
+    int   const ntoys = 400;
     bool  const useNumberCounting = false;
     const char* nuisPriorName = "";
 
@@ -379,13 +379,13 @@ std::vector<float> RunMultiJetsRooStats (TString const InFileName, float const S
   float const ACCERROR   =   GetACCERROR(SignalMass); // Include MC stat pileup and JES
 
   float const MINXS      =      0;
-  float const MAXXS      =   SignalMass <  350 ? 100 *0.5  :
-                             SignalMass <  500 ?  30 *0.5  : 
-                             SignalMass <  800 ?  20 *0.5  :
-                             SignalMass <  900 ?  15 *0.5  :
-                             SignalMass < 1200 ?  10 *0.5  :
-                             SignalMass < 1400 ?  10 *0.5  :
-                             10*0.5;
+  float const MAXXS      =   SignalMass <  350 ? 100   :
+                             SignalMass <  500 ?  30   : 
+                             SignalMass <  800 ?  20   :
+                             SignalMass <  900 ?  15   :
+                             SignalMass < 1200 ?  10   :
+                             SignalMass < 1400 ?  10   :
+                             10;
 
   // Just a label
   char label[100];
