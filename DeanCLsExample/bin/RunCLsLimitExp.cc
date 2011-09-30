@@ -244,7 +244,7 @@ int RunCLsLimit ()
   int   const npoints           = 4;
   float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = 100;
-  int   const ntoys             = 1000;
+  int   const ntoys             = 400;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 

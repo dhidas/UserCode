@@ -13,7 +13,7 @@ using namespace RooStats;
 
 
 bool plotHypoTestResult = true; 
-bool useProof = true;
+bool useProof = false;
 bool optimize = false;
 bool writeResult = false;
 int nworkers = 4;
