@@ -14,6 +14,6 @@ EXE=$_CONDOR_SCRATCH_DIR/RunMultJetsCLs
 DAT=$_CONDOR_SCRATCH_DIR/dataGE6jets_2177pb_10GeVBins_Hist.root
 
 
-echo "$EXE $DAT -1 $1"
-$EXE $DAT -1 $1
+echo "$EXE $DAT $1"
+$EXE $DAT $1
 

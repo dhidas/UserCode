@@ -25,7 +25,7 @@ DAT=$PWD/dataGE6jets_2177pb_10GeVBins_Hist.root
 
 echo "HOSTNAME " $HOSTNAME
 
-echo "$EXE $DAT -1 $1"
-$EXE $DAT -1 $1
+echo "$EXE $DAT $1"
+$EXE $DAT $1
 
 
