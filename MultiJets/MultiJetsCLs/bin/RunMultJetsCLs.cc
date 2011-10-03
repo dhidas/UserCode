@@ -169,8 +169,8 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   ws.var("p1")->setConstant(true);
   ws.var("p1")->Print();
   ws.factory("p2[0]");
-  ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
-  ws.var("p2")->setVal(FitFunction->GetParameter(2));
+  ws.var("p2")->setRange(0, -FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
+  ws.var("p2")->setVal(-FitFunction->GetParameter(2));
   ws.var("p2")->setConstant(true);
   ws.var("p2")->Print();
 
@@ -183,12 +183,12 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   ws.factory("RooLognormal::p2_prior(p2, p2M0[0], p2S0[1])");
   ws.var("p2S0")->setVal(1.03);
   ws.var("p2S0")->setConstant(true);
-  ws.var("p2M0")->setVal(FitFunction->GetParameter(2));
+  ws.var("p2M0")->setVal(-FitFunction->GetParameter(2));
   ws.var("p2M0")->setConstant(true);
 
 
   // Background function
-  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / (mjjj/7000.)^p2)', {mjjj, p1, p2})");
+  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / (mjjj/7000.)^(-1.0*p2))', {mjjj, p1, p2})");
 
 
   // Define lumi and lumi prior
@@ -370,10 +370,10 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 4;
+  int   const npoints           = 10;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 4;
+  int   const ntoys             = 200;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
