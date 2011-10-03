@@ -101,13 +101,27 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   float const MINXS      =      0;
-  float const MAXXS      =   SignalMass <  350 ? 100   :
-    SignalMass <  500 ?  30   :
-    SignalMass <  800 ?  20   :
-    SignalMass <  900 ?  15   :
-    SignalMass < 1200 ?  10   :
-    SignalMass < 1400 ?  10   :
-    10;
+  float const MAXXS      =    100;
+
+  float const MINPOI     =      0;
+  float const MAXPOI     =   
+    SignalMass <  300 ?  50   :
+    SignalMass <  400 ?  20   :
+    SignalMass <  500 ?  10   :
+    SignalMass <  600 ?   6   :
+    SignalMass <  700 ?   5   :
+    SignalMass <  800 ?   5   :
+    SignalMass <  900 ?   5   :
+    SignalMass < 1000 ?   3   :
+    SignalMass < 1100 ?   3   :
+    SignalMass < 1200 ?   3   :
+    SignalMass < 1300 ?   3   :
+    SignalMass < 1400 ?   3   :
+    SignalMass < 1500 ?   3   :
+    3;
+
+
+
 
 
   // Start a workspace
@@ -357,9 +371,9 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const testStatType      = 3;
   bool  const useCls            = true;
   int   const npoints           = 4;
-  float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
-  float const poimax            = 1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 10;
+  float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
+  float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
+  int   const ntoys             = 4;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
