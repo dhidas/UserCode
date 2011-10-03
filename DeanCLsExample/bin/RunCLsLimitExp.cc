@@ -186,6 +186,7 @@ int RunCLsLimit ()
       ws.defineSet("nuisance", "nbkg,p1");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
+      break;
     case 3:
       ws.factory("PROD::constraints(nbkg_prior,p1_prior,sigWidth_prior)");
       ws.defineSet("nuisance", "nbkg,p1,sigWidth");
