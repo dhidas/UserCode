@@ -359,7 +359,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const npoints           = 4;
   float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = 1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 5;
+  int   const ntoys             = 10;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
