@@ -8,6 +8,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #include "StandardHypoTestInvDemo.h"
@@ -15,6 +16,7 @@
 #include "TString.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TFile.h"
 #include "TTree.h"
 
 
@@ -97,7 +99,7 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLs (TString const InFileName, int const Section)
 {
   // Get the mass for this section
-  int const SignalMass = 250 + (10 * Section);
+  float const SignalMass = 250 + (10 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   float const MINXS      =      0;
@@ -120,6 +122,21 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
     SignalMass < 1500 ?   3   :
     3;
 
+
+  // Open output file for limits
+  std::ofstream OutFile(TString::Format("Limits_CLs_%i.dat", (int) SignalMass).Data());
+  if (!OutFile.is_open()) {
+    std::cerr << "ERROR: cannot open output file Limits_CLs_*.dat for mass: " << SignalMass << std::endl;
+    throw;
+  }
+
+  // Setup output root file based on mass
+  TFile OutRootFile(TString::Format("MultiJetsCLs_%i.root", (int) SignalMass), "recreate");
+  if (!OutRootFile.IsOpen()) {
+    std::cerr << "ERROR: cannot open output root file for mass: " << SignalMass << std::endl;
+    throw;
+  }
+  OutRootFile.cd();
 
 
 
@@ -252,7 +269,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (6) {
+  switch (1) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -341,14 +358,17 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   ModelConfigSB.SetNuisanceParameters(*ws.set("nuisance"));
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
-  //ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
-  TCanvas Can;
+  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  TCanvas Can("Fit", "Fit");
   Can.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
   ws.data("Data")->plotOn(ThisDataFit);
   ws.pdf("bgmodel_noprior")->plotOn(ThisDataFit);
+  ThisDataFit->SetTitle(TString::Format("M_{jjj} = %i", (int) SignalMass));
   ThisDataFit->Draw();
   Can.SetLogy(1);
+  OutRootFile.cd();
+  Can.Write();
   Can.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
 
   RooArgSet POIAndNuisSB("POIAndNuisSB");
@@ -359,7 +379,8 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // For debugging, why not save the workspace
   ws.Print();
-  ws.SaveAs(TString::Format("Workspace_%i.root", (int) SignalMass));
+  OutRootFile.cd();
+  ws.Write();
 
   ws.var("acceptance")->Print();
   ws.var("lumi")->Print();
@@ -370,10 +391,10 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 10;
+  int   const npoints           = 3;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 200;
+  int   const ntoys             = 5;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
@@ -390,22 +411,26 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // Grab the result plot
   RooStats::HypoTestInverterPlot *Plot = new RooStats::HypoTestInverterPlot("HTI_Result_Plot", PlotTitle, MyResult);
-  TCanvas CanCLb;
+  TCanvas CanCLb("CLb_2CL", "CLb_2CL");
   CanCLb.cd();
+  Plot->SetTitle(TString::Format("Hybrid CL Scan for M_{jjj} = %i", (int) SignalMass));
   Plot->Draw("CLb 2CL");  // plot all and Clb
   CanCLb.SaveAs(TString::Format("CLb2L_%i.eps", (int) SignalMass));
+  OutRootFile.cd();
+  CanCLb.Write();
 
   if (true) {
-    TCanvas Can;
-    Can.Divide(2, TMath::Ceil(NEntries/2));
+    TCanvas Can("HTI_Result", "HTI_Result");
+    Can.Divide(3, (int) TMath::Ceil(NEntries/3));
     for (int i = 0; i < NEntries; ++i) {
       Can.cd(i + 1);
       RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
       SamplingPlot->SetLogYaxis(true);
-      SamplingPlot->Draw();
       delete SamplingPlot;
     }
     Can.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
+    OutRootFile.cd();
+    Can.Write();
   }
 
   printf(" expected limit (-2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-2));
@@ -417,6 +442,17 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   printf(" observed limit          %12.3E +/- %12.3E\n", MyResult->UpperLimit(), MyResult->UpperLimitEstimatedError()); 
 
 
+  // Write results and close file
+  OutFile << MyResult->GetExpectedUpperLimit(-2) << std::endl;
+  OutFile << MyResult->GetExpectedUpperLimit(-1) << std::endl;
+  OutFile << MyResult->GetExpectedUpperLimit( 0) << std::endl;
+  OutFile << MyResult->GetExpectedUpperLimit( 1) << std::endl;
+  OutFile << MyResult->GetExpectedUpperLimit( 2) << std::endl;
+  OutFile << MyResult->UpperLimit() << std::endl;
+  OutFile.close();
+
+  // Close root file
+  OutRootFile.Close();
 
   return 0;
 }
