@@ -8,6 +8,8 @@ setenv PATH /home/cdfcaf/condor/dist/bin:${PATH}
 
 cd /users/h2/dhidas/CMSSW_4_2_5/src
 eval `scramv1 runtime -csh`
+setenv PATH /cms/data25/krose/RootInstall/root/bin:${PATH}
+setenv LD_LIBRARY_PATH /cms/data25/krose/RootInstall/root/lib:${LD_LIBRARY_PATH}
 cd -
 
 

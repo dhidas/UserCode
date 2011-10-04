@@ -20,7 +20,7 @@ int MakeFakeData ()
   // Number of entries and xmax
   int   const NEntries = 100000;
   float const XMax     =   3000;
-  int   const NBins    =    100;
+  int   const NBins    =    50;
   // Open output file
   TFile OutFile("FakeData.root", "recreate");
 
