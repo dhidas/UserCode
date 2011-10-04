@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 //
 // Dean Andrew Hidas <Dean.Andrew.Hidas@cern.ch>
 //
@@ -29,7 +29,7 @@
 #include "RooLandau.h"
 #include "RooAddPdf.h"
 #include "RooFitResult.h"
-#include "RooDataSet.h"
+#include "RooDataHist.h"
 #include "RooHistPdf.h"
 #include "RooProdPdf.h"
 #include "RooUniform.h"
@@ -53,16 +53,34 @@
 #include "RooStats/LikelihoodIntervalPlot.h"
 #include "RooStats/UpperLimitMCSModule.h"
 
+#include "RooStats/HybridCalculator.h"
+#include "RooStats/ToyMCSampler.h"
+#include "RooStats/HypoTestPlot.h"
+#include "RooStats/FrequentistCalculator.h"
+
+#include "RooStats/NumEventsTestStat.h"
+#include "RooStats/ProfileLikelihoodTestStat.h"
+#include "RooStats/SimpleLikelihoodRatioTestStat.h"
+#include "RooStats/RatioOfProfiledLikelihoodsTestStat.h"
+#include "RooStats/MaxLikelihoodEstimateTestStat.h"
+#include "StandardHypoTestInvDemo.h"
+#include "RooStats/HypoTestInverter.h"
+#include "RooStats/HypoTestInverterResult.h"
+#include "RooStats/HypoTestInverterPlot.h"
+
+
 
 int KeithRooStats (TString const InFileName)
 {
+
+  using namespace RooStats;
   // Setup workspace
   RooWorkspace ws("ws");
 
   // Observable
 
   //ws.factory("JetPt[507.,1684.]");
-  ws.factory("JetPt[0.,3000.]");
+  ws.factory("JetPt[507.,1890.]");
   RooRealVar* JetPt = ws.var("JetPt");
   //ws.factory("RooGenericPdf::CutOffPt(-568. + 370*Scale)");  
   //ws.factory("JetPt[707.,1684.]");
@@ -76,7 +94,7 @@ int KeithRooStats (TString const InFileName)
     exit(1);
   }
   //TH1F* DataTH1F = (TH1F*) InFile.Get("PtSpectrum_Ratio");
-  TH1F* DataTH1F = (TH1F*) InFile.Get("BSignal");
+  TH1F* DataTH1F = (TH1F*) InFile.Get("PtcSpectrum_DLevel_Ratio");
   //TH1F* DataTH1F = (TH1F*) InFile.Get("Extinction2");
   // TH1F* DataTH1FDen = (TH1F*) InFile.Get("Pt_Ybin_0");
   if (!DataTH1F) {
@@ -102,12 +120,12 @@ int KeithRooStats (TString const InFileName)
   ws.factory("RooUniform::standardmodel(JetPt)");
 
   // Signal
-  ws.factory("CutOffPt[100.,3000.]");
-  ws.factory("CutOffSpeed[10., 200]");
+  ws.factory("CutOffPt[507.,1890.]");
+  ws.factory("CutOffSpeed[10., 200.]");
   //ws.factory("NLO[0.3, 0.5]");
   //ws.factory("Height[0.5]");
-  ws.factory("MyMult[1]");
-  ws.factory("MyOffset[0]");
+  ws.factory("MyMult[0.95]");
+  ws.factory("MyOffset[0.05]");
   ws.factory("RooGenericPdf::signalmodel('MyMult / (1.0 + TMath::Exp((JetPt - CutOffPt) / CutOffSpeed)) + MyOffset', {MyMult, JetPt, CutOffPt, CutOffSpeed, MyOffset})");
 
   //ws.factory("RooGaussian::signalmodel(JetPt, CutOffPt, CutOffSpeed)");
@@ -140,56 +158,152 @@ int KeithRooStats (TString const InFileName)
   RooStats::ModelConfig modelConfig("modelConfig");
   modelConfig.SetWorkspace(ws);
   modelConfig.SetPdf(*ws.pdf("signalmodel"));
+  modelConfig.SetObservables(*ws.var("JetPt"));
+  
+  RooStats::ModelConfig BModel("modelConfigB");
+  BModel.SetWorkspace(ws);
+  BModel.SetPdf(*ws.pdf("standardmodel"));
+  BModel.SetObservables(*ws.var("JetPt"));
   ws.defineSet("POI","CutOffPt");
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
+  BModel.SetParametersOfInterest(*ws.set("POI"));
+  
   ws.factory("RooUniform::prior_CutOffPt(CutOffPt)");
   ws.factory("RooUniform::prior_CutOffSpeed(CutOffSpeed)");
-  
+  //cout << "here" << endl;  
   ws.factory("RooPolynomial::SystS0(JetPt, {-0.003677, .000005819, -.00000000404, .000000000001082})");
   ws.factory("RooLognormal::Syst_prior(Syst[1], SystM0[0], SystS0)");
   ws.var("Syst")->setRange(0., 2.);
   ws.var("Syst")->setVal(1.);
   ws.var("SystM0")->setVal(1.);
-
-  ws.factory("RooPolynomial::TheoS0(JetPt, {-.004072, .000006684, -0.000000004592, .000000000001226})");
+  //cout << "here too" << endl;
+  ws.factory("RooPolynomial::TheoS0(JetPt, {-0.003752, 0.000005667, -0.000000003490, 0.00000000000007808})");
   ws.factory("RooLognormal::Theo_prior(Theo[1], TheoM0[0], TheoS0)");
   ws.var("Theo")->setRange(0., 2.);
   ws.var("Theo")->setVal(1.);
   ws.var("TheoM0")->setVal(1.);
-
-  ws.factory("PROD::priors(prior_CutOffPt, prior_CutOffSpeed)");
-  ws.factory("PROD::priors_withSys(priors, Syst_prior)");
-  ws.factory("PROD::priors_withAll(priors_withSys, Theo_prior)");
+  //cout << "here three" << endl;
+  ws.factory("PROD::priors(prior_CutOffPt,prior_CutOffSpeed)");
+  ws.factory("PROD::priors_withSys(priors,Syst_prior)");
+  ws.factory("PROD::priors_withAll(priors_withSys,Theo_prior)");
+  //cout << "here four" << endl;
   ws.factory("PROD::signalmodelWprior(signalmodel,priors_withAll)");
-  ws.defineSet("nuisSet","CutOffSpeed,Syst_prior,Theo_prior");
-  ws.import(modelConfig);
+  ws.defineSet("nuisSet","CutOffSpeed,Theo_prior,Syst_prior");
+  modelConfig.SetPriorPdf(*ws.pdf("prior_CutOffPt"));
+  BModel.SetPriorPdf(*ws.pdf("prior_CutOffPt"));
+  //cout << "here five" << endl;
 
+
+  //RooArgSet nuisPar(*ws.var("CutOffSpeed"),*ws.var("Theo"),*ws.var("Syst"));
+  RooArgSet nuisPar(*ws.var("CutOffSpeed"));
+	
+  //cout << "here six" << endl;
+  modelConfig.SetNuisanceParameters(nuisPar);
+  BModel.SetNuisanceParameters(nuisPar);
+  ws.import(modelConfig);
+  ws.import(BModel);
+
+  //nuisSet = &nuisPar;
   ws.Print();
   modelConfig.Print();
-
-
+  BModel.Print();
+/*
   RooStats::MCMCCalculator mc(*ws.data("DataToFit"), modelConfig);
   mc.SetNumBins(50);
   mc.SetConfidenceLevel(0.95);
   mc.SetLeftSideTailFraction(1.0);
   //mc.SetNumIters(10000000);
-  mc.SetNumIters(100000);
+  mc.SetNumIters(50000);
   mc.SetNumBurnInSteps(500);
   RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
+  RooStats::BayesianCalculator bcalc(*ws.data("DataToFit"), modelConfig);
+  double conflevel = 0.95; 
+  bcalc.SetTestSize((1.-conflevel));
+  RooStats::SimpleInterval* Bayes_interval = bcalc.GetInterval();
+  
   // Upper limit
   float LowerLimit = interval->LowerLimit(*ws.var("JetPt"));
   std::cout << "LowerLimit: " << LowerLimit << std::endl;
-
+  std::cout << "Bayesian Lower Limit:" << Bayes_interval->LowerLimit();
+*/
   TCanvas CanPost("MCMCpost", "MCMCpost");
-  CanPost.cd();
-  RooStats::MCMCIntervalPlot mcPlot(*interval);
-  mcPlot.Draw();
-  CanPost.SaveAs("MCMCPosterior.eps");
 
+
+  HypoTestInverterResult * r = 0;
+  const char * modelSBName = "modelConfig";
+  const char * modelBName = "modelConfigB";
+  const char * dataName = "DataToFit";
+  int calculatorType = 1;
+  int testStatType = 3;
+  bool useCls = true;
+  int npoints = 0;
+  double poimin = 507;
+  double poimax = 1890;
+  int ntoys = 400;
+  bool useNumberCounting = false;
+  const char * nuisPriorName = "";
+  
+  r = RunInverter(&ws, "modelConfig", "modelConfigB", "DataToFit", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName );   
+
+  double CLsLowerLimit = r->LowerLimit();
+  cout << "CLs Lower Limit:" << CLsLowerLimit << endl;
+  CanPost.cd();
+
+  CanPost.SetBorderSize(0);
+  CanPost.SetBorderMode(0);
+  //RooStats::MCMCIntervalPlot mcPlot(*interval);
+
+  gStyle->SetTitleBorderSize(0);
+  gStyle->SetTitleX(0.15); // X position of the title box from left
+  gStyle->SetTitleY(.975); // Y position of the title box from bottom
+  gStyle->SetLabelSize(0.035,"y");
+  gStyle->SetStatX(.9);
+  gStyle->SetStatY(.9);
+  gStyle->SetStatW(0.20);
+  gStyle->SetStatFontSize(0.044);
+  gStyle->SetStatColor(0);
+// For the canvas:
+  gStyle->SetCanvasBorderMode(0);
+  gStyle->SetCanvasColor(kWhite);
+  gStyle->SetCanvasDefH(800); //Height of canvas
+  gStyle->SetCanvasDefW(800); //Width of canvas
+  gStyle->SetCanvasDefX(0);   //POsition on screen
+  gStyle->SetCanvasDefY(0);
+
+// For the Pad:
+  gStyle->SetPadBorderMode(0);
+  // gStyle->SetPadBorderSize(Width_t size = 1);
+  gStyle->SetPadColor(kWhite);
+  gStyle->SetPadGridX(false);
+  gStyle->SetPadGridY(false);
+  gStyle->SetGridColor(0);
+  gStyle->SetGridStyle(3);
+  gStyle->SetGridWidth(1);
+
+// For the frame:
+  gStyle->SetFrameBorderMode(0);
+  gStyle->SetFrameBorderSize(1);
+  gStyle->SetFrameFillColor(0);
+  gStyle->SetFrameFillStyle(0);
+  gStyle->SetFrameLineColor(1);
+  gStyle->SetFrameLineStyle(1);
+  gStyle->SetFrameLineWidth(1);
+/*
+  mcPlot.SetTitle("CMS Preliminary");
+  mcPlot.Draw();
+  
+  CanPost.SaveAs("MCMCPosterior.eps");
+  CanPost.SaveAs("MCMCPosterior.pdf");
+
+  RooPlot *CLplot = bcalc.GetPosteriorPlot();
+  CLplot->SetTitle("CMS Preliminary");
+  CLplot->Draw();
+  CanPost.SaveAs("BayesPosterior.eps");
+  CanPost.SaveAs("BayesPosterior.pdf");
+*/
   return 0;
 }
-
 
 int main (int argc, char* argv[])
 {
