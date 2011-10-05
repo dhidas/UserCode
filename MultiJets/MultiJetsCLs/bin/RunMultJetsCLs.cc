@@ -107,20 +107,20 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   float const MINPOI     =      0;
   float const MAXPOI     =   
-    SignalMass <  300 ?  50   :
-    SignalMass <  400 ?  20   :
+    SignalMass <  300 ?  30   :
+    SignalMass <  400 ?  10   :
     SignalMass <  500 ?  10   :
     SignalMass <  600 ?   6   :
-    SignalMass <  700 ?   5   :
-    SignalMass <  800 ?   5   :
-    SignalMass <  900 ?   5   :
-    SignalMass < 1000 ?   3   :
-    SignalMass < 1100 ?   3   :
-    SignalMass < 1200 ?   3   :
-    SignalMass < 1300 ?   3   :
-    SignalMass < 1400 ?   3   :
-    SignalMass < 1500 ?   3   :
-    3;
+    SignalMass <  700 ?   3   :
+    SignalMass <  800 ?   3   :
+    SignalMass <  900 ?   3   :
+    SignalMass < 1000 ?   1   :
+    SignalMass < 1100 ?   1   :
+    SignalMass < 1200 ?   1   :
+    SignalMass < 1300 ?   1   :
+    SignalMass < 1400 ?   1   :
+    SignalMass < 1500 ?   1   :
+    1;
 
 
   // Open output file for limits
@@ -269,7 +269,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (1) {
+  switch (2) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -359,17 +359,17 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
   ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
-  TCanvas Can("Fit", "Fit");
-  Can.cd();
+  TCanvas CanFit("Fit", "Fit");
+  CanFit.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
   ws.data("Data")->plotOn(ThisDataFit);
   ws.pdf("bgmodel_noprior")->plotOn(ThisDataFit);
   ThisDataFit->SetTitle(TString::Format("M_{jjj} = %i", (int) SignalMass));
   ThisDataFit->Draw();
-  Can.SetLogy(1);
+  CanFit.SetLogy(1);
   OutRootFile.cd();
-  Can.Write();
-  Can.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
+  CanFit.Write();
+  CanFit.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
 
   RooArgSet POIAndNuisSB("POIAndNuisSB");
   POIAndNuisSB.add(*ModelConfigSB.GetParametersOfInterest());
@@ -391,10 +391,10 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 3;
+  int   const npoints           = 10;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 5;
+  int   const ntoys             = 200;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
@@ -419,30 +419,30 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   OutRootFile.cd();
   CanCLb.Write();
 
-  if (true) {
-    TCanvas Can("HTI_Result", "HTI_Result");
-    Can.Divide(3, (int) TMath::Ceil(NEntries/3));
-    for (int i = 0; i < NEntries; ++i) {
-      Can.cd(i + 1);
-      RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
-      SamplingPlot->SetLogYaxis(true);
-      delete SamplingPlot;
-    }
-    Can.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
-    OutRootFile.cd();
-    Can.Write();
+  // Draw the sampling distributions
+  TCanvas CanHTI("HTI_Result", "HTI_Result");
+  CanHTI.Divide(3, (int) TMath::Ceil(NEntries/3));
+  for (int i = 0; i < NEntries; ++i) {
+    CanHTI.cd(i + 1);
+    RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
+    SamplingPlot->SetLogYaxis(true);
+    delete SamplingPlot;
   }
+  CanHTI.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
+  OutRootFile.cd();
+  CanHTI.Write();
 
+  // Print the limits
   printf(" expected limit (-2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-2));
   printf(" expected limit (-1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-1));
   printf(" expected limit (median) %12.3E\n", MyResult->GetExpectedUpperLimit(0) );
   printf(" expected limit (+1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(1) );
   printf(" expected limit (+2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(2) );
-
   printf(" observed limit          %12.3E +/- %12.3E\n", MyResult->UpperLimit(), MyResult->UpperLimitEstimatedError()); 
 
 
   // Write results and close file
+  OutFile << SignalMass << std::endl;
   OutFile << MyResult->GetExpectedUpperLimit(-2) << std::endl;
   OutFile << MyResult->GetExpectedUpperLimit(-1) << std::endl;
   OutFile << MyResult->GetExpectedUpperLimit( 0) << std::endl;
