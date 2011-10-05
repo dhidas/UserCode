@@ -167,7 +167,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 
   // Get the fit function from the hist
-  TF1* FitFunction = (TF1*) DataHist->GetFunction("g3");
+  TF1* FitFunction = (TF1*) DataHist->GetFunction("g4");
   if (FitFunction == 0x0) {
     std::cout << "ERROR: cannot get fitted function." << std::endl;
     throw;
@@ -188,26 +188,37 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   ws.var("p1")->setConstant(true);
   ws.var("p1")->Print();
   ws.factory("p2[0]");
-  ws.var("p2")->setRange(0, -FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
+  ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
   ws.var("p2")->setVal(-FitFunction->GetParameter(2));
   ws.var("p2")->setConstant(true);
   ws.var("p2")->Print();
+  ws.factory("p3[0]");
+  ws.var("p3")->setRange(FitFunction->GetParameter(3) - 5 * FitFunction->GetParError(3), FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
+  ws.var("p3")->setVal(-FitFunction->GetParameter(3));
+  ws.var("p3")->setConstant(true);
+  ws.var("p3")->Print();
+
 
   // define priors (constraints) for these params
   ws.factory("RooLognormal::p1_prior(p1, p1M0[0], p1S0[1])");
-  ws.var("p1S0")->setVal(1.03);
+  ws.var("p1S0")->setVal(1.0 + FitFunction->GetParError(1) / FitFunction->GetParameter(1));
   ws.var("p1S0")->setConstant(true);
   ws.var("p1M0")->setVal(FitFunction->GetParameter(1));
   ws.var("p1M0")->setConstant(true);
   ws.factory("RooLognormal::p2_prior(p2, p2M0[0], p2S0[1])");
-  ws.var("p2S0")->setVal(1.03);
+  ws.var("p2S0")->setVal(1.0 + FitFunction->GetParError(2) / FitFunction->GetParameter(2));
   ws.var("p2S0")->setConstant(true);
-  ws.var("p2M0")->setVal(-FitFunction->GetParameter(2));
+  ws.var("p2M0")->setVal(FitFunction->GetParameter(2));
   ws.var("p2M0")->setConstant(true);
+  ws.factory("RooLognormal::p3_prior(p3, p3M0[0], p3S0[1])");
+  ws.var("p3S0")->setVal(1.0 + FitFunction->GetParError(3) / FitFunction->GetParameter(3));
+  ws.var("p3S0")->setConstant(true);
+  ws.var("p3M0")->setVal(FitFunction->GetParameter(3));
+  ws.var("p3M0")->setConstant(true);
 
 
   // Background function
-  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / (mjjj/7000.)^(-1.0*p2))', {mjjj, p1, p2})");
+  ws.factory("RooGenericPdf::background('(((1. - mjjj/7000.)^p1)/((mjjj/7000.)^(p2+ p3*log(mjjj/7000.))))', {mjjj, p1, p2, p3})");
 
 
   // Define lumi and lumi prior
@@ -271,7 +282,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (2) {
+  switch (4) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -295,6 +306,14 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
       ws.var("p2")->setConstant(false);
       break;
     case 4:
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,p3");
+      ws.var("nbkg")->setConstant(false);
+      ws.var("p1")->setConstant(false);
+      ws.var("p2")->setConstant(false);
+      ws.var("p3")->setConstant(false);
+      break;
+    case 5:
       ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior)");
       ws.defineSet("nuisance", "nbkg,p1,p2,lumi");
       ws.var("nbkg")->setConstant(false);
@@ -302,7 +321,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
       ws.var("p2")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       break;
-    case 5:
+    case 6:
       ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
       ws.defineSet("nuisance", "nbkg,p1,p2,lumi,acceptance");
       ws.var("nbkg")->setConstant(false);
@@ -311,7 +330,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       break;
-    case 6:
+    case 7:
       ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
       ws.defineSet("nuisance", "nbkg,p1,p2,lumi,acceptance,sigWidth");
       ws.var("nbkg")->setConstant(false);

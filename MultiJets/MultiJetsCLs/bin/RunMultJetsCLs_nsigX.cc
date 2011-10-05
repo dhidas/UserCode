@@ -97,7 +97,7 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLs (TString const InFileName, int const Section)
 {
   // Get the mass for this section
-  int const SignalMass = 250 + (10 * Section);
+  float const SignalMass = 250 + (10 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   float const MINXS      =      0;
