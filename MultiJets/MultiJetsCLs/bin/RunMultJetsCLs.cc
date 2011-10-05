@@ -314,28 +314,31 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
       ws.var("p3")->setConstant(false);
       break;
     case 5:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,lumi");
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
       ws.var("p2")->setConstant(false);
+      ws.var("p3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       break;
     case 6:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,lumi,acceptance");
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior,acceptance_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi,acceptance");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
       ws.var("p2")->setConstant(false);
+      ws.var("p3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       break;
     case 7:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,lumi,acceptance,sigWidth");
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi,acceptance,sigWidth");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
       ws.var("p2")->setConstant(false);
+      ws.var("p3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       ws.var("sigWidth")->setConstant(false);
