@@ -35,9 +35,9 @@ Should_Transfer_Files = NO
 Output = \$(OutDir)/Log/Log_\$(Process).out
 Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
-notify_user = dhidas@FNAL.GOV
+notify_user = clseitz@physics.rutgers.edu
 Arguments = \$(Process)
-Queue 125
+Queue 18
 +EOF
 
 
