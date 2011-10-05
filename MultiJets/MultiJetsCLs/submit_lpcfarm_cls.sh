@@ -28,7 +28,7 @@ universe = vanilla
 Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )&& Disk > 1000000
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
-Transfer_Input_Files = $InFileName, RunRooCLS
+Transfer_Input_Files = $InFileName, RunMultJetsCLs
 Output = \$(OutDir)/Log/Log_\$(Process).out
 Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
