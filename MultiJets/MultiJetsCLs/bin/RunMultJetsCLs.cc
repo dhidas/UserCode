@@ -112,15 +112,17 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
     SignalMass <  500 ?  10   :
     SignalMass <  600 ?   6   :
     SignalMass <  700 ?   3   :
-    SignalMass <  800 ?   3   :
-    SignalMass <  900 ?   3   :
-    SignalMass < 1000 ?   1   :
-    SignalMass < 1100 ?   1   :
-    SignalMass < 1200 ?   1   :
-    SignalMass < 1300 ?   1   :
-    SignalMass < 1400 ?   1   :
-    SignalMass < 1500 ?   1   :
-    1;
+    SignalMass <  800 ?   2   :
+    SignalMass <  900 ?   1.5 :
+    SignalMass <  950 ?   0.8 :
+    SignalMass < 1000 ?   0.6 :
+    SignalMass < 1050 ?   0.4 :
+    SignalMass < 1100 ?   0.4 :
+    SignalMass < 1200 ?   0.4 :
+    SignalMass < 1300 ?   0.2 :
+    SignalMass < 1400 ?   0.2 :
+    SignalMass < 1500 ?   0.2 :
+    0.2;
 
 
   // Open output file for limits
