@@ -415,10 +415,10 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 2;
+  int   const npoints           = 30;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 2;
+  int   const ntoys             = 50;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
