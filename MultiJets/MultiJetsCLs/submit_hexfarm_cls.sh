@@ -37,7 +37,7 @@ Error =  \$(OutDir)/Log/Log_\$(Process).err
 Log =    \$(OutDir)/Log/Log_\$(Process).log
 notify_user = clseitz@physics.rutgers.edu
 Arguments = \$(Process)
-Queue 18
+Queue 63
 +EOF
 
 

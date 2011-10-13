@@ -25,6 +25,7 @@
 #include "RooExponential.h"
 #include "RooGenericPdf.h"
 #include "RooPlot.h"
+#include "RooRandom.h"
 
 
 // Min and max for observable
@@ -96,15 +97,21 @@ float GetAcceptanceError (float const m)
 
 
 
-int RunMultJetsCLs (TString const InFileName, int const Section)
+int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const SeedOffset)
 {
   // Get the mass for this section
   float const SignalMass = 250 + (20 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
+  // Set the roostats random seed based on secton number..fine..
+  RooRandom::randomGenerator()->SetSeed(7723*(Section+SeedOffset));
+
+
+  // Min and max ax for roovar
   float const MINXS      =      0;
   float const MAXXS      =    100;
 
+  // Min and max xs for CLs
   float const MINPOI     =      0;
   float const MAXPOI     =   
     SignalMass <  300 ?  35   :
@@ -125,15 +132,8 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
     0.16;
 
 
-  // Open output file for limits
-  std::ofstream OutFile(TString::Format("Limits_CLs_%i.dat", (int) SignalMass).Data());
-  if (!OutFile.is_open()) {
-    std::cerr << "ERROR: cannot open output file Limits_CLs_*.dat for mass: " << SignalMass << std::endl;
-    throw;
-  }
-
   // Setup output root file based on mass
-  TFile OutRootFile(TString::Format("MultiJetsCLs_%i.root", (int) SignalMass), "recreate");
+  TFile OutRootFile(TString::Format("MultiJetsCLs_%i_%i.root", SeedOffset, (int) SignalMass), "recreate");
   if (!OutRootFile.IsOpen()) {
     std::cerr << "ERROR: cannot open output root file for mass: " << SignalMass << std::endl;
     throw;
@@ -415,65 +415,19 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 20;
+  int   const npoints           = 2;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 600;
+  int   const ntoys             = 2;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
   // Run the actual CLs
   RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
-  // Number of entries in result
-  const int NEntries = MyResult->ArraySize();
-
-  // Just some names
-  const char* TypeName = "Hybrid";
-  const char* ResultName = MyResult->GetName();
-  TString PlotTitle = TString::Format("%s CL Scan for workspace %s", TypeName, ResultName);
-
-  // Grab the result plot
-  RooStats::HypoTestInverterPlot *Plot = new RooStats::HypoTestInverterPlot("HTI_Result_Plot", PlotTitle, MyResult);
-  TCanvas CanCLb("CLb_2CL", "CLb_2CL");
-  CanCLb.cd();
-  Plot->SetTitle(TString::Format("Hybrid CL Scan for M_{jjj} = %i", (int) SignalMass));
-  Plot->Draw("CLb 2CL");  // plot all and Clb
-  CanCLb.SaveAs(TString::Format("CLb2L_%i.eps", (int) SignalMass));
+  // Save the HypoTestInverterResult object to root file
   OutRootFile.cd();
-  CanCLb.Write();
-
-  // Draw the sampling distributions
-  TCanvas CanHTI("HTI_Result", "HTI_Result");
-  CanHTI.Divide(3, (int) TMath::Ceil(NEntries/3));
-  for (int i = 0; i < NEntries; ++i) {
-    CanHTI.cd(i + 1);
-    RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
-    SamplingPlot->SetLogYaxis(true);
-    delete SamplingPlot;
-  }
-  CanHTI.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
-  OutRootFile.cd();
-  CanHTI.Write();
-
-  // Print the limits
-  printf(" expected limit (-2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-2));
-  printf(" expected limit (-1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-1));
-  printf(" expected limit (median) %12.3E\n", MyResult->GetExpectedUpperLimit(0) );
-  printf(" expected limit (+1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(1) );
-  printf(" expected limit (+2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(2) );
-  printf(" observed limit          %12.3E +/- %12.3E\n", MyResult->UpperLimit(), MyResult->UpperLimitEstimatedError()); 
-
-
-  // Write results and close file
-  OutFile << SignalMass << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit(-2) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit(-1) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit( 0) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit( 1) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit( 2) << std::endl;
-  OutFile << MyResult->UpperLimit() << std::endl;
-  OutFile.close();
+  MyResult->Write();
 
   // Close root file
   OutRootFile.Close();
@@ -484,15 +438,16 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 int main (int argc, char* argv[])
 {
-  if (argc != 3) {
-    std::cerr << "Usage: " << argv[0] << " [InFile] [Section]" << std::endl;
+  if (argc != 4) {
+    std::cerr << "Usage: " << argv[0] << " [InFile] [Section] [SeedOffset]" << std::endl;
     return 1;
   }
 
   TString const InFileName = argv[1];
   int const Section = atoi(argv[2]);
+  int const SeedOffset = atoi(argv[3]);
 
-  RunMultJetsCLs(InFileName, Section);
+  RunMultJetsCLsSplit(InFileName, Section, SeedOffset);
 
   return 0;
 }
