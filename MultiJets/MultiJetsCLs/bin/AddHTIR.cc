@@ -30,7 +30,7 @@
 int AddHTIR (int const SignalMass, std::vector<TString>& InFileNames)
 {
   // Cumulative result
-  RooStats::HypoTestInverterResult* MyResult;
+  RooStats::HypoTestInverterResult* MyResult = 0x0;
 
   // Grab the result from each file and Add it to MyResult
   for (size_t ifile = 0; ifile != InFileNames.size(); ++ifile) {
@@ -41,7 +41,13 @@ int AddHTIR (int const SignalMass, std::vector<TString>& InFileNames)
     }
 
     RooStats::HypoTestInverterResult* ThisResult = (RooStats::HypoTestInverterResult*) InFile.Get("result_xs");
-    if (ifile == 0) {
+
+    // Check if this object exists.. if not, it might not be done running, and so on
+    if (!ThisResult) {
+      continue;
+    }
+
+    if (MyResult == 0x0) {
       MyResult = ThisResult;
     } else {
       MyResult->Add(*ThisResult);
