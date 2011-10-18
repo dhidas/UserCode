@@ -31,11 +31,11 @@ Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )&& Disk > 10
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
 Transfer_Input_Files = $InFileName, RunMultJetsCLsSplit
-Output = \$(OutDir)/Log/Log_\$(Process).out
-Error =  \$(OutDir)/Log/Log_\$(Process).err
-Log =    \$(OutDir)/Log/Log_\$(Process).log
+Output = \$(OutDir)/Log/Log_$SeedOffset_\$(Process).out
+Error =  \$(OutDir)/Log/Log_$SeedOffset_\$(Process).err
+Log =    \$(OutDir)/Log/Log_$SeedOffset_\$(Process).log
 notify_user = dhidas@FNAL.GOV
-Arguments = \$(Process) \$(OutDir) $SeedOffset
+Arguments = \$(Process) $SeedOffset
 Queue 63
 +EOF
 
