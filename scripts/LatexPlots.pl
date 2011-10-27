@@ -33,10 +33,10 @@ foreach (@ARGV) {
 print MYFILE "\\end{document}";
 close MYFILE;
 
-`latex $TEMPFILENAME.tex`;
-`latex $TEMPFILENAME.tex`;
-`dvips -t letter -Ppdf -G0 -tletter $TEMPFILENAME.dvi -o $TEMPFILENAME.ps`;
-`ps2pdf $TEMPFILENAME.ps`;
+print `latex $TEMPFILENAME.tex`;
+print `latex $TEMPFILENAME.tex`;
+print `dvips -t letter -Ppdf -G0 -tletter $TEMPFILENAME.dvi -o $TEMPFILENAME.ps`;
+print `ps2pdf $TEMPFILENAME.ps`;
 `rm $TEMPFILENAME.ps $TEMPFILENAME.dvi $TEMPFILENAME.tex $TEMPFILENAME.log $TEMPFILENAME.aux`;
 
 
