@@ -334,6 +334,10 @@ HypoTestInverterResult *  RunInverter(RooWorkspace * w, const char * modelSBName
       //poi->setMax(10*int( (poihat+ 10 *poi->getError() )/10 ) );
       std::cout << "Doing an  automatic scan  in interval : " << poi->getMin() << " , " << poi->getMax() << std::endl;
    }
+   RooStats::HypoTestCalculatorGeneric * pHc = calc.GetHypoTestCalculator();
+   RooStats::ToyMCSampler * pToyMcSampler = (RooStats::ToyMCSampler*)pHc->GetTestStatSampler();
+   pToyMcSampler->SetNEventsPerToy(10000);
+
 
    HypoTestInverterResult * r = calc.GetInterval();
 
