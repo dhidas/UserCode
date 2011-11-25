@@ -26,6 +26,7 @@
 #include "RooHist.h"
 #include "RooGenericPdf.h"
 #include "RooGaussian.h"
+#include "RooFormulaVar.h"
 #include "RooLandau.h"
 #include "RooAddPdf.h"
 #include "RooFitResult.h"
@@ -80,7 +81,7 @@ int KeithRooStats (TString const InFileName)
   // Observable
 
   //ws.factory("JetPt[507.,1684.]");
-  ws.factory("JetPt[507.,2000.]");
+  ws.factory("JetPt[507.,2500.]");
   RooRealVar* JetPt = ws.var("JetPt");
   //ws.factory("RooGenericPdf::CutOffPt(-568. + 370*Scale)");  
   //ws.factory("JetPt[707.,1684.]");
@@ -94,8 +95,8 @@ int KeithRooStats (TString const InFileName)
     exit(1);
   }
   
-  TH1F* DataTH1F = (TH1F*) InFile.Get("PtcSpectrum_Ratio");
-  //TH1F* DataTH1F = (TH1F*) InFile.Get("PtcSpectrum_ShiftDown_Ratio");
+  //TH1F* DataTH1F = (TH1F*) InFile.Get("PtcSpectrum_Ratio");
+  TH1F* DataTH1F = (TH1F*) InFile.Get("PtcSpectrum_ShiftDown_Ratio");
   //TH1F* DataTH1F = (TH1F*) InFile.Get("Extinction2");
   // TH1F* DataTH1FDen = (TH1F*) InFile.Get("Pt_Ybin_0");
   if (!DataTH1F) {
@@ -120,9 +121,11 @@ int KeithRooStats (TString const InFileName)
   // standardmodel is a line
 
   // Signal
-  ws.factory("CutOffPt[507.,2000.]");
-  ws.factory("CutOffSpeed[10., 200.]");
-  //ws.factory("NLO[0.3, 0.5]");
+  //ws.factory("CutOffPt[507.,3000.]");
+  ws.factory("CutOffSpeed[50., 200.]");
+  ws.factory("OneOverLambda2[.04,1]");
+  ws.factory("RooFormulaVar::Lambda('1.0 / abs(sqrt(OneOverLambda2))',{OneOverLambda2})");
+  ws.factory("RooFormulaVar::CutOffPt('354.+426*Lambda', {Lambda})");
   //ws.factory("Height[0.5]");
   ws.factory("MyMult[0.95]");
   ws.factory("MyOffset[0.05]");
@@ -137,19 +140,19 @@ int KeithRooStats (TString const InFileName)
   RooPlot* datafit = ws.var("JetPt")->frame();
   ws.data("DataToFit")->plotOn(datafit);
   //JetPt->setRange("ptrange", 507.,1684.);
-  ws.pdf("signalmodel")->fitTo(*ws.data("DataToFit"),RooFit::SumW2Error(kTRUE));
+  ws.pdf("signalmodel")->fitTo(*ws.data("DataToFit"),RooFit::SumW2Error(kFALSE));
   ws.pdf("signalmodel")->plotOn(datafit);
   datafit->Draw();
   Can.SaveAs("SignalModelFit.eps");
   Can.Clear();
   delete datafit;
-  ws.var("CutOffPt")->Print();
+  //ws.var("OneOverLambda2")->Print();
   ws.var("CutOffSpeed")->Print();
   cout << "here" << endl;
   // standard model fit
   datafit = ws.var("JetPt")->frame();
   ws.data("DataToFit")->plotOn(datafit);
-  ws.pdf("standardmodel")->fitTo(*ws.data("DataToFit"));
+  ws.pdf("standardmodel")->fitTo(*ws.data("DataToFit"),RooFit::SumW2Error(kFALSE));
   ws.pdf("standardmodel")->plotOn(datafit);
   datafit->Draw();
   Can.SaveAs("StandardModelFit.eps");
@@ -165,7 +168,7 @@ int KeithRooStats (TString const InFileName)
   BModel.SetWorkspace(ws);
   BModel.SetPdf(*ws.pdf("standardmodel"));
   BModel.SetObservables(*ws.var("JetPt"));
-  ws.defineSet("POI","CutOffPt");
+  ws.defineSet("POI","OneOverLambda2");
   modelConfig.SetParametersOfInterest(*ws.set("POI"));
   BModel.SetParametersOfInterest(*ws.set("POI"));
   RooArgSet POIAndNuisS("POIAndNuisS");
@@ -175,8 +178,9 @@ int KeithRooStats (TString const InFileName)
   POIAndNuisB.add(*BModel.GetParametersOfInterest());
   BModel.SetSnapshot(POIAndNuisB);
 
-  ws.factory("RooUniform::prior_CutOffPt(CutOffPt)");
+  //ws.factory("RooUniform::prior_CutOffPt(CutOffPt)");
   ws.factory("RooUniform::prior_CutOffSpeed(CutOffSpeed)");
+  ws.factory("RooUniform::prior_Lambda(OneOverLambda2)");
   //cout << "here" << endl;  
   ws.factory("RooPolynomial::SystS0(JetPt, {1.0,-0.003677, .000005819, -.00000000404, .000000000001082})");
   ws.factory("RooLognormal::Syst_prior(Syst[1], SystM0[0], SystS0)");
@@ -190,19 +194,19 @@ int KeithRooStats (TString const InFileName)
   ws.var("Theo")->setVal(1.);
   ws.var("TheoM0")->setVal(1.);
   //cout << "here three" << endl;
-  ws.factory("PROD::priors(prior_CutOffPt,prior_CutOffSpeed)");
+  ws.factory("PROD::priors(prior_Lambda,prior_CutOffSpeed)");
   ws.factory("PROD::priors_withSys(priors,Syst_prior)");
   ws.factory("PROD::priors_withAll(priors_withSys,Theo_prior)");
   //cout << "here four" << endl;
   ws.factory("PROD::signalmodelWprior(signalmodel,priors_withAll)");
   ws.defineSet("nuisSet","CutOffSpeed,Theo_prior,Syst_prior");
-  modelConfig.SetPriorPdf(*ws.pdf("priors_withAll"));
-  BModel.SetPriorPdf(*ws.pdf("prior_CutOffPt"));
+  modelConfig.SetPriorPdf(*ws.pdf("priors"));
+  BModel.SetPriorPdf(*ws.pdf("prior_Lambda"));
   //cout << "here five" << endl;
 
 
-  RooArgSet nuisPar(*ws.var("CutOffSpeed"),*ws.var("Theo"),*ws.var("Syst"));
-  //RooArgSet nuisPar(*ws.var("CutOffSpeed"));
+  //RooArgSet nuisPar(*ws.var("CutOffSpeed"),*ws.var("Theo"),*ws.var("Syst"));
+  RooArgSet nuisPar(*ws.var("CutOffSpeed"));
 	
   //cout << "here six" << endl;
   modelConfig.SetNuisanceParameters(nuisPar);
@@ -227,17 +231,21 @@ int KeithRooStats (TString const InFileName)
   RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*)mc.GetInterval();
 
   RooStats::BayesianCalculator bcalc(*ws.data("DataToFit"), modelConfig);
-  double conflevel = 0.95; 
+  double conflevel = 0.90; 
   bcalc.SetTestSize((1.-conflevel));
 
   RooStats::SimpleInterval* Bayes_interval = bcalc.GetInterval();
   
   // Upper limit
 
-  //float LowerLimit = interval->LowerLimit(*ws.var("JetPt"));
-
-  //std::cout << "LowerLimit: " << LowerLimit << std::endl;
-  std::cout << "Bayesian Lower Limit:" << Bayes_interval->LowerLimit();
+  float LowerLimit = interval->LowerLimit(*ws.var("JetPt"));
+  float UpperLimit = interval->UpperLimit(*ws.var("JetPt"));
+  std::cout << "LowerLimit: " << LowerLimit << std::endl;
+  std::cout << "UpperLimit: " << UpperLimit << std::endl;
+  double con1 = bcalc.ConfidenceLevel();
+  std::cout << "Bayesian Confidence Level:" << con1 << std::endl;
+  std::cout << "Bayesian Lower Limit:" << Bayes_interval->LowerLimit() << std::endl;
+  std::cout << "Bayesian Upper Limit:" << Bayes_interval->UpperLimit() << std::endl;
   TCanvas CanPost("MCMCpost", "MCMCpost");
 
   RooPlot *CLplot = bcalc.GetPosteriorPlot();
@@ -255,17 +263,19 @@ int KeithRooStats (TString const InFileName)
   int calculatorType = 1;
   int testStatType = 3;
   bool useCls = true;
-  int npoints = 30;
-  double poimin = 900;
-  double poimax = 1940;
-  int ntoys = 40;
+  int npoints = 100;
+  double poimin = .04;
+  double poimax = .3;
+  int ntoys = 1000;
   bool useNumberCounting = false;
   const char * nuisPriorName = "nuisSet";
 
   r = RunInverter(&ws, "modelConfig", "modelConfigB", "DataToFit", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName );   
   //int nTestPlots = r->ArraySize();
   double CLsLowerLimit = r->LowerLimit();
+  double CLsUpperLimit = r->UpperLimit();
   cout << "CLs Lower Limit:" << CLsLowerLimit << endl;
+  cout << "CLs Upper Limit:" << CLsUpperLimit << endl;
 /*
    // compute expected limit
    std::cout << " expected limit (median) " <<  r->GetExpectedLowerLimit(0) << std::endl;
@@ -315,22 +325,22 @@ int KeithRooStats (TString const InFileName)
   //CLS_plot->Draw("CLs");
   TGraphErrors *CLS_graph = CLS_plot.MakePlot("CLsplusb");
   CLS_graph->Draw("ALP");
-  CLS_graph->SetMinimum(.4);
+  CLS_graph->SetMinimum(0);
   CLS_graph->SetMaximum(1.1);
   CLS_graph->GetXaxis()->SetTitle("Cutoff p_{T} (GeV)");
   TGraphErrors *CLS_graph2 = CLS_plot.MakePlot("CLb");
   CLS_graph2->Draw("ALP");
-  CLS_graph2->SetMinimum(.4);
+  CLS_graph2->SetMinimum(0);
   CLS_graph2->SetMaximum(1.1);
   CLS_graph2->GetXaxis()->SetTitle("Cutoff p_{T} (GeV)");
   TGraphErrors *CLS_graph3 = CLS_plot.MakePlot("CLs");
   CLS_graph3->Draw("ALP");
-  CLS_graph3->SetMinimum(.4);
+  CLS_graph3->SetMinimum(0);
   CLS_graph3->SetMaximum(1.1);
   CLS_graph3->GetXaxis()->SetTitle("Cutoff p_{T} (GeV)");
   TGraphErrors *CLS_graph4 = CLS_plot.MakePlot("2CL");
   CLS_graph4->Draw("ALP");
-  CLS_graph4->SetMinimum(.4);
+  CLS_graph4->SetMinimum(0);
   CLS_graph4->SetMaximum(1.1); 
   CLS_graph4->GetXaxis()->SetTitle("Cutoff p_{T} (GeV)");
   TFile OutFile("LimitPlots.root", "RECREATE");
