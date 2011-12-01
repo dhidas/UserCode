@@ -103,10 +103,11 @@ bool Analysis::initiateEvent() {
     string filename( eventReader->getCurrentFile() );
 
     if( currentEvent.isRealData() && (
- (filename.find("PromptReco") != string::npos && !isGood             (currentEvent.runnumber(), currentEvent.lumiblock())) ||
+		       !isGood(currentEvent.runnumber(), currentEvent.lumiblock())
+      	      /* (filename.find("PromptReco") != string::npos && !isGood             (currentEvent.runnumber(), currentEvent.lumiblock())) ||
  (filename.find("May10ReReco")!= string::npos && !isGoodMay10ReRecoV3(currentEvent.runnumber(), currentEvent.lumiblock())) ||
  (filename.find("ReReco5Aug") != string::npos && !isGoodReReco5AugV3 (currentEvent.runnumber(), currentEvent.lumiblock())) ||
- (filename.find("PromptReco")==string::npos && filename.find("May10ReReco")==string::npos && filename.find("ReReco5Aug")==string::npos ) // Unknown
+ (filename.find("PromptReco")==string::npos && filename.find("May10ReReco")==string::npos && filename.find("ReReco5Aug")==string::npos )*/ // Unknown
                                      )
     ) return false;
 
