@@ -1,0 +1,9 @@
+<Flags ADD_SUBDIR="yes" />
+<FLAGS CXXFLAGS="-O3" />
+<use name="boost" />
+<use name="root" />
+<use name="rootcore" />
+<use name="OSUAnalysis/Tools" />
+<bin name="OAT" file="Intro*.cpp Top*.cpp" />
+<bin name="OATexpert" file="Analysis*.cpp Run.cpp" />
+<bin name="MakeSomePlots" file="MakeSomePlots.cc" />

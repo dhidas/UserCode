@@ -1,0 +1,51 @@
+bool isGoodReReco5AugV3(int run, int lumi){
+if(run==170826 && ( (lumi>=50 && lumi<=122) || (lumi>=139 && lumi<=243) || (lumi>=248 && lumi<=308)) ) return true;
+if(run==170842 && ( (lumi>=1 && lumi<=27) || (lumi>=32 && lumi<=96) || (lumi>=102 && lumi<=331)) ) return true;
+if(run==170854 && ( (lumi>=1 && lumi<=336) || (lumi>=341 && lumi<=414) || (lumi>=420 && lumi<=470) || (lumi>=475 && lumi<=578)) ) return true;
+if(run==170876 && ( (lumi>=1 && lumi<=110) || (lumi>=115 && lumi<=295) || (lumi>=301 && lumi<=516) || (lumi>=518 && lumi<=518)) ) return true;
+if(run==170896 && ( (lumi>=1 && lumi<=212)) ) return true;
+if(run==170899 && ( (lumi>=1 && lumi<=84)) ) return true;
+if(run==170901 && ( (lumi>=1 && lumi<=153) || (lumi>=159 && lumi<=200)) ) return true;
+if(run==171050 && ( (lumi>=47 && lumi<=74) || (lumi>=80 && lumi<=337) || (lumi>=342 && lumi<=369) || (lumi>=371 && lumi<=379) || (lumi>=384 && lumi<=423) || (lumi>=427 && lumi<=467) || (lumi>=471 && lumi<=648)) ) return true;
+if(run==171091 && ( (lumi>=1 && lumi<=135)) ) return true;
+if(run==171098 && ( (lumi>=1 && lumi<=8)) ) return true;
+if(run==171102 && ( (lumi>=1 && lumi<=19)) ) return true;
+if(run==171106 && ( (lumi>=1 && lumi<=27) || (lumi>=32 && lumi<=288)) ) return true;
+if(run==171117 && ( (lumi>=1 && lumi<=54) || (lumi>=56 && lumi<=78) || (lumi>=80 && lumi<=84)) ) return true;
+if(run==171156 && ( (lumi>=42 && lumi<=106) || (lumi>=111 && lumi<=686) || (lumi>=688 && lumi<=692)) ) return true;
+if(run==171178 && ( (lumi>=1 && lumi<=92) || (lumi>=97 && lumi<=205) || (lumi>=210 && lumi<=551) || (lumi>=556 && lumi<=557) || (lumi>=563 && lumi<=787) || (lumi>=792 && lumi<=1043)) ) return true;
+if(run==171219 && ( (lumi>=48 && lumi<=151) || (lumi>=153 && lumi<=162)) ) return true;
+if(run==171274 && ( (lumi>=88 && lumi<=137) || (lumi>=140 && lumi<=143)) ) return true;
+if(run==171282 && ( (lumi>=1 && lumi<=12) || (lumi>=14 && lumi<=99) || (lumi>=104 && lumi<=134) || (lumi>=140 && lumi<=171)) ) return true;
+if(run==171315 && ( (lumi>=53 && lumi<=225)) ) return true;
+if(run==171369 && ( (lumi>=42 && lumi<=130) || (lumi>=136 && lumi<=137) || (lumi>=144 && lumi<=161)) ) return true;
+if(run==171446 && ( (lumi>=58 && lumi<=144)) ) return true;
+if(run==171484 && ( (lumi>=61 && lumi<=202) || (lumi>=207 && lumi<=370) || (lumi>=377 && lumi<=432)) ) return true;
+if(run==171578 && ( (lumi>=47 && lumi<=150) || (lumi>=156 && lumi<=174) || (lumi>=179 && lumi<=314) || (lumi>=320 && lumi<=347) || (lumi>=353 && lumi<=480) || (lumi>=487 && lumi<=572) || (lumi>=578 && lumi<=816) || (lumi>=821 && lumi<=974)) ) return true;
+if(run==171812 && ( (lumi>=59 && lumi<=296) || (lumi>=301 && lumi<=438)) ) return true;
+if(run==171876 && ( (lumi>=1 && lumi<=362) || (lumi>=368 && lumi<=391) || (lumi>=397 && lumi<=533)) ) return true;
+if(run==171880 && ( (lumi>=19 && lumi<=202)) ) return true;
+if(run==171895 && ( (lumi>=34 && lumi<=34)) ) return true;
+if(run==171897 && ( (lumi>=1 && lumi<=23) || (lumi>=205 && lumi<=437) || (lumi>=442 && lumi<=511) || (lumi>=517 && lumi<=542)) ) return true;
+if(run==171921 && ( (lumi>=51 && lumi<=141)) ) return true;
+if(run==171926 && ( (lumi>=1 && lumi<=49) || (lumi>=51 && lumi<=155) || (lumi>=161 && lumi<=172) || (lumi>=177 && lumi<=264)) ) return true;
+if(run==172014 && ( (lumi>=1 && lumi<=64) || (lumi>=66 && lumi<=143) || (lumi>=149 && lumi<=243)) ) return true;
+if(run==172024 && ( (lumi>=1 && lumi<=46)) ) return true;
+if(run==172033 && ( (lumi>=1 && lumi<=65) || (lumi>=71 && lumi<=277) || (lumi>=282 && lumi<=375) || (lumi>=380 && lumi<=473) || (lumi>=478 && lumi<=749)) ) return true;
+if(run==172163 && ( (lumi>=36 && lumi<=109) || (lumi>=115 && lumi<=469)) ) return true;
+if(run==172208 && ( (lumi>=61 && lumi<=199)) ) return true;
+if(run==172252 && ( (lumi>=32 && lumi<=54)) ) return true;
+if(run==172254 && ( (lumi>=1 && lumi<=35)) ) return true;
+if(run==172255 && ( (lumi>=1 && lumi<=40)) ) return true;
+if(run==172268 && ( (lumi>=56 && lumi<=169)) ) return true;
+if(run==172286 && ( (lumi>=52 && lumi<=177) || (lumi>=184 && lumi<=216)) ) return true;
+if(run==172389 && ( (lumi>=34 && lumi<=144) || (lumi>=150 && lumi<=428) || (lumi>=434 && lumi<=460)) ) return true;
+if(run==172399 && ( (lumi>=57 && lumi<=226)) ) return true;
+if(run==172400 && ( (lumi>=1 && lumi<=495) || (lumi>=500 && lumi<=690) || (lumi>=696 && lumi<=704)) ) return true;
+if(run==172401 && ( (lumi>=1 && lumi<=2) || (lumi>=5 && lumi<=148)) ) return true;
+if(run==172411 && ( (lumi>=85 && lumi<=349)) ) return true;
+if(run==172478 && ( (lumi>=1 && lumi<=110)) ) return true;
+if(run==172619 && ( (lumi>=1 && lumi<=77)) ) return true;
+return false; }
+
+double lumiReReco5AugV3(void){ return 356752122.281; }

@@ -1,0 +1,26 @@
+#!/bin/csh
+#
+# mkSrcRefFile -- script to create sourceCodeReference.txt
+# Must be called from top CMSSW directory (e.g., CMSSW_4_1_4).
+# "scram b runtests" will automatically call this script.
+
+
+setenv topdir src/OSUAnalysis/Tools
+setenv outfile $topdir/bin/sourceCodeReference.txt
+rm -f $outfile
+echo '//***********************************************************************' > $outfile
+echo '//*****' $outfile >> $outfile
+echo '//***** Contains all source code from src and interface directories' >> $outfile
+echo '//***** Provides single file for source code searching' >> $outfile
+echo '//*****' >> $outfile
+echo '//***** Note:  Consider performing case-insensitive searches' >> $outfile
+echo '//***** or do searches for both upper and lower case.' >> $outfile
+echo '//***********************************************************************' >> $outfile
+foreach srcfile (`find $topdir/src/ $topdir/interface/ \( -name '*.h' -o -name '*.cpp' \)`)
+	echo "\n" >> $outfile
+	echo '//***********************************************************************' >> $outfile
+	echo '//*****' $srcfile >> $outfile
+	echo '//***********************************************************************' >> $outfile
+	echo "\n" >> $outfile
+	pr -e2 -T $srcfile >> $outfile
+end
