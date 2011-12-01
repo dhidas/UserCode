@@ -81,6 +81,9 @@ private:
     std::map<unsigned long, std::vector<unsigned long> > eventCheck;
     BAT::EventWeightProvider weights;
     double weight;
+    //CS
+    double PileUpWeight;
+    double HT;
     BAT::Counter cutflowPerSample;
     BAT::Counter mucutflowPerSample;
 
