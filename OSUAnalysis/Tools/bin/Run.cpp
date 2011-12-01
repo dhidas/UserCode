@@ -108,7 +108,9 @@ int main(int argc, char **argv) {
     }
 
     cout << "starting analysis" << endl;
-    myAnalysis->analyze(Section, ListName);
+    TString ListBaseName = ListName.Contains("/") ? ListName(ListName.Last('/')+1, ListName.Length()-ListName.Last('/')-1) : ListName;
+    std::cout << "ListBaseName: " << ListBaseName << std::endl;
+    myAnalysis->analyze(Section, ListBaseName);
     watch.Stop();
     watch.Print();
 
