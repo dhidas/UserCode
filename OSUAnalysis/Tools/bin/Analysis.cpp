@@ -118,7 +118,8 @@ bool Analysis::initiateEvent() {
 //			currentEvent.getDataType() != DataType::WprimeTToTTD_M1000
     ) {
 			// W' samples lack pile-up.
-        // weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
+        weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
+	PileUpWeight= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices()); 
     }
     tPlusXCandidates = ToplikeCandidate(currentEvent);
     twoTopsNonRes = TwoNonResTops(currentEvent);
@@ -1856,6 +1857,7 @@ void Analysis::createHistograms() {
 void Analysis::initMicroNtuple() {
     microTuple->Branch("type",   &type,   "type/I");
     microTuple->Branch("weight", &weight, "weight/D");
+    microTuple->Branch("PileUpWeight", &weight, "PileUpWeight/D");
     microTuple->Branch("eventNumber",   &eventNumber,   "eventNumber/I");
     microTuple->Branch("runNumber",     &runNumber,     "runNumber/I");
     microTuple->Branch("numberOfJets",  &numberOfJets,  "numberOfJets/I");
@@ -2030,7 +2032,7 @@ Analysis::Analysis() :
     interestingEvents(),
     brokenEvents(),
     eventCheck(),
-    weights(Analysis::luminosity/*current lumi*/, 7, "pileup_160404-165970.root"),
+    weights(Analysis::luminosity/*current lumi*/, 7, "Cert_160404_180252_7TeV_Collisions11_JSON.pileup_v2.root"),
     weight(0),
     cutflowPerSample(DataType::NUMBER_OF_DATA_TYPES, toplikeElectronSelSize,
                     JetBin::NUMBER_OF_JET_BINS),

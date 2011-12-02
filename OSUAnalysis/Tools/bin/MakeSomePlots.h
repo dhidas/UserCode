@@ -1,6 +1,7 @@
 #include "TTree.h"
 
     double weight;
+double PileUpWeight;
     // general event information: 
     int    type, eventNumber, runNumber, numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
     double ST, MET;
@@ -66,6 +67,7 @@
 void initMicroNtuple(TTree* microTuple) {
     microTuple->SetBranchAddress("type",   &type);
     microTuple->SetBranchAddress("weight", &weight);
+    microTuple->SetBranchAddress("PileUpWeight", &PileUpWeight);
     microTuple->SetBranchAddress("eventNumber",   &eventNumber);
     microTuple->SetBranchAddress("runNumber",   &runNumber);
     microTuple->SetBranchAddress("numberOfJets",  &numberOfJets);

@@ -42,12 +42,18 @@ int MakeSomePlots (TString const OutName, std::vector<TString> InFiles)
 
   // Define histograms and set max number of jets to look at..
   int const NMaxJets = 7;
-  TH1F* hJetPt[NMaxJets];
-  TH1F* hJetEta[NMaxJets];
+  TH1F* hJetPtMu[NMaxJets];
+  TH1F* hJetEtaMu[NMaxJets];
+  TH1F* hJetPtEl[NMaxJets];
+  TH1F* hJetEtaEl[NMaxJets];
   for (int i = 0; i != NMaxJets; ++i) {
-    hJetPt[i] = new TH1F( TString::Format("JetPt%i", i), TString::Format("JetPt%i", i), 50, 0, 500);
-    hJetEta[i] = new TH1F( TString::Format("JetEta%i", i), TString::Format("JetEta%i", i), 50, -4, 4);
+    hJetPtMu[i] = new TH1F( TString::Format("JetPt%iMu", i), TString::Format("JetPt%iMu", i), 50, 0, 500);
+    hJetEtaMu[i] = new TH1F( TString::Format("JetEta%iMu", i), TString::Format("JetEta%iMu", i), 50, -4, 4);
+    hJetPtEl[i] = new TH1F( TString::Format("JetPt%iEl", i), TString::Format("JetPt%iEl", i), 50, 0, 500);
+    hJetEtaEl[i] = new TH1F( TString::Format("JetEta%iEl", i), TString::Format("JetEta%iEl", i), 50, -4, 4);
   }
+  TH1F* LeptonPtMu = new TH1F("LeptonPtMu","LeptonPtMu", 50, 0, 500);
+  TH1F* LeptonPtEl= new TH1F("LeptonPtEl","LeptonPtEl", 50, 0, 500);
 
 
   // Define our chain of files/trees
@@ -82,8 +88,16 @@ int MakeSomePlots (TString const OutName, std::vector<TString> InFiles)
 
       // if this jet is less than max number of jets histogram it
       if (ijet < NMaxJets) {
-        hJetPt[ijet]->Fill(Jet.Pt(), weight);
-        hJetEta[ijet]->Fill(Jet.Eta(), weight);
+	if(muSEL > 1 && eSEL==0){
+        hJetPtMu[ijet]->Fill(Jet.Pt(), weight);
+        hJetEtaMu[ijet]->Fill(Jet.Eta(), weight);
+	LeptonPtMu->Fill(leptonPtRec,weight);
+	}
+	if(eSEL > 1 && muSEL ==0){
+	  hJetPtEl[ijet]->Fill(Jet.Pt(), weight);
+	  hJetEtaEl[ijet]->Fill(Jet.Eta(), weight);
+	  LeptonPtEl->Fill(leptonPtRec,weight);
+        }
 
         // This is just a sanity check...
       }
@@ -97,10 +111,13 @@ int MakeSomePlots (TString const OutName, std::vector<TString> InFiles)
 
   OutFile.cd();
   for (int i = 0; i != NMaxJets; ++i) {
-    hJetPt[i]->Write();
-    hJetEta[i]->Write();
+    hJetPtMu[i]->Write();
+    hJetEtaMu[i]->Write();
+    hJetPtEl[i]->Write();
+    hJetEtaEl[i]->Write();
   }
-
+  LeptonPtMu->Write();
+  LeptonPtEl->Write();
   OutFile.Close();
 
   return 0;

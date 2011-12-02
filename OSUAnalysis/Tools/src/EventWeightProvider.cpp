@@ -75,11 +75,19 @@ boost::array<float, DataType::NUMBER_OF_DATA_TYPES> sevenTeV::getXSections() {
     xsection[DataType::Zprime_M3TeV_W300GeV] = 50;
     xsection[DataType::Zprime_M4TeV_W40GeV] = 50;
     xsection[DataType::Zprime_M4TeV_W400GeV] = 50;
-    xsection[DataType::WprimeTToTTD_M400] = 32;
-    xsection[DataType::WprimeTToTTD_M600] = 8;
-    xsection[DataType::WprimeTToTTD_M800] = 2.2;
-    xsection[DataType::WprimeTToTTD_M1000] = 0.72;
+
+    //cross section S-channel only
+    
+    //xsection[DataType::WprimeTToTTD_M600] = 8;
+    // xsection[DataType::WprimeTToTTD_M800] = 2.2;
+    //xsection[DataType::WprimeTToTTD_M1000] = 0.72;
     xsection[DataType::WprimeToTBbar_M1000] = 8;
+    xsection[DataType::WprimeTToTTD_M600] = 18.2;
+    xsection[DataType::WprimeTToTTD_M800] = 6.5;
+
+
+    xsection[DataType::WprimeTToTTD_M1000] = 0.72;
+
     return xsection;
 }
 
@@ -253,22 +261,49 @@ void EventWeightProvider::defineNumberOfProducedEvents() {
     // numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 34552;	// After generator filter
     // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 25535;
     // numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 22774;
-    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 7012;
 
-    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] = 86991;	// With muons
-    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 86601;
+    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 7012;//
+    //low stats sample
+    //    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] = 86991;	// With muons
+    // numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 86601;
+    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 29439;
+    // numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 19580;
+    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 11656;
+    //850k sample
+    //    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] =849920;	// With muons
+    //numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 849920;
+    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 340080;
+    //numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 19580;
+    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 11656;
+    //500k sample
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] =499960;  // With muons                                                                                            
+    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 499960;
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 199893;
     numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 19580;
     numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 29439;	// V8 prescription
     numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 11656;  // V8
     // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 35447;// V9
     // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 19127; // V9
 
-    numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 84993;
-    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 84416;
-    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 29269; // V8
-    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 11363;
-    // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 35916;  // V9
-    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 19677;  // V9
+
+
+    //low stats
+    //    numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 84993;
+    //numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 84416;
+    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 29269;
+    //numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 19619;
+    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 11363;
+    //high stats 700k
+    // numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 689950;
+    //numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 689950;
+    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 283455;
+    //numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 19619;
+    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 11363;
+    //high stats 500k
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 489965;
+    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 489965;
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 201242;
+
     numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 19619;
 
     // numberOfProcessedEvents[DataType::WprimeTToTTD_M1000] = 93000;	// From Khristian's e-mail, muonless generation
@@ -317,13 +352,23 @@ boost::shared_ptr<TH1D> EventWeightProvider::getPileUpHistogram(std::string pile
 
 void EventWeightProvider::generate_flat10_weights(){
     // see SimGeneral/MixingModule/python/mix_E7TeV_FlatDist10_2011EarlyData_inTimeOnly_cfi.py; copy and paste from there:
-    const boost::array<double, 25> npu_probs = {{0.0698146584, 0.0698146584, 0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584 /* <-- 10*/,
-           0.0630151648,0.0526654164,0.0402754482,0.0292988928,0.0194384503,0.0122016783,0.007207042,0.004003637,0.0020278322,
-           0.0010739954,0.0004595759,0.0002229748,0.0001028162,4.58337152809607E-05 /* <-- 24 */}};
+    //only use this for Wprime with true Mc compared to true data Cert_160404-180252_7TeV_PromptReco_Collisons11_JSON.pileup_v2.root
+  //  const boost::array<double, 25> npu_probs = {{0.0698146584, 0.0698146584, 0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584,0.0698146584 /* <-- 10*/,
+  //       0.0630151648,0.0526654164,0.0402754482,0.0292988928,0.0194384503,0.0122016783,0.007207042,0.004003637,0.0020278322,
+  //       0.0010739954,0.0004595759,0.0002229748,0.0001028162,4.58337152809607E-05 /* <-- 24 */}};
+
+
+  //USE THIS FOR TTBAR with Cert_160404_180252_7TeV_Collisions11_JSON.pileup_v2.root
+  // Summer11 PU_S3 and PU_S4, distribution obtained by only looking at the in-time crossing.  This is the "spike+smear" distribution, RECOMMENDED FOR REWEIGHTING.
+  const boost::array<double, 35> npu_probs = {{1.45346E-01,    6.42802E-02,    6.95255E-02,    6.96747E-02,    6.92955E-02,    6.84997E-02,    6.69528E-02,    6.45515E-02,    6.09865E-02,    5.63323E-02,    5.07322E-02,    4.44681E-02,    3.79205E-02,    3.15131E-02,    2.54220E-02,    2.00184E-02,    1.53776E-02,    1.15387E-02,    8.47608E-03,    6.08715E-03,    4.28255E-03,    2.97185E-03,    2.01918E-03,    1.34490E-03,    8.81587E-04,    5.69954E-04,    3.61493E-04,    2.28692E-04,    1.40791E-04,    8.44606E-05,    5.10204E-05,    3.07802E-05,    1.81401E-05,    1.00201E-05,    5.80004E-06  }};
+
+
     double s = 0.0;
     for (unsigned int npu = 0; npu < npu_probs.size(); ++npu) {
         double npu_estimated = estimatedPileUp->GetBinContent(estimatedPileUp->GetXaxis()->FindBin(npu));
         pileUpWeights[npu] = npu_estimated / npu_probs[npu];
+	//	std::cout<<npu_estimated
+	//std::cout<<npu<<std::endl;
         s += npu_estimated;
     }
     // normalize weights such that the total sum of weights over thw whole sample is 1.0, i.e., sum_i  result[i] * npu_probs[i] should be 1.0 (!)
