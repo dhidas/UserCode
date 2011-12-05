@@ -196,6 +196,12 @@ void StackAll::MakeAllStacks ()
           TString const Proc = iProc->first;
           FileProp* FP = fPropMap.find(Proc)->second;
 
+          // Get Maximum
+          float const DataMax = ( (TH1F*) iProc->second)->GetMaximum();
+          float const StackMax = fStackMap[Dir][Type][Name]->GetMaximum();
+          float const MyMax = DataMax > StackMax ? DataMax * 1.10 : StackMax * 1.10;
+          fStackMap[Dir][Type][Name]->SetMaximum(MyMax);
+
           // Set the marker size
           ( (TH1*) iProc->second)->SetMarkerStyle(8);
           ( (TH1*) iProc->second)->SetMarkerSize(0.7);
