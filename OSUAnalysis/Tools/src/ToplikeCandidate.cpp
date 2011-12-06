@@ -873,7 +873,7 @@ bool TopPlusXCandidates::passesMETCut() const {
 
 
 bool TopPlusXCandidates::passesHTCut() const {
-    return fullHT() > 700.;
+    return fullHT() > 0.;
 }
 
 
@@ -964,6 +964,15 @@ bool TopPlusXCandidates::passesFullEPlusJetSelection() const {
 bool TopPlusXCandidates::passesFullMuPlusJetSelection() const {
 	return (passesSelectionStepUpTo(toplikeMuonSelSize - 1, toplikeMuonSelection));
 }
+  //CS
+  bool TopPlusXCandidates::passesFullEPlusJetSelectionMicro() const {
+    return (passesSelectionStepUpTo(toplikeElectronSelMicroSize - 1, toplikeElectronSelectionMicro));
+  }
+
+
+  bool TopPlusXCandidates::passesFullMuPlusJetSelectionMicro() const {
+    return (passesSelectionStepUpTo(toplikeMuonSelMicroSize - 1, toplikeMuonSelectionMicro));
+  }
 
 
 bool TopPlusXCandidates::passesFullEPlusJetSelectionKK() const {

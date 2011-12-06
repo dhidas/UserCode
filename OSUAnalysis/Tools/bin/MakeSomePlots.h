@@ -4,7 +4,8 @@
 double PileUpWeight;
     // general event information: 
     int    type, eventNumber, runNumber, numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
-    double ST, MET;
+double ST, MET, HT;
+int nPileUpVtx;
     // leading non-b-jet:
     int    leadingJetPdgId, leadingJetIndGen;
     double leadingJetPtGen, leadingJetEtaGen, leadingJetPhiGen;
@@ -13,8 +14,12 @@ double PileUpWeight;
     double JetPx[100];
     double JetPy[100];
     double JetPz[100];
-    double JetE[100];
-    int    JetBTag[100];
+double JetE[100];
+int    JetBTag[100];
+double BJetPx[100];
+double BJetPy[100];
+double BJetPz[100];
+double BJetE[100];
 
     // highest pT leftover jet (gen-level: radiation for the background and d-jet in signals)
     int    freeJetPdgId,    freeJetIndGen;
@@ -76,8 +81,9 @@ void initMicroNtuple(TTree* microTuple) {
     microTuple->SetBranchAddress("eSEL",          &eSEL);
     microTuple->SetBranchAddress("muSEL",         &muSEL);
     microTuple->SetBranchAddress("ST",            &ST);
+    microTuple->SetBranchAddress("HT",            &HT);
     microTuple->SetBranchAddress("MET",           &MET);
-
+    microTuple->SetBranchAddress("nPileUpVtx",            &nPileUpVtx);
     microTuple->SetBranchAddress("leadingJetPdgId", &leadingJetPdgId);
     microTuple->SetBranchAddress("leadingJetIndGen",&leadingJetIndGen);
     microTuple->SetBranchAddress("leadingJetPtGen", &leadingJetPtGen);
@@ -92,6 +98,11 @@ void initMicroNtuple(TTree* microTuple) {
     microTuple->SetBranchAddress("JetPz[numberOfJets]",JetPz);
     microTuple->SetBranchAddress("JetE[numberOfJets]",JetE);
     microTuple->SetBranchAddress("JetBTag[numberOfJets]",JetBTag);
+
+    microTuple->SetBranchAddress("BJetPx[numberOfBJets]",BJetPx);
+    microTuple->SetBranchAddress("BJetPy[numberOfBJets]",BJetPy);
+    microTuple->SetBranchAddress("BJetPz[numberOfBJets]",BJetPz);
+    microTuple->SetBranchAddress("BJetE[numberOfBJets]",BJetE);
 
 
     microTuple->SetBranchAddress("freeJetPdgId",    &freeJetPdgId);

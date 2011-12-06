@@ -84,6 +84,7 @@ private:
     //CS
     double PileUpWeight;
     double HT;
+    int nPileUpVtx;
     BAT::Counter cutflowPerSample;
     BAT::Counter mucutflowPerSample;
 
@@ -105,6 +106,10 @@ private:
     double JetPz[100];
     double JetE[100];
     int    JetBTag[100];
+    double BJetPx[100];
+    double BJetPy[100];
+    double BJetPz[100];
+    double BJetE[100];
 
     // highest pT leftover jet (gen-level: radiation for the background and d-jet in signals)
     int    freeJetPdgId,    freeJetIndGen;

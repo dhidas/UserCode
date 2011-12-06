@@ -127,6 +127,12 @@ bool TopPairEventCandidate::passesHighLevelTrigger() const {
     else if(runNumber >= 149181 && runNumber < 160000)
       return HLT(HLTriggers::HLT_Ele22_SW_TighterEleId_L1R);
     //return HLT(HLTriggers::HLT_Ele22_SW_TighterEleId_L1R_v3);
+
+    /*else if(runNumber >= 160404 && runNumber <= 163869)
+      return (HLT(HLTriggers::HLT_IsoMu17) || HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT));
+    else if(runNumber >= 160404 && runNumber <= 163869)
+      return (HLT(HLTriggers::HLT_IsoMu17) || HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT));
+    */
     else if(runNumber > 160000)
       return (HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT) ||
           HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralJet30)

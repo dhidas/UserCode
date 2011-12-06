@@ -125,6 +125,49 @@ const ToplikeSelectionSteps::Step toplikeMuonSelection[] = {
 const unsigned int toplikeMuonSelSize =
 	sizeof(toplikeMuonSelection)/sizeof(ToplikeSelectionSteps::AtLeastOneGoodJet);
 
+//CS
+ const ToplikeSelectionSteps::Step toplikeMuonSelectionMicro[] = {
+   ToplikeSelectionSteps::HighLevelTrigger,
+   ToplikeSelectionSteps::OneIsolatedMuon,
+   ToplikeSelectionSteps::TightElectronVeto,
+   ToplikeSelectionSteps::MissingTransverseEnergy,
+   ToplikeSelectionSteps::AtLeastOneGoodJet,
+   ToplikeSelectionSteps::AtLeastTwoGoodJets,
+   ToplikeSelectionSteps::AtLeastOneBtag,
+   ToplikeSelectionSteps::AtLeastThreeGoodJets,
+   ToplikeSelectionSteps::AtLeastFourGoodJets,
+   ToplikeSelectionSteps::AtLeastFiveGoodJets
+   // ToplikeSelectionSteps::AtLeastTwoBtags                                                                                                                             \
+                                                                                                                                                                          
+ };
+
+const unsigned int toplikeMuonSelMicroSize =
+  sizeof(toplikeMuonSelectionMicro)/sizeof(ToplikeSelectionSteps::AtLeastOneGoodJet);
+
+ const ToplikeSelectionSteps::Step toplikeElectronSelectionMicro[] = {
+   ToplikeSelectionSteps::HighLevelTrigger,
+   ToplikeSelectionSteps::OneIsolatedElectron,
+   ToplikeSelectionSteps::TightMuonVeto,
+   ToplikeSelectionSteps::ConversionRejection,
+   ToplikeSelectionSteps::ConversionFinder,
+   ToplikeSelectionSteps::MissingTransverseEnergy,
+   ToplikeSelectionSteps::AtLeastOneGoodJet,
+   ToplikeSelectionSteps::AtLeastTwoGoodJets,
+   ToplikeSelectionSteps::AtLeastOneBtag,
+   ToplikeSelectionSteps::AtLeastThreeGoodJets,
+   ToplikeSelectionSteps::AtLeastFourGoodJets,
+   ToplikeSelectionSteps::AtLeastFiveGoodJets
+   // ToplikeSelectionSteps::AtLeastTwoBtags                                                                                                                             \
+                                                                                                                                                                          
+ };
+
+const unsigned int toplikeElectronSelMicroSize =
+  sizeof(toplikeElectronSelectionMicro)/sizeof(ToplikeSelectionSteps::AtLeastOneGoodJet);
+
+
+
+
+
 
 typedef struct {
 	float deltaR;
@@ -252,6 +295,10 @@ public:
 	virtual bool passesFullEPlusJetSelection() const;
 	virtual bool passesFullEPlusJetSelectionKK() const;
 	virtual bool passesFullMuPlusJetSelection() const;
+	//CS
+	virtual bool passesFullEPlusJetSelectionMicro() const;
+        virtual bool passesFullMuPlusJetSelectionMicro() const;
+
 	virtual bool passesMETCut() const;
 	virtual bool passesHTCut() const;
 	virtual bool passesExtraElectronCut() const;

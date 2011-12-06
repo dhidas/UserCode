@@ -120,7 +120,9 @@ bool Analysis::initiateEvent() {
 			// W' samples lack pile-up.
         weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
 	PileUpWeight= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices()); 
+	//	std::cout<<PileUpWeight<<" "<<weight<<std::endl;
     }
+    else if (currentEvent.isRealData())  PileUpWeight=1;
     tPlusXCandidates = ToplikeCandidate(currentEvent);
     twoTopsNonRes = TwoNonResTops(currentEvent);
     goodTopBadTop = TwoNonResTops(currentEvent);
@@ -911,8 +913,10 @@ void Analysis::doMicroNtuple() {
         numberOfBJets = goodTopBadTop.GoodBJets().size();
         leptoCharge   = (lepton->charge()<0?-1:1);
         ST            = goodTopBadTop.ST();
+        HT            = goodTopBadTop.fullHT();
         MET           = goodTopBadTop.MET()->et();
         eSEL          = 0;
+	nPileUpVtx    = currentEvent.numberOfGeneratedPileUpVertices();
         for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at least 1 b-tag
             if(goodTopBadTop.passesSelectionStepUpTo(cut, toplikeElectronSelection)) {
                eSEL = cut;
@@ -946,10 +950,21 @@ void Analysis::doMicroNtuple() {
            JetPz[iDeanJet] = (*jet)->pz();
            JetE[iDeanJet] = (*jet)->energy();
            JetBTag[iDeanJet] = (*jet == goodTopBadTop.getLeptonicBJet() ? 1 : 0);
+	   std::cout<<(*jet)->pt()<<endl;
+
         }
+	std::cout<<currentEvent.GoodBJets().size()<<"  "<<goodTopBadTop.getLeptonicBJet()->pt()<<std::endl;
+	for (unsigned int k=0; k < currentEvent.GoodBJets().size(); k++){
+	  std::cout<<currentEvent.GoodBJets().at(k)->pt()<<std::endl;
+	  BJetPx[k] = currentEvent.GoodBJets().at(k)->px();
+	  BJetPy[k] = currentEvent.GoodBJets().at(k)->py();
+	  BJetPz[k] = currentEvent.GoodBJets().at(k)->pz();
+	  BJetE[k] = currentEvent.GoodBJets().at(k)->energy();
 
-        std::cout << goodTopBadTop.fullHT() << std::endl;
+	}
 
+	// std::cout << goodTopBadTop.fullHT() << std::endl;
+	std::cout<<"----------------------------"<<endl;
         freeJetPtRec  = goodTopBadTop.dJetFromWp->pt();
         freeJetEtaRec = goodTopBadTop.dJetFromWp->eta();
         freeJetPhiRec = goodTopBadTop.dJetFromWp->phi();
@@ -1857,7 +1872,7 @@ void Analysis::createHistograms() {
 void Analysis::initMicroNtuple() {
     microTuple->Branch("type",   &type,   "type/I");
     microTuple->Branch("weight", &weight, "weight/D");
-    microTuple->Branch("PileUpWeight", &weight, "PileUpWeight/D");
+    microTuple->Branch("PileUpWeight", &PileUpWeight, "PileUpWeight/D");
     microTuple->Branch("eventNumber",   &eventNumber,   "eventNumber/I");
     microTuple->Branch("runNumber",     &runNumber,     "runNumber/I");
     microTuple->Branch("numberOfJets",  &numberOfJets,  "numberOfJets/I");
@@ -1866,8 +1881,9 @@ void Analysis::initMicroNtuple() {
     microTuple->Branch("eSEL",          &eSEL,          "eSEL/I");
     microTuple->Branch("muSEL",         &muSEL,         "muSEL/I");
     microTuple->Branch("ST",            &ST,            "ST/D");
+    microTuple->Branch("HT",            &HT,            "HT/D");
     microTuple->Branch("MET",           &MET,           "MET/D");
-
+    microTuple->Branch("nPileUpVtx",           &nPileUpVtx,           "nPileUpVtx/I");
     microTuple->Branch("leadingJetPdgId", &leadingJetPdgId, "leadingJetPdgId/I");
     microTuple->Branch("leadingJetIndGen",&leadingJetIndGen,"leadingJetIndGen/I");
     microTuple->Branch("leadingJetPtGen", &leadingJetPtGen, "leadingJetPtGen/D");
@@ -1882,6 +1898,11 @@ void Analysis::initMicroNtuple() {
     microTuple->Branch("JetPz[numberOfJets]",JetPz);
     microTuple->Branch("JetE[numberOfJets]",JetE);
     microTuple->Branch("JetBTag[numberOfJets]",JetBTag);
+   
+    microTuple->Branch("BJetPx[numberOfBJets]",BJetPx);
+    microTuple->Branch("BJetPy[numberOfBJets]",BJetPy);
+    microTuple->Branch("BJetPz[numberOfBJets]",BJetPz);
+    microTuple->Branch("BJetE[numberOfBJets]",BJetE);
 
 
     microTuple->Branch("freeJetPdgId",    &freeJetPdgId,   "freeJetPdgId/I");
