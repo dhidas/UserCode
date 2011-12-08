@@ -39,7 +39,10 @@ int MakeSomePlots (TString const OutName, std::vector<TString> InFiles)
   // Duplicate runs thingy
   DHRunTracker RunEvt;
 
-
+  int PtBinSize=10;
+  int PtBinLow=0;
+  int PtBinHigh=500;
+  int PtNBins=(PtBinHigh-PtBinLow)/PtBinSize;
   // Define histograms and set max number of jets to look at..
   int const NMaxJets = 7;
   TH1F* hJetPtMu[NMaxJets];
@@ -50,42 +53,43 @@ int MakeSomePlots (TString const OutName, std::vector<TString> InFiles)
   TH1F* hJetEtaMu_NoPile[NMaxJets];
   TH1F* hJetPtEl_NoPile[NMaxJets];
   TH1F* hJetEtaEl_NoPile[NMaxJets];
+
   for (int i = 0; i != NMaxJets; ++i) {
-    hJetPtMu[i] = new TH1F( TString::Format("JetPt%iMu", i), TString::Format("JetPt%iMu", i), 50, 0, 500);
+    hJetPtMu[i] = new TH1F( TString::Format("JetPt%iMu", i), TString::Format("JetPt%iMu", i), PtNBins, PtBinLow, PtBinHigh);
     hJetEtaMu[i] = new TH1F( TString::Format("JetEta%iMu", i), TString::Format("JetEta%iMu", i), 50, -4, 4);
-    hJetPtEl[i] = new TH1F( TString::Format("JetPt%iEl", i), TString::Format("JetPt%iEl", i), 50, 0, 500);
+    hJetPtEl[i] = new TH1F( TString::Format("JetPt%iEl", i), TString::Format("JetPt%iEl", i), PtNBins, PtBinLow, PtBinHigh);
     hJetEtaEl[i] = new TH1F( TString::Format("JetEta%iEl", i), TString::Format("JetEta%iEl", i), 50, -4, 4);
-    hJetPtMu_NoPile[i] = new TH1F( TString::Format("JetPt%iMu_NoPile", i), TString::Format("JetPt%iMu_NoPile", i), 50, 0, 500);
+    hJetPtMu_NoPile[i] = new TH1F( TString::Format("JetPt%iMu_NoPile", i), TString::Format("JetPt%iMu_NoPile", i), PtNBins, PtBinLow, PtBinHigh);
     hJetEtaMu_NoPile[i] = new TH1F( TString::Format("JetEta%iMu_NoPile", i), TString::Format("JetEta%iMu_NoPile", i), 50, -4, 4);
-    hJetPtEl_NoPile[i] = new TH1F( TString::Format("JetPt%iEl_NoPile", i), TString::Format("JetPt%iEl_NoPile", i), 50, 0, 500);
+    hJetPtEl_NoPile[i] = new TH1F( TString::Format("JetPt%iEl_NoPile", i), TString::Format("JetPt%iEl_NoPile", i), PtNBins, PtBinLow, PtBinHigh);
     hJetEtaEl_NoPile[i] = new TH1F( TString::Format("JetEta%iEl_NoPile", i), TString::Format("JetEta%iEl_NoPile", i), 50, -4, 4);
 
   }
-  TH1F* LeptonPtMu = new TH1F("LeptonPtMu","LeptonPtMu", 50, 0, 500);
-  TH1F* LeptonPtEl= new TH1F("LeptonPtEl","LeptonPtEl", 50, 0, 500);
-  TH1F* LeptonPtMu_NoPile = new TH1F("LeptonPtMu_NoPile","LeptonPtMu_NoPile", 50, 0, 500);
-  TH1F* LeptonPtEl_NoPile= new TH1F("LeptonPtEl_NoPile","LeptonPtEl_NoPile", 50, 0, 500);
+  TH1F* LeptonPtMu = new TH1F("LeptonPtMu","LeptonPtMu", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* LeptonPtEl= new TH1F("LeptonPtEl","LeptonPtEl", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* LeptonPtMu_NoPile = new TH1F("LeptonPtMu_NoPile","LeptonPtMu_NoPile", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* LeptonPtEl_NoPile= new TH1F("LeptonPtEl_NoPile","LeptonPtEl_NoPile", PtNBins, PtBinLow, PtBinHigh);
 
   TH1F* HTMu = new TH1F("HTMu","HTMu", 50, 0, 2000);
   TH1F* HTEl= new TH1F("HTEl","HTEl", 50, 0, 2000);
   TH1F* HTMu_NoPile = new TH1F("HTMu_NoPile","HTMu_NoPile", 50, 0, 2000);
   TH1F* HTEl_NoPile= new TH1F("HTEl_NoPile","HTEl_NoPile", 50, 0, 2000);
 
-  TH1F* METMu = new TH1F("METMu","METMu", 50, 0, 500);
-  TH1F* METEl= new TH1F("METEl","METEl", 50, 0, 500);
-  TH1F* METMu_NoPile = new TH1F("METMu_NoPile","METMu_NoPile", 50, 0, 500);
-  TH1F* METEl_NoPile= new TH1F("METEl_NoPile","METel_NoPile", 50, 0,500);
+  TH1F* METMu = new TH1F("METMu","METMu",PtNBins, PtBinLow, PtBinHigh);
+  TH1F* METEl= new TH1F("METEl","METEl", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* METMu_NoPile = new TH1F("METMu_NoPile","METMu_NoPile", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* METEl_NoPile= new TH1F("METEl_NoPile","METel_NoPile", PtNBins, PtBinLow, PtBinHigh);
 
-  TH1F* HnPileUpVtx= new TH1F("nPileUpVtx","nPileUpVtx", 50, 0, 50);
-  TH1F* HnPileUpVtx_NoPile = new TH1F("nPileUpVtx_NoPile","nPileUpVtx_NoPile", 50, 0, 50);
+  TH1F* HnPileUpVtx= new TH1F("nPileUpVtx","nPileUpVtx", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* HnPileUpVtx_NoPile = new TH1F("nPileUpVtx_NoPile","nPileUpVtx_NoPile", PtNBins, PtBinLow, PtBinHigh);
 
   TH1F*  hNumberOfJetsMu = new TH1F("NumberOfJetsMu","NumberOfJetsMu", 10, 5, 15);
   TH1F*  hNumberOfBJetsMu = new TH1F("NumberOfBJetsMu","NumberOfBJetsMu", 10, 0, 10);
   TH1F*  hNumberOfJetsEl = new TH1F("NumberOfJetsEl","NumberOfJetsEl", 10, 5, 15);
   TH1F*  hNumberOfBJetsEl = new TH1F("NumberOfBJetsEl","NumberOfBJetsEl", 10, 0, 10);
 
-  TH1F* hBjetPtMu  = new TH1F("hBjetPtMu","hBjetPtMu", 50, 0, 500);
-  TH1F* hBjetPtEl = new TH1F("hBjetPtEl","hBjetPtEl", 50, 0, 500);
+  TH1F* hBjetPtMu  = new TH1F("hBjetPtMu","hBjetPtMu", PtNBins, PtBinLow, PtBinHigh);
+  TH1F* hBjetPtEl = new TH1F("hBjetPtEl","hBjetPtEl", PtNBins, PtBinLow, PtBinHigh);
   TH1F* hBjetEtaMu  = new TH1F("hBjetEtaMu","hBjetEtaMu", 50, -4, 4);
   TH1F* hBjetEtaEl = new TH1F("hBjetEtaEl","hBjetEtaEl", 50, -4, 4);
   // Define our chain of files/trees
@@ -112,10 +116,10 @@ int MakeSomePlots (TString const OutName, std::vector<TString> InFiles)
 
     float BtagScaleFactorSSVHEM=1;
     if(type>0)    BtagScaleFactorSSVHEM=0.95;
-    std::cout<<weight<<std::endl;
+    //std::cout<<weight<<std::endl;
     weight=weight*BtagScaleFactorSSVHEM;
-    std::cout<<weight<<std::endl;
-    std::cout<<"--------------------"<<std::endl;
+    /*std::cout<<weight<<std::endl;
+    std::cout<<"--------------------"<<std::endl;*/
     float  weightNoPile=weight/PileUpWeight;
     //make lepton plots
     HnPileUpVtx->Fill(nPileUpVtx,weight);

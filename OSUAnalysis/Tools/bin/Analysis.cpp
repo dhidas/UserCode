@@ -908,6 +908,7 @@ void Analysis::doMicroNtuple() {
         // general information oabout this event:
         type          = currentEvent.getDataType();
         eventNumber   = currentEvent.eventnumber();
+        std::cout<<"Num: "<<eventNumber<<"  "<<currentEvent.eventnumber()<<std::endl;
         runNumber     = currentEvent.runnumber();
         numberOfJets  = goodTopBadTop.GoodJets().size();
         numberOfBJets = goodTopBadTop.GoodBJets().size();
@@ -928,6 +929,11 @@ void Analysis::doMicroNtuple() {
                muSEL = cut;
             } else break;
         }
+
+	//TRIGGER Stuff
+	eTrig = 0; muTrig = 0;
+        for(unsigned int trg=0; trg<40; trg++) if( currentEvent.HLT(HLTriggers::value(trg))    ) eTrig  |= (1<<trg);
+        for(unsigned int trg=0; trg<30; trg++) if( currentEvent.HLT(HLTriggers::value(trg+40)) ) muTrig |= (1<<trg);
 
         // jets in the event:
         //  leading non-b-jet jet parameters and highest pT leftover jet (may not be the same jet):
@@ -950,12 +956,12 @@ void Analysis::doMicroNtuple() {
            JetPz[iDeanJet] = (*jet)->pz();
            JetE[iDeanJet] = (*jet)->energy();
            JetBTag[iDeanJet] = (*jet == goodTopBadTop.getLeptonicBJet() ? 1 : 0);
-	   std::cout<<(*jet)->pt()<<endl;
+	   //std::cout<<(*jet)->pt()<<endl;
 
         }
-	std::cout<<currentEvent.GoodBJets().size()<<"  "<<goodTopBadTop.getLeptonicBJet()->pt()<<std::endl;
+	//	std::cout<<currentEvent.GoodBJets().size()<<"  "<<goodTopBadTop.getLeptonicBJet()->pt()<<std::endl;
 	for (unsigned int k=0; k < currentEvent.GoodBJets().size(); k++){
-	  std::cout<<currentEvent.GoodBJets().at(k)->pt()<<std::endl;
+	  //std::cout<<currentEvent.GoodBJets().at(k)->pt()<<std::endl;
 	  BJetPx[k] = currentEvent.GoodBJets().at(k)->px();
 	  BJetPy[k] = currentEvent.GoodBJets().at(k)->py();
 	  BJetPz[k] = currentEvent.GoodBJets().at(k)->pz();
@@ -964,7 +970,7 @@ void Analysis::doMicroNtuple() {
 	}
 
 	// std::cout << goodTopBadTop.fullHT() << std::endl;
-	std::cout<<"----------------------------"<<endl;
+	//std::cout<<"----------------------------"<<endl;
         freeJetPtRec  = goodTopBadTop.dJetFromWp->pt();
         freeJetEtaRec = goodTopBadTop.dJetFromWp->eta();
         freeJetPhiRec = goodTopBadTop.dJetFromWp->phi();
@@ -1873,7 +1879,7 @@ void Analysis::initMicroNtuple() {
     microTuple->Branch("type",   &type,   "type/I");
     microTuple->Branch("weight", &weight, "weight/D");
     microTuple->Branch("PileUpWeight", &PileUpWeight, "PileUpWeight/D");
-    microTuple->Branch("eventNumber",   &eventNumber,   "eventNumber/I");
+    microTuple->Branch("eventNumber",   &eventNumber,   "eventNumber/l");
     microTuple->Branch("runNumber",     &runNumber,     "runNumber/I");
     microTuple->Branch("numberOfJets",  &numberOfJets,  "numberOfJets/I");
     microTuple->Branch("numberOfBJets", &numberOfBJets, "numberOfBJets/I");

@@ -3,7 +3,8 @@
     double weight;
 double PileUpWeight;
     // general event information: 
-    int    type, eventNumber, runNumber, numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
+    int    type,runNumber, numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
+unsigned long eventNumber;
 double ST, MET, HT;
 int nPileUpVtx;
     // leading non-b-jet:

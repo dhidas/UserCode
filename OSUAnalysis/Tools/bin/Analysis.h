@@ -44,7 +44,7 @@ struct InterestingEvent {
 
     }
     BAT::TopPairEventCandidate candidate;
-    unsigned long runNumber, eventNumber;
+    unsigned long long runNumber, eventNumber;
     std::string fileName;
 
     void print() {
@@ -94,7 +94,13 @@ private:
     TTree *microTuple;
 
     // general event information: 
-    int    type, eventNumber, runNumber, numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
+
+
+    unsigned long eTrig;  // bitset [0-39] for the electron triggers as defined in interface/HighLevelTriggers.h
+    unsigned long muTrig; // bitset [0-29] for the muon triggers mapped to [40-69] entries of enum in interface/HighLevelTriggers.h
+
+    int    type,  numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
+    unsigned long long eventNumber, runNumber;
     double ST, MET;
     // leading non-b-jet:
     int    leadingJetPdgId, leadingJetIndGen;
