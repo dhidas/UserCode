@@ -35,7 +35,8 @@ float const MJJJMIN =  230;
 float const MJJJMAX = 1500;
 
 // Luminosity
-float const LUMINOSITY = 2177.0;
+//float const LUMINOSITY = 2177.0;
+float const LUMINOSITY = 1127.0;
 float const LUMIERROR  =   0.045;
 
 
@@ -262,13 +263,16 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
   ws.var("p1")->setConstant(true);
   ws.var("p1")->Print();
   ws.factory("p2[0]");
-  ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
-  ws.var("p2")->setVal(-FitFunction->GetParameter(2));
+  //ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
+  ws.var("p2")->setRange(0, FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
+  ws.var("p2")->setVal(FitFunction->GetParameter(2));
+  //ws.var("p2")->setVal(-FitFunction->GetParameter(2));
   ws.var("p2")->setConstant(true);
   ws.var("p2")->Print();
   ws.factory("p3[0]");
-  ws.var("p3")->setRange(FitFunction->GetParameter(3) - 5 * FitFunction->GetParError(3), FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
-  ws.var("p3")->setVal(-FitFunction->GetParameter(3));
+  //ws.var("p3")->setRange(FitFunction->GetParameter(3) - 5 * FitFunction->GetParError(3), FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
+  ws.var("p3")->setRange(0, FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
+  ws.var("p3")->setVal(FitFunction->GetParameter(3));
   ws.var("p3")->setConstant(true);
   ws.var("p3")->Print();
 
@@ -356,7 +360,7 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (4) {
+  switch (7) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
