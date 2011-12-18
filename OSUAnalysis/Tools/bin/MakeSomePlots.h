@@ -68,7 +68,7 @@ double BJetE[100];
     double dRtlBjet, dRthBjet, dRwhJet1, dRwhJet2;
     // matching of gen jets to any jets around
     //double matchRtlJet, matchRthJet, matchRwhJet1, matchRwhJet2;
-
+float GetMuonTriggerWeight (float MuonPt, float MuonEta);
 
 void initMicroNtuple(TTree* microTuple) {
     microTuple->SetBranchAddress("type",   &type);

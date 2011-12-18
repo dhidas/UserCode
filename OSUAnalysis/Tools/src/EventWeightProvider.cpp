@@ -82,8 +82,12 @@ boost::array<float, DataType::NUMBER_OF_DATA_TYPES> sevenTeV::getXSections() {
     // xsection[DataType::WprimeTToTTD_M800] = 2.2;
     //xsection[DataType::WprimeTToTTD_M1000] = 0.72;
     xsection[DataType::WprimeToTBbar_M1000] = 8;
+
+    xsection[DataType::WprimeTToTTD_M400] = 70.3;
     xsection[DataType::WprimeTToTTD_M600] = 18.2;
     xsection[DataType::WprimeTToTTD_M800] = 6.5;
+    xsection[DataType::WprimeTToTTD_M1000] = 2.8;
+    xsection[DataType::WprimeTToTTD_M1200] = 1.4;
 
 
     xsection[DataType::WprimeTToTTD_M1000] = 0.72;
@@ -200,9 +204,7 @@ void EventWeightProvider::defineNumberOfProducedEvents() {
 
     numberOfProcessedEvents[DataType::QCD_EMEnriched_Pt80to170] = 8150672;
     numberOfPattplSkimEvents[DataType::QCD_EMEnriched_Pt80to170] = 5078282;	// Actual received
-    numberOfNtplSkimEvents[DataType::QCD_EMEnriched_Pt80to170] = 123843;
-    numberOfElectronSkimEvents[DataType::QCD_EMEnriched_Pt80to170] = 123744;
-    numberOfMuonSkimEvents[DataType::QCD_EMEnriched_Pt80to170] = 101;
+
 
     numberOfProcessedEvents[DataType::QCD_BCtoE_Pt20to30] = 2081560;	// Checked 21/07/11
 
@@ -251,75 +253,37 @@ void EventWeightProvider::defineNumberOfProducedEvents() {
     numberOfProcessedEvents[DataType::Zprime_M4TeV_W40GeV] = 183920;
     numberOfProcessedEvents[DataType::Zprime_M4TeV_W400GeV] = 238142;
 
-    numberOfProcessedEvents[DataType::WprimeTToTTD_M400] = 96990;	// V9
-    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M400] = 96698;
-    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M400] = 37674;
-    numberOfElectronSkimEvents[DataType::WprimeTToTTD_M400] = 21097;
-    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M400] = 19681;
-
-    // numberOfProcessedEvents[DataType::WprimeTToTTD_M600] = 96500;	// Muonless generation
-    // numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 34552;	// After generator filter
-    // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 25535;
-    // numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 22774;
-
-    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 7012;//
-    //low stats sample
-    //    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] = 86991;	// With muons
-    // numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 86601;
-    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 29439;
-    // numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 19580;
-    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 11656;
-    //850k sample
-    //    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] =849920;	// With muons
-    //numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 849920;
-    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 340080;
-    //numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 19580;
-    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 11656;
-    //500k sample
-    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] =499960;  // With muons                                                                                            
-    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M600] = 499960;
-    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 199893;
-    numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 19580;
-    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 29439;	// V8 prescription
-    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 11656;  // V8
-    // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 35447;// V9
-    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 19127; // V9
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M400] = 499956;	// V9
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M400] = 190954;
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M400] = 1;
+  numberOfElectronSkimEvents[DataType::WprimeTToTTD_M400] = 1;
+    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M400] = 1;
 
 
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M600] =749928;  // With muons                                                                                           
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 299938;	// V8 prescription
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M600] = 1;
+numberOfElectronSkimEvents[DataType::WprimeTToTTD_M600] = 1;
+    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M600] = 1;
 
-    //low stats
-    //    numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 84993;
-    //numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 84416;
-    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 29269;
-    //numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 19619;
-    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 11363;
-    //high stats 700k
-    // numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 689950;
-    //numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 689950;
-    //numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 283455;
-    //numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 19619;
-    //numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 11363;
-    //high stats 500k
-    numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 489965;
-    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M800] = 489965;
-    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 201242;
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M800] = 689950;
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 283455;
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M800] = 1;
+numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 1;
+    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M800] = 1;
 
-    numberOfElectronSkimEvents[DataType::WprimeTToTTD_M800] = 19619;
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M1000] = 499952; // With muons
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1000] = 208408;  // V8
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1000] = 1;
+numberOfElectronSkimEvents[DataType::WprimeTToTTD_M1000] = 1;
+    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M1000] = 1;
 
-    // numberOfProcessedEvents[DataType::WprimeTToTTD_M1000] = 93000;	// From Khristian's e-mail, muonless generation
-    // numberOfPattplSkimEvents[DataType::WprimeTToTTD_M1000] = 35600;	// After generator filter
-    // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1000] = 26563;
-    // numberOfElectronSkimEvents[DataType::WprimeTToTTD_M1000] = 23025;
-    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M1000] = 8849;
-    numberOfProcessedEvents[DataType::WprimeTToTTD_M1000] = 94996; // With muons
-    numberOfPattplSkimEvents[DataType::WprimeTToTTD_M1000] = 94145;
-    numberOfElectronSkimEvents[DataType::WprimeTToTTD_M1000] = 21854;
-    // numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1000] = 40756;  // V9
-    // numberOfMuonSkimEvents[DataType::WprimeTToTTD_M1000] = 22898;  // V9
-    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1000] = 32039;  // V8
-    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M1000] = 12054;  // V8
+    numberOfProcessedEvents[DataType::WprimeTToTTD_M1200] = 499954;       // V9                    
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1200] = 210556;
+    numberOfNtplSkimEvents[DataType::WprimeTToTTD_M1200] = 1;
+numberOfElectronSkimEvents[DataType::WprimeTToTTD_M1200] = 1;
+    numberOfMuonSkimEvents[DataType::WprimeTToTTD_M1200] = 1;
 
-    numberOfProcessedEvents[DataType::WprimeToTBbar_M1000] = 110000;	// Checked 21/07/11
 }
 
 EventWeightProvider::~EventWeightProvider() {

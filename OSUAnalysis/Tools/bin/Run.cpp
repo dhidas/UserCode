@@ -60,7 +60,8 @@ int main(int argc, char **argv) {
     // Analysis::luminosity = 1091.0; // luminosity()/1000000.;
     // Analysis::luminosity = 5000.0; // luminosity()/1000000.;
     //Analysis::luminosity = luminosityReReco() / 1000000.;
-    Analysis::luminosity = luminosity() / 1000000.;
+    //    Analysis::luminosity = luminosity() / 1000000.;
+    Analysis::luminosity =4684;
     cout<<"Luminosity: "<<Analysis::luminosity<<" pb"<<endl;
     // Analysis::luminosity = 13.63;
     // Analysis::luminosity = 36.145;
@@ -81,7 +82,15 @@ int main(int argc, char **argv) {
     std::vector<TString> FileList;
     if (ListName == "") {
       //myAnalysis->addInputFile("/cms/se/store/user/clseitz/OSUNtuples/ttbar/TTJets_TuneZ2_7TeV-madgraph-tauola_srappocc-ttbsm_v9_Summer11-PU_S4_START42_V11-v1-bf57a985b107a689982b667a3f2f23c7_USER_CMSSW_4_2_4_Ov10.6_LQnTuple_9_1_pBn.root");
-	       myAnalysis->addInputFile("/cms/karen/clseitz/OSU_SingleMu/SingleMu_vasquez-ttbsm_v9_Run2011A-05Aug2011-f8e845a0332c56398831da6c30999af1_USER_CMSSW_4_2_4_Ov11.0_LQnTuple_97_1_PJj.root");
+      //	       myAnalysis->addInputFile("/cms/karen/clseitz/OSU_SingleMu/SingleMu_vasquez-ttbsm_v9_Run2011A-05Aug2011-f8e845a0332c56398831da6c30999af1_USER_CMSSW_4_2_4_Ov11.0_LQnTuple_97_1_PJj.root");
+	       //RunAll Wprimes
+      myAnalysis->addInputFile("/cms/se/store/user/clseitz/OSU_WpFastSim_PUFlat10_V12.0/Wp1200/*12.0*");
+      myAnalysis->addInputFile("/cms/se/store/user/clseitz/OSU_WpFastSim_PUFlat10_V12.0/Wp1000/*12.0*");
+      myAnalysis->addInputFile("/cms/se/store/user/clseitz/OSU_WpFastSim_PUFlat10_V12.0/Wp800/*12.0*");
+      myAnalysis->addInputFile("/cms/se/store/user/clseitz/OSU_WpFastSim_PUFlat10_V12.0/Wp600/*12.0*");
+      myAnalysis->addInputFile("/cms/se/store/user/clseitz/OSU_WpFastSim_PUFlat10_V12.0/Wp400/*12.0*");
+
+
 
     } else {
       std::ifstream InFile(ListName.Data());

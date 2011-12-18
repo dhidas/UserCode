@@ -3,7 +3,7 @@ import json
 import re
 import subprocess
 
-jsonName = 'Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON'
+jsonName = 'Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v3'
 #jsonName = 'Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v2'
 
 input  = open(jsonName+'.txt','r')

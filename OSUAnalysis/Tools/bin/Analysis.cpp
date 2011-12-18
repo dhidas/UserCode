@@ -103,11 +103,11 @@ bool Analysis::initiateEvent() {
     string filename( eventReader->getCurrentFile() );
 
     if( currentEvent.isRealData() && (
-		       !isGood(currentEvent.runnumber(), currentEvent.lumiblock())
-      	      /* (filename.find("PromptReco") != string::npos && !isGood             (currentEvent.runnumber(), currentEvent.lumiblock())) ||
- (filename.find("May10ReReco")!= string::npos && !isGoodMay10ReRecoV3(currentEvent.runnumber(), currentEvent.lumiblock())) ||
- (filename.find("ReReco5Aug") != string::npos && !isGoodReReco5AugV3 (currentEvent.runnumber(), currentEvent.lumiblock())) ||
- (filename.find("PromptReco")==string::npos && filename.find("May10ReReco")==string::npos && filename.find("ReReco5Aug")==string::npos )*/ // Unknown
+				      //      !isGood(currentEvent.runnumber(), currentEvent.lumiblock())
+      	     (filename.find("PromptReco") != string::npos && !isGood             (currentEvent.runnumber(), currentEvent.lumiblock())) ||
+	     (filename.find("May10ReReco")!= string::npos && !isGoodMay10ReRecoV3(currentEvent.runnumber(), currentEvent.lumiblock())) ||
+	     (filename.find("05Aug2011") != string::npos && !isGoodReReco5AugV3 (currentEvent.runnumber(), currentEvent.lumiblock())) ||
+	     (filename.find("PromptReco")==string::npos && filename.find("May10ReReco")==string::npos && filename.find("05Aug2011")==string::npos ) // Unknown
                                      )
     ) return false;
 
@@ -118,7 +118,7 @@ bool Analysis::initiateEvent() {
 //			currentEvent.getDataType() != DataType::WprimeTToTTD_M1000
     ) {
 			// W' samples lack pile-up.
-        weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
+            weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
 	PileUpWeight= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices()); 
 	//	std::cout<<PileUpWeight<<" "<<weight<<std::endl;
     }
@@ -894,31 +894,42 @@ void Analysis::doMicroNtuple() {
         if(!elecEvt && !muEvt) return;
 
         // make sure top reconstruction was ran 
+
         if( !goodTopBadTop.isReconstructed() ){
            cout<<"Reconstruction wasn't done: nothing to save into the micro ntuple"<<endl;
-           return;
+
+
+
+	   return;
         }
 
         LeptonPointer lepton;
         if( twoTopsNonRes.GoodPFIsolatedElectrons().size() >= 1 )
-            lepton = twoTopsNonRes.GoodPFIsolatedElectrons().front();
+	  {    lepton = twoTopsNonRes.GoodPFIsolatedElectrons().front();
+	    eSEL=2;
+	  }
         if( twoTopsNonRes.GoodIsolatedMuons().size() >= 1 )
-            lepton = twoTopsNonRes.GoodIsolatedMuons().front();
-
+	  { lepton = twoTopsNonRes.GoodIsolatedMuons().front();
+	    muSEL=2;
+	  }
         // general information oabout this event:
         type          = currentEvent.getDataType();
         eventNumber   = currentEvent.eventnumber();
-        std::cout<<"Num: "<<eventNumber<<"  "<<currentEvent.eventnumber()<<std::endl;
+	//        std::cout<<"Num: "<<eventNumber<<"  "<<currentEvent.eventnumber()<<std::endl;
         runNumber     = currentEvent.runnumber();
+        leptoCharge   = (lepton->charge()<0?-1:1);
+	
         numberOfJets  = goodTopBadTop.GoodJets().size();
         numberOfBJets = goodTopBadTop.GoodBJets().size();
-        leptoCharge   = (lepton->charge()<0?-1:1);
         ST            = goodTopBadTop.ST();
         HT            = goodTopBadTop.fullHT();
         MET           = goodTopBadTop.MET()->et();
+	
         eSEL          = 0;
 	nPileUpVtx    = currentEvent.numberOfGeneratedPileUpVertices();
-        for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at least 1 b-tag
+
+        
+for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at least 1 b-tag
             if(goodTopBadTop.passesSelectionStepUpTo(cut, toplikeElectronSelection)) {
                eSEL = cut;
             } else break;
@@ -928,8 +939,8 @@ void Analysis::doMicroNtuple() {
             if(goodTopBadTop.passesSelectionStepUpTo(cut, toplikeMuonSelection)) {
                muSEL = cut;
             } else break;
-        }
-
+       
+	}
 	//TRIGGER Stuff
 	eTrig = 0; muTrig = 0;
         for(unsigned int trg=0; trg<40; trg++) if( currentEvent.HLT(HLTriggers::value(trg))    ) eTrig  |= (1<<trg);
@@ -940,6 +951,7 @@ void Analysis::doMicroNtuple() {
         leadingJetPtRec = -1; leadingJetEtaRec = 0; leadingJetPhiRec = 0;
            freeJetPtRec = -1;    freeJetEtaRec = 0;    freeJetPhiRec = 0;
         int iDeanJet = -1;
+	
         for( JetCollection::const_iterator jet  = goodTopBadTop.GoodJets().begin();
                                            jet != goodTopBadTop.GoodJets().end();
                                            jet ++ ){
@@ -958,7 +970,8 @@ void Analysis::doMicroNtuple() {
            JetBTag[iDeanJet] = (*jet == goodTopBadTop.getLeptonicBJet() ? 1 : 0);
 	   //std::cout<<(*jet)->pt()<<endl;
 
-        }
+       
+	}
 	//	std::cout<<currentEvent.GoodBJets().size()<<"  "<<goodTopBadTop.getLeptonicBJet()->pt()<<std::endl;
 	for (unsigned int k=0; k < currentEvent.GoodBJets().size(); k++){
 	  //std::cout<<currentEvent.GoodBJets().at(k)->pt()<<std::endl;
@@ -971,15 +984,16 @@ void Analysis::doMicroNtuple() {
 
 	// std::cout << goodTopBadTop.fullHT() << std::endl;
 	//std::cout<<"----------------------------"<<endl;
+leptonPtRec  = lepton->pt();
+        leptonEtaRec = lepton->eta();
+        leptonPhiRec = lepton->phi();	
+	
         freeJetPtRec  = goodTopBadTop.dJetFromWp->pt();
         freeJetEtaRec = goodTopBadTop.dJetFromWp->eta();
         freeJetPhiRec = goodTopBadTop.dJetFromWp->phi();
+        
 
-        leptonPtRec  = lepton->pt();
-        leptonEtaRec = lepton->eta();
-        leptonPhiRec = lepton->phi();
-
-        bJetTlPtRec  = goodTopBadTop.getLeptonicBJet()->pt();
+	bJetTlPtRec  = goodTopBadTop.getLeptonicBJet()->pt();
         bJetTlEtaRec = goodTopBadTop.getLeptonicBJet()->eta();
         bJetTlPhiRec = goodTopBadTop.getLeptonicBJet()->phi();
 
@@ -1027,7 +1041,7 @@ void Analysis::doMicroNtuple() {
         tNegJetPtRec   = goodTopBadTop.wpFrom1Top->pt();
         tNegJetEtaRec  = goodTopBadTop.wpFrom1Top->eta();
         tNegJetPhiRec  = goodTopBadTop.wpFrom1Top->phi();
-
+	
         microTuple->Fill();
 }
 

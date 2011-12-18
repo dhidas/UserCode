@@ -142,31 +142,24 @@ bool TopPairEventCandidate::passesHighLevelTrigger() const {
     if (trigOn)
       return (true);
     // Now try muon triggers if electron triggers failed
-    else if ((runNumber >= 160404 && runNumber <= 163869) ||
+    /*    else if ((runNumber >= 160404 && runNumber <= 163869) ||
 	     (runNumber >= 165088 && runNumber <= 166967))
       return (HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu17));
     else if (runNumber >= 167039 && runNumber <= 167913)
       return (HLT(HLTriggers::HLT_IsoMu17_eta2p1) ||
 	      HLT(HLTriggers::HLT_IsoMu24));
     else if (runNumber >= 170249 && runNumber <= 173198)
-      return (HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu24));
+      return (HLT(HLTriggers::HLT_Mu40)||HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu24));
     else if (runNumber >= 173236 && runNumber <= 173692)
-      return (HLT(HLTriggers::HLT_IsoMu20));
+      return (HLT(HLTriggers::HLT_Mu40_eta2p1) || HLT(HLTriggers::HLT_IsoMu20));
     else if (runNumber >= 175860 && runNumber <= 178160)
-      return (HLT(HLTriggers::HLT_IsoMu24_eta2p1));
+      return ((HLT(HLTriggers::HLT_Mu40_eta2p1) || HLT(HLTriggers::HLT_IsoMu24_eta2p1));
     else if (runNumber >= 178162)
-      return (HLT(HLTriggers::HLT_IsoMu30_eta2p1));
-    else return false;
-    /*    else if(runNumber > 160000)
-      return (HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT) ||
-          HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralJet30)
-          || HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralPFJet30)
-          || HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu20)
-          || HLT(HLTriggers::HLT_IsoMu17) || HLT(HLTriggers::HLT_IsoMu17_eta2p1)
-          || HLT(HLTriggers::HLT_IsoMu24) || HLT(HLTriggers::HLT_IsoMu24_eta2p1)
-          || HLT(HLTriggers::HLT_IsoMu30_eta2p1));
-	  else return false;*/
-  } else return true;  // do not use HLT for MC
+      return (HLT(HLTriggers::HLT_IsoMu30_eta2p1) || (HLT(HLTriggers::HLT_Mu40_eta2p1));*/
+  else if (runNumber >= 160404)
+    return (HLT(HLTriggers::HLT_IsoMu24_eta2p1) || HLT(HLTriggers::HLT_IsoMu24));     
+  else return false;
+} else return (HLT(HLTriggers::HLT_IsoMu24));  // do not use HLT for MC
 }
 
 bool TopPairEventCandidate::hasOneGoodPrimaryVertex() const {

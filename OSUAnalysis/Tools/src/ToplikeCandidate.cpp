@@ -873,7 +873,7 @@ bool TopPlusXCandidates::passesMETCut() const {
 
 
 bool TopPlusXCandidates::passesHTCut() const {
-    return fullHT() > 0.;
+    return fullHT() > 700.0;
 }
 
 

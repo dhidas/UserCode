@@ -56,6 +56,7 @@ enum value {
 		WprimeTToTTD_M600,
 		WprimeTToTTD_M800,
 		WprimeTToTTD_M1000,
+		WprimeTToTTD_M1200,
 		WprimeToTBbar_M1000,
     NUMBER_OF_DATA_TYPES
 };
@@ -104,6 +105,7 @@ const boost::array<std::string, DataType::NUMBER_OF_DATA_TYPES> names = { {
 				"WprimeTToTTD_M600",
 				"WprimeTToTTD_M800",
 				"WprimeTToTTD_M1000",
+	                        "WprimeTToTTD_M1200",
 				"WprimeToTBbar_M-1000"
  } };
 }
