@@ -27,6 +27,8 @@
 #include "RooPlot.h"
 #include "RooStats/MCMCCalculator.h"
 #include "RooStats/MCMCIntervalPlot.h"
+#include "RooStats/ProposalHelper.h"
+#include "RooStats/SequentialProposal.h"
 #include "RooRandom.h"
 
 
@@ -199,13 +201,6 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
     SignalMass < 1500 ?   0.16 :
     0.16;
 
-
-  // Open output file for limits
-  std::ofstream OutFile(TString::Format("Limits_CLs_%i.dat", (int) SignalMass).Data());
-  if (!OutFile.is_open()) {
-    std::cerr << "ERROR: cannot open output file Limits_CLs_*.dat for mass: " << SignalMass << std::endl;
-    throw;
-  }
 
   // Setup output root file based on mass
   TFile OutRootFile(TString::Format("MultiJetsCLs_%i.root", (int) SignalMass), "recreate");
@@ -460,7 +455,7 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
   ModelConfigSB.SetNuisanceParameters(*ws.set("nuisance"));
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
-  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  RooFitResult* FitResult = ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
   TCanvas CanFit("Fit", "Fit");
   CanFit.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
@@ -491,15 +486,30 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
 
 
   float UpperLimit = -999;
+  RooStats::MCMCCalculator* mc;
+  RooStats::MCMCInterval* interval;
   if (Section <= 0) {
-    RooStats::MCMCCalculator mc(*ws.data("Data"), ModelConfigSB);
-    mc.SetNumBins(50);
-    mc.SetConfidenceLevel(0.95);
-    mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(500);
-    mc.SetNumBurnInSteps(5);
-    RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*) mc.GetInterval();
-    UpperLimit = interval->UpperLimit(*ws.var("xs"));
+    // implement cov matrix for data here
+    //RooStats::ProposalHelper ph;
+    //ph.SetVariables((RooArgSet&) FitResult->floatParsFinal());
+    //ph.SetCovMatrix(FitResult->covarianceMatrix());
+    //exit(0);
+
+    
+    mc = new RooStats::MCMCCalculator(*ws.data("Data"), ModelConfigSB);
+    mc->SetNumBins(50);
+    mc->SetConfidenceLevel(0.95);
+    mc->SetLeftSideTailFraction(0.0);
+    RooStats::SequentialProposal sp(0.1);
+    mc->SetProposalFunction(sp);
+    mc->SetNumIters(500);
+    mc->SetNumBurnInSteps(5);
+
+
+
+
+
+    interval = (RooStats::MCMCInterval*) mc->GetInterval();
   } else {
 
     float const rand_NBGThisPE = NBackground + (ws.var("nbkgS0")->getVal() - 1.0) * RooRandom::randomGenerator()->Gaus(0,1);
@@ -539,15 +549,18 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
     RooDataHist hPE("DataToFit", "dataset with x", *ws.var("mjjj"), hPEF);
     ws.import(hPE);
 
-    RooStats::MCMCCalculator mc(*ws.data("DataToFit"), ModelConfigSB);
-    mc.SetNumBins(50);
-    mc.SetConfidenceLevel(0.95);
-    mc.SetLeftSideTailFraction(0.0);
-    mc.SetNumIters(500);
-    mc.SetNumBurnInSteps(5);
-    RooStats::MCMCInterval* interval = (RooStats::MCMCInterval*) mc.GetInterval();
-    UpperLimit = interval->UpperLimit(*ws.var("xs"));
+    mc = new RooStats::MCMCCalculator(*ws.data("DataToFit"), ModelConfigSB);
+    mc->SetNumBins(50);
+    mc->SetConfidenceLevel(0.95);
+    mc->SetLeftSideTailFraction(0.0);
+    mc->SetNumIters(500);
+    mc->SetNumBurnInSteps(5);
+    interval = (RooStats::MCMCInterval*) mc->GetInterval();
   }
+  UpperLimit = interval->UpperLimit(*ws.var("xs"));
+
+  delete mc;
+  delete interval;
 
   // Upper limit
   printf("UPPER LIMIT: %12.3f\n", UpperLimit);
@@ -567,10 +580,10 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  int const NPerSection = 5;
-
   TString const InFileName = argv[1];
   int const Section = atoi(argv[2]);
+
+  int const NPerSection = Section <= 0 ? 1 : 5;
 
   RooRandom::randomGenerator()->SetSeed(339723*(Section+2));
   gRandom->SetSeed(276823*(Section+2));
