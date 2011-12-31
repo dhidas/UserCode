@@ -159,7 +159,7 @@ bool TopPairEventCandidate::passesHighLevelTrigger() const {
   else if (runNumber >= 160404)
     return (HLT(HLTriggers::HLT_IsoMu24_eta2p1) || HLT(HLTriggers::HLT_IsoMu24));     
   else return false;
-} else return (HLT(HLTriggers::HLT_IsoMu24));  // do not use HLT for MC
+  } else return (HLT(HLTriggers::HLT_IsoMu24));// || HLT(HLTriggers::HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT) || HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT));  // do not use HLT for MC
 }
 
 bool TopPairEventCandidate::hasOneGoodPrimaryVertex() const {
