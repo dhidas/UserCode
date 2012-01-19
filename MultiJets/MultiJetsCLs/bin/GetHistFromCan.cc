@@ -17,8 +17,8 @@
 int GetHistFromCan (TString const InFileName, TString const OutFileName)
 {
   TFile fin(InFileName, "read");
-  TCanvas* c = (TCanvas*) fin.Get("c2");
-  TH1F* hist = (TH1F*) c->FindObject("Mjjj_70_20_160_6jet");
+  TCanvas* c = (TCanvas*) fin.Get("c");
+  TH1F* hist = (TH1F*) c->FindObject("Mjjj_70_20_160")->Clone("Mjjj_70_20_160_6jet");
 
   TFile fout(OutFileName, "recreate");
   TH1F* newhist = (TH1F*) hist->Clone();

@@ -456,6 +456,10 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
   RooFitResult* FitResult = ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  if (FitResult == 0x0) {
+    std::cout << "FitResult = " << FitResult << std::endl;
+    exit(0);
+  }
   TCanvas CanFit("Fit", "Fit");
   CanFit.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
@@ -490,10 +494,10 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
   RooStats::MCMCInterval* interval;
   if (Section <= 0) {
     // implement cov matrix for data here
-    //RooStats::ProposalHelper ph;
-    //ph.SetVariables((RooArgSet&) FitResult->floatParsFinal());
+    RooStats::ProposalHelper ph;
+    ph.SetVariables((RooArgSet&) FitResult->floatParsFinal());
     //ph.SetCovMatrix(FitResult->covarianceMatrix());
-    //exit(0);
+    exit(0);
 
     
     mc = new RooStats::MCMCCalculator(*ws.data("Data"), ModelConfigSB);

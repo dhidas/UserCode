@@ -33,7 +33,7 @@ float const MJJJMIN =  230;
 float const MJJJMAX = 1500;
 
 // Luminosity
-float const LUMINOSITY = 2177.0;
+float const LUMINOSITY = 4632.0;
 float const LUMIERROR  =   0.045;
 
 
@@ -58,7 +58,9 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //p3                        = -3.69426e-11   +/-   9.06989e-12
 
 
-  return -0.01027 + 4.38331e-05*Mjjj + 4.43791e-08*Mjjj*Mjjj - 3.69426e-11*Mjjj*Mjjj*Mjjj;
+  return -2.12900022490592165e-02 + 1.08977199027775987e-04*Mjjj + -6.75844597940117972e-08*Mjjj*Mjjj + 1.03590838339000778e-11*Mjjj*Mjjj*Mjjj;
+  // old 2.X
+  //return -0.01027 + 4.38331e-05*Mjjj + 4.43791e-08*Mjjj*Mjjj - 3.69426e-11*Mjjj*Mjjj*Mjjj;
   //return -0.0173967 + 8.54121e-05 * Mjjj + -2.44194e-08 * Mjjj * Mjjj;
 }
 
@@ -167,7 +169,8 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Get the fit function from the hist
-  TF1* FitFunction = (TF1*) DataHist->GetFunction("g4");
+  //TF1* FitFunction = (TF1*) DataHist->GetFunction("g4");
+  TF1* FitFunction = (TF1*) DataHist->GetFunction("Three-Jet Mass Spectrum");
   if (FitFunction == 0x0) {
     std::cout << "ERROR: cannot get fitted function." << std::endl;
     throw;

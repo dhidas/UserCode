@@ -25,6 +25,7 @@
 #include "RooExponential.h"
 #include "RooGenericPdf.h"
 #include "RooPlot.h"
+#include "RooFitResult.h"
 
 
 // Min and max for observable
@@ -362,7 +363,10 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // Set the observable to zero and add POI snapsnot, import this modelconfig to the workspace
   ws.var("xs")->setVal(0);
-  ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  RooFitResult* FitResult = ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  FitResult->covarianceMatrix();
+  FitResult->correlationMatrix();
+  exit(0);
   RooArgSet POIAndNuisBG("POIAndNuisBG");
   POIAndNuisBG.add(*ModelConfigBG.GetParametersOfInterest());
   ModelConfigBG.SetSnapshot(POIAndNuisBG);
