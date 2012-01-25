@@ -93,7 +93,7 @@ int AddHTIR (int const SignalMass, std::vector<TString>& InFileNames)
   for (int i = 0; i < NEntries; ++i) {
     CanHTI.cd(i + 1);
     RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
-    SamplingPlot->SetLogYaxis(true);
+    //SamplingPlot->SetLogYaxis(true);
     delete SamplingPlot;
   }
   CanHTI.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));

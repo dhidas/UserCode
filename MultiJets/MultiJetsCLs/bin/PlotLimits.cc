@@ -405,14 +405,14 @@ void DrawLimits (std::vector<TString> const& FileNames)
   Lumi->SetFillColor(0);
   Lumi->SetTextAlign(31);
   Lumi->SetTextSize(0.44);
-  Lumi->Draw("same");
+  //Lumi->Draw("same");
 
 
 
   // Draw the legend and canvas.  Save to file
   MyLegend.Draw();
   HiggsLimits.Draw();
-  HiggsLimits.SaveAs("GraphLimits.pdf");
+  HiggsLimits.SaveAs("GraphLimits.eps");
 
   return;
 }

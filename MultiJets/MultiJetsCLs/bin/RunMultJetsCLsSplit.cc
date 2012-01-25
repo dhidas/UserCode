@@ -88,7 +88,8 @@ float GetAcceptanceError (float const m)
   //  return 1.1653400;
   //}
 
-  return (0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m);
+  //return (0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m);
+  return 0.25;
 }
 
 
@@ -285,7 +286,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (4) {
+  switch (1) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -418,7 +419,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 30;
+  int   const npoints           = 8;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
   int   const ntoys             = 50;

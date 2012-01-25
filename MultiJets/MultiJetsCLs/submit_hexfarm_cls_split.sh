@@ -1,6 +1,13 @@
 #!/bin/sh
 
+if [ $# -ne 2 ]
+then
+echo "Usage: submit_hexfarm_cls_split.sh OutDir SeedOffset"
+exit
+else
 echo 'Submitting to hexfarm!'
+fi
+
 
 ThisDir=$PWD
 
@@ -18,7 +25,7 @@ export PATH=/home/cdfcaf/condor/dist/bin:${PATH}
 OutDir=$1
 SeedOffset=$2
 
-InFileName=dataGE6jets_2177pb_10GeVBins_Hist.root
+InFileName=Data6Jet_4632pb-1_hist.root
 
 mkdir -pv $OutDir/Log $OutDir
 

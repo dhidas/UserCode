@@ -22,7 +22,7 @@ PATH=$PATH:$ROOTSYS/bin
 
 
 EXE=$PWD/RunMultJetsCLsSplit
-DAT=$PWD/dataGE6jets_2177pb_10GeVBins_Hist.root
+DAT=$PWD/Data6Jet_4632pb-1_hist.root
 
 echo "HOSTNAME " $HOSTNAME
 

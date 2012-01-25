@@ -506,7 +506,7 @@ float RunMultJetsMCMC(TString const InFileName, int const Section, float const T
     mc->SetLeftSideTailFraction(0.0);
     RooStats::SequentialProposal sp(0.1);
     mc->SetProposalFunction(sp);
-    mc->SetNumIters(500);
+    mc->SetNumIters(5000000);
     mc->SetNumBurnInSteps(5);
 
 
