@@ -107,7 +107,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(7723*(Section+SeedOffset));
+  RooRandom::randomGenerator()->SetSeed(771 * (100 * Section + SeedOffset));
 
 
   // Min and max ax for roovar
