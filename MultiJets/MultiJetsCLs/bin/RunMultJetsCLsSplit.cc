@@ -209,15 +209,15 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("p1S0")->setConstant(true);
   ws.var("p1M0")->setVal(FitFunction->GetParameter(1));
   ws.var("p1M0")->setConstant(true);
-  ws.factory("RooLognormal::p2_prior(p2, p2M0[0], p2S0[1])");
-  ws.var("p2S0")->setVal(1.0 + FitFunction->GetParError(2) / FitFunction->GetParameter(2));
+  ws.factory("RooLognormal::p2_prior(-p2, p2M0[0], p2S0[1])");
+  ws.var("p2S0")->setVal(1.0 - FitFunction->GetParError(2) / FitFunction->GetParameter(2));
   ws.var("p2S0")->setConstant(true);
-  ws.var("p2M0")->setVal(FitFunction->GetParameter(2));
+  ws.var("p2M0")->setVal(-FitFunction->GetParameter(2));
   ws.var("p2M0")->setConstant(true);
-  ws.factory("RooLognormal::p3_prior(p3, p3M0[0], p3S0[1])");
-  ws.var("p3S0")->setVal(1.0 + FitFunction->GetParError(3) / FitFunction->GetParameter(3));
+  ws.factory("RooLognormal::p3_prior(-p3, p3M0[0], p3S0[1])");
+  ws.var("p3S0")->setVal(1.0 - FitFunction->GetParError(3) / FitFunction->GetParameter(3));
   ws.var("p3S0")->setConstant(true);
-  ws.var("p3M0")->setVal(FitFunction->GetParameter(3));
+  ws.var("p3M0")->setVal(-FitFunction->GetParameter(3));
   ws.var("p3M0")->setConstant(true);
 
 
@@ -250,7 +250,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.factory("RooLognormal::acceptance_prior(acceptance, acceptanceM0[0], acceptanceS0[0])");
   ws.var("acceptanceS0")->setVal(1.0 + AcceptanceError);
   ws.var("acceptanceS0")->setConstant(true);
-  ws.var("acceptance")->setRange(0, Acceptance * (1. + 3. * AcceptanceError));
+  ws.var("acceptance")->setRange(Acceptance * (1 - 3. * AcceptanceError), Acceptance * (1. + 3. * AcceptanceError));
   ws.var("acceptance")->setVal(Acceptance);
   ws.var("acceptance")->setConstant(true);
   ws.var("acceptanceM0")->setVal(Acceptance);
@@ -286,7 +286,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (1) {
+  switch (7) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -419,7 +419,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 8;
+  int   const npoints           = 10;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
   int   const ntoys             = 50;
