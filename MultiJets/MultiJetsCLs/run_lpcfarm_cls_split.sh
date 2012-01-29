@@ -12,7 +12,7 @@ cd -
 
 
 EXE=$_CONDOR_SCRATCH_DIR/RunMultJetsCLsSplit
-DAT=$_CONDOR_SCRATCH_DIR/dataGE6jets_2177pb_10GeVBins_Hist.root
+DAT=$_CONDOR_SCRATCH_DIR/Data6Jet_4632pb-1_hist.root
 
 
 echo "$EXE $DAT $1 $2"

@@ -12,7 +12,7 @@ cd -
 OutDir=$1
 SeedOffset=$2
 
-InFileName=dataGE6jets_2177pb_10GeVBins_Hist.root
+InFileName=Data6Jet_4632pb-1_hist.root
 
 mkdir -pv $OutDir/Log $OutDir
 
