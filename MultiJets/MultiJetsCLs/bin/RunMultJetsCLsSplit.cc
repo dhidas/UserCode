@@ -29,8 +29,8 @@
 
 
 // Min and max for observable
-float const MJJJMIN =  230;
-float const MJJJMAX = 1500;
+float const MJJJMIN =  260;
+float const MJJJMAX = 1620;
 
 // Luminosity
 float const LUMINOSITY = 4632.0;
@@ -103,7 +103,7 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const SeedOffset)
 {
   // Get the mass for this section
-  float const SignalMass = 250 + (20 * Section);
+  float const SignalMass = MJJJMIN + (20 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   // Set the roostats random seed based on secton number..fine..
@@ -116,23 +116,94 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   // Min and max xs for CLs
   float const MINPOI     =      0;
-  float const MAXPOI     =   
-    SignalMass <  300 ?  35   :
-    SignalMass <  400 ?  13   :
-    SignalMass <  500 ?  10   :
-    SignalMass <  600 ?   6   :
-    SignalMass <  650 ?   3   :
-    SignalMass <  700 ?   2   :
-    SignalMass <  780 ?   1.8 :
-    SignalMass <  840 ?   1.3 :
-    SignalMass < 860 ?   1.0 :
-    SignalMass < 950 ?   0.7 :
-    SignalMass < 1030 ?   0.5 :
-    SignalMass < 1110 ?   0.4 :
-    SignalMass < 1270 ?   0.3 :
-    SignalMass < 1370 ?   0.18 :
-    SignalMass < 1500 ?   0.16 :
-    0.16;
+  float const MAXPOI     =   0.2 * ( 
+    SignalMass <=  260 ?  120   :
+    SignalMass <=  280 ?  140   :
+
+    SignalMass <=  300 ?   90   :
+    SignalMass <=  320 ?   80   :
+    SignalMass <=  340 ?   50   :
+    SignalMass <=  360 ?   40   :
+    SignalMass <=  380 ?   35   :
+
+    SignalMass <=  400 ?   30   :
+    SignalMass <=  420 ?   30   :
+    SignalMass <=  440 ?   22   :
+    SignalMass <=  460 ?   20   :
+    SignalMass <=  480 ?   20   :
+
+    SignalMass <=  500 ?   15   :
+    SignalMass <=  520 ?   15   :
+    SignalMass <=  540 ?   13   :
+    SignalMass <=  560 ?   12   :
+    SignalMass <=  580 ?   11   :
+
+    SignalMass <=  600 ?   10   :
+    SignalMass <=  620 ?    9   :
+    SignalMass <=  640 ?    9   :
+    SignalMass <=  660 ?    8   :
+    SignalMass <=  680 ?    8   :
+
+    SignalMass <=  700 ?    7   :
+    SignalMass <=  720 ?    7   :
+    SignalMass <=  740 ?    6   :
+    SignalMass <=  760 ?    6   :
+    SignalMass <=  780 ?    5   :
+
+    SignalMass <=  800 ?    5   :
+    SignalMass <=  820 ?    5   :
+    SignalMass <=  840 ?    4   :
+    SignalMass <=  860 ?    4   :
+    SignalMass <=  880 ?    4   :
+
+    SignalMass <=  900 ?    4   :
+    SignalMass <=  920 ?    4   :
+    SignalMass <=  940 ?    3   :
+    SignalMass <=  960 ?    3   :
+    SignalMass <=  980 ?    3   :
+
+    SignalMass <= 1000 ?    3   :
+    SignalMass <= 1020 ?    3   :
+    SignalMass <= 1040 ?    3   :
+    SignalMass <= 1060 ?    2.5 :
+    SignalMass <= 1080 ?    2.5 :
+
+    SignalMass <= 1100 ?    2.0 :
+    SignalMass <= 1120 ?    2.0 :
+    SignalMass <= 1140 ?    2.0 :
+    SignalMass <= 1160 ?    1.4 :
+    SignalMass <= 1180 ?    1.4 :
+
+    SignalMass <= 1200 ?    1.2 :
+    SignalMass <= 1220 ?    1.2 :
+    SignalMass <= 1240 ?    1.0 :
+    SignalMass <= 1260 ?    1.0 :
+    SignalMass <= 1280 ?    1.0 :
+
+    SignalMass <= 1300 ?    0.9 :
+    SignalMass <= 1320 ?    0.9 :
+    SignalMass <= 1340 ?    0.8 :
+    SignalMass <= 1360 ?    0.8 :
+    SignalMass <= 1380 ?    0.8 :
+
+    SignalMass <= 1400 ?    0.7 :
+    SignalMass <= 1420 ?    0.7 :
+    SignalMass <= 1440 ?    0.6 :
+    SignalMass <= 1460 ?    0.6 :
+    SignalMass <= 1480 ?    0.6 :
+
+    SignalMass <= 1500 ?    0.6 :
+    SignalMass <= 1520 ?    0.6 :
+    SignalMass <= 1540 ?    0.6 :
+    SignalMass <= 1560 ?    0.6 :
+    SignalMass <= 1580 ?    0.6 :
+
+    SignalMass <= 1600 ?    0.5 :
+    SignalMass <= 1620 ?    0.5 :
+    SignalMass <= 1640 ?    0.5 :
+    SignalMass <= 1660 ?    0.4 :
+    SignalMass <= 1680 ?    0.4 :
+    0.4);
 
 
   // Setup output root file based on mass
@@ -422,7 +493,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   int   const npoints           = 10;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 50;
+  int   const ntoys             = 30;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 

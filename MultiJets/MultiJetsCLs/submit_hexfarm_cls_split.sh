@@ -46,7 +46,7 @@ Error =  \$(OutDir)/Log/Log_\$(Process)_$SeedOffset.err
 Log =    \$(OutDir)/Log/Log_\$(Process)_$SeedOffset.log
 notify_user = dhidas@physics.rutgers.edu
 Arguments = \$(Process) $SeedOffset
-Queue 63
+Queue 69
 +EOF
 
 
