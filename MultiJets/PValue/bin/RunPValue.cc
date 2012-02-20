@@ -477,7 +477,7 @@ int RunPValue (TString const InFileName, int const Section, bool const DoSyst)
   float const StepSize    =   10;
   float const BeginMass   =  250;
   float const EndMass     = 1500;
-  int   const NPerSection =   20;
+  int   const NPerSection =    1;
 
 
   // Set the randome seed based on section number
