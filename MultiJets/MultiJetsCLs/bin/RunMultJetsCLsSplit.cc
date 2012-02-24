@@ -33,8 +33,10 @@ float const MJJJMIN =  260;
 float const MJJJMAX = 1620;
 
 // Luminosity
-float const LUMINOSITY = 4632.0;
-float const LUMIERROR  =   0.045;
+float const LUMINOSITY = 5000.0;
+float const LUMIERROR  =   0.036;
+//float const LUMINOSITY = 4632.0;
+//float const LUMIERROR  =   0.045;
 
 
 
@@ -89,7 +91,8 @@ float GetAcceptanceError (float const m)
   //}
 
   //return (0.140834 + 0.000392742*m - -7.49412e-07*m*m + 4.50564e-10*m*m*m);
-  return 0.25;
+  return 0.199;
+  //return 0.25;
 }
 
 
@@ -103,107 +106,107 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const SeedOffset)
 {
   // Get the mass for this section
-  float const SignalMass = MJJJMIN + (20 * Section);
+  float const SignalMass = (int) MJJJMIN + (20 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   // Set the roostats random seed based on secton number..fine..
-  RooRandom::randomGenerator()->SetSeed(771 * (100 * Section + SeedOffset));
+  RooRandom::randomGenerator()->SetSeed(7 * (100 * Section + SeedOffset));
 
 
   // Min and max ax for roovar
   float const MINXS      =      0;
-  float const MAXXS      =    100;
+  float const MAXXS      =    200;
 
   // Min and max xs for CLs
   float const MINPOI     =      0;
-  float const MAXPOI     =   0.2 * ( 
-    SignalMass <=  260 ?  120   :
-    SignalMass <=  280 ?  140   :
+  float const MAXPOI     =   
+    SignalMass <=  260 ?   70   :
+    SignalMass <=  280 ?   70   :
 
-    SignalMass <=  300 ?   90   :
-    SignalMass <=  320 ?   80   :
-    SignalMass <=  340 ?   50   :
-    SignalMass <=  360 ?   40   :
-    SignalMass <=  380 ?   35   :
+    SignalMass <=  300 ?   60   :
+    SignalMass <=  320 ?   50   :
+    SignalMass <=  340 ?   30   :
+    SignalMass <=  360 ?   25   :
+    SignalMass <=  380 ?   20   :
 
-    SignalMass <=  400 ?   30   :
-    SignalMass <=  420 ?   30   :
-    SignalMass <=  440 ?   22   :
-    SignalMass <=  460 ?   20   :
-    SignalMass <=  480 ?   20   :
+    SignalMass <=  400 ?   17   :
+    SignalMass <=  420 ?   16   :
+    SignalMass <=  440 ?   13   :
+    SignalMass <=  460 ?   12   :
+    SignalMass <=  480 ?   11   :
 
-    SignalMass <=  500 ?   15   :
-    SignalMass <=  520 ?   15   :
-    SignalMass <=  540 ?   13   :
-    SignalMass <=  560 ?   12   :
-    SignalMass <=  580 ?   11   :
+    SignalMass <=  500 ?    9   :
+    SignalMass <=  520 ?    9   :
+    SignalMass <=  540 ?    8   :
+    SignalMass <=  560 ?    8   :
+    SignalMass <=  580 ?    7   :
 
-    SignalMass <=  600 ?   10   :
-    SignalMass <=  620 ?    9   :
-    SignalMass <=  640 ?    9   :
-    SignalMass <=  660 ?    8   :
-    SignalMass <=  680 ?    8   :
+    SignalMass <=  600 ?    6   :
+    SignalMass <=  620 ?    6   :
+    SignalMass <=  640 ?    5   :
+    SignalMass <=  660 ?    5   :
+    SignalMass <=  680 ?    5   :
 
-    SignalMass <=  700 ?    7   :
-    SignalMass <=  720 ?    7   :
-    SignalMass <=  740 ?    6   :
-    SignalMass <=  760 ?    6   :
-    SignalMass <=  780 ?    5   :
+    SignalMass <=  700 ?    4   :
+    SignalMass <=  720 ?    4   :
+    SignalMass <=  740 ?    4   :
+    SignalMass <=  760 ?    4   :
+    SignalMass <=  780 ?    3   :
 
-    SignalMass <=  800 ?    5   :
-    SignalMass <=  820 ?    5   :
-    SignalMass <=  840 ?    4   :
-    SignalMass <=  860 ?    4   :
-    SignalMass <=  880 ?    4   :
+    SignalMass <=  800 ?    3   :
+    SignalMass <=  820 ?    3   :
+    SignalMass <=  840 ?    3   :
+    SignalMass <=  860 ?    3   :
+    SignalMass <=  880 ?    3   :
 
-    SignalMass <=  900 ?    4   :
-    SignalMass <=  920 ?    4   :
-    SignalMass <=  940 ?    3   :
-    SignalMass <=  960 ?    3   :
-    SignalMass <=  980 ?    3   :
+    SignalMass <=  900 ?    2.5 :
+    SignalMass <=  920 ?    2   :
+    SignalMass <=  940 ?    2   :
+    SignalMass <=  960 ?    2   :
+    SignalMass <=  980 ?    2   :
 
-    SignalMass <= 1000 ?    3   :
-    SignalMass <= 1020 ?    3   :
-    SignalMass <= 1040 ?    3   :
-    SignalMass <= 1060 ?    2.5 :
-    SignalMass <= 1080 ?    2.5 :
+    SignalMass <= 1000 ?    2   :
+    SignalMass <= 1020 ?    1.5 :
+    SignalMass <= 1040 ?    1.5 :
+    SignalMass <= 1060 ?    1.5 :
+    SignalMass <= 1080 ?    1.5 :
 
-    SignalMass <= 1100 ?    2.0 :
-    SignalMass <= 1120 ?    2.0 :
+    SignalMass <= 1100 ?    1.5 :
+    SignalMass <= 1120 ?    1.0 :
     SignalMass <= 1140 ?    2.0 :
-    SignalMass <= 1160 ?    1.4 :
-    SignalMass <= 1180 ?    1.4 :
+    SignalMass <= 1160 ?    1.0 :
+    SignalMass <= 1180 ?    0.9 :
 
-    SignalMass <= 1200 ?    1.2 :
-    SignalMass <= 1220 ?    1.2 :
-    SignalMass <= 1240 ?    1.0 :
-    SignalMass <= 1260 ?    1.0 :
-    SignalMass <= 1280 ?    1.0 :
+    SignalMass <= 1200 ?    0.8 :
+    SignalMass <= 1220 ?    0.8 :
+    SignalMass <= 1240 ?    0.7 :
+    SignalMass <= 1260 ?    0.7 :
+    SignalMass <= 1280 ?    0.6 :
 
-    SignalMass <= 1300 ?    0.9 :
-    SignalMass <= 1320 ?    0.9 :
-    SignalMass <= 1340 ?    0.8 :
-    SignalMass <= 1360 ?    0.8 :
-    SignalMass <= 1380 ?    0.8 :
+    SignalMass <= 1300 ?    0.6 :
+    SignalMass <= 1320 ?    0.6 :
+    SignalMass <= 1340 ?    0.6 :
+    SignalMass <= 1360 ?    0.5 :
+    SignalMass <= 1380 ?    0.5 :
 
-    SignalMass <= 1400 ?    0.7 :
-    SignalMass <= 1420 ?    0.7 :
-    SignalMass <= 1440 ?    0.6 :
-    SignalMass <= 1460 ?    0.6 :
-    SignalMass <= 1480 ?    0.6 :
+    SignalMass <= 1400 ?    0.5 :
+    SignalMass <= 1420 ?    0.5 :
+    SignalMass <= 1440 ?    0.4 :
+    SignalMass <= 1460 ?    0.4 :
+    SignalMass <= 1480 ?    0.4 :
 
-    SignalMass <= 1500 ?    0.6 :
-    SignalMass <= 1520 ?    0.6 :
-    SignalMass <= 1540 ?    0.6 :
-    SignalMass <= 1560 ?    0.6 :
-    SignalMass <= 1580 ?    0.6 :
+    SignalMass <= 1500 ?    0.4 :
+    SignalMass <= 1520 ?    0.4 :
+    SignalMass <= 1540 ?    0.4 :
+    SignalMass <= 1560 ?    0.4 :
+    SignalMass <= 1580 ?    0.4 :
 
-    SignalMass <= 1600 ?    0.5 :
-    SignalMass <= 1620 ?    0.5 :
-    SignalMass <= 1640 ?    0.5 :
-    SignalMass <= 1660 ?    0.4 :
-    SignalMass <= 1680 ?    0.4 :
-    0.4);
+    SignalMass <= 1600 ?    0.35:
+    SignalMass <= 1620 ?    0.35:
+    SignalMass <= 1640 ?    0.35:
+    SignalMass <= 1660 ?    0.35:
+    SignalMass <= 1680 ?    0.35:
+    0.35;
 
 
   // Setup output root file based on mass
@@ -437,7 +440,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   // Set the observable to zero and add POI snapsnot, import this modelconfig to the workspace
   ws.var("xs")->setVal(0);
-  ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Extended(kTRUE));
   RooArgSet POIAndNuisBG("POIAndNuisBG");
   POIAndNuisBG.add(*ModelConfigBG.GetParametersOfInterest());
   ModelConfigBG.SetSnapshot(POIAndNuisBG);
@@ -457,7 +460,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ModelConfigSB.SetNuisanceParameters(*ws.set("nuisance"));
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
-  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"),  RooFit::Extended(kTRUE));
   TCanvas CanFit("Fit", "Fit");
   CanFit.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
@@ -468,7 +471,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   CanFit.SetLogy(1);
   OutRootFile.cd();
   CanFit.Write();
-  CanFit.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
+  //CanFit.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
 
   RooArgSet POIAndNuisSB("POIAndNuisSB");
   POIAndNuisSB.add(*ModelConfigSB.GetParametersOfInterest());
@@ -487,18 +490,20 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("nbkg")->Print();
 
   // Parameters of the CLs method we'll call
-  int   const calculatorType    = 1;
+  int   const calculatorType    = 0;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 10;
+  int   const npoints           = 50;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 30;
+  int   const ntoys             = 1000;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
   // Run the actual CLs
-  RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
+  RooStats::HypoTestInvTool HTIT;
+  HTIT.SetParameter("GenerateBinned", true);
+  RooStats::HypoTestInverterResult* MyResult = HTIT.RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, useCls, npoints, poimin, poimax, ntoys, useNumberCounting, nuisPriorName);
 
   // Save the HypoTestInverterResult object to root file
   OutRootFile.cd();

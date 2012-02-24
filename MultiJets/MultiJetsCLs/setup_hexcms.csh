@@ -6,7 +6,7 @@ source /osg/apps/osg/setup.csh
 
 setenv PATH /home/cdfcaf/condor/dist/bin:${PATH}
 
-setenv ROOTSYS /cms/data24/dhidas/CernRoot/root_2011.09.17_HEAD/root
+setenv ROOTSYS /cms/data24/dhidas/CernRoot/root_v5.32.00/root
 setenv LD_LIBRARY_PATH $ROOTSYS/lib
 set path = ( $path $ROOTSYS/bin )
 

@@ -14,7 +14,7 @@ export SCRAM_ARCH=slc5_amd64_gcc434
 source $VO_CMS_SW_DIR/cmsset_default.sh
 
 
-export ROOTSYS=/cms/data24/dhidas/CernRoot/root_2011.09.17_HEAD/root
+export ROOTSYS=/cms/data24/dhidas/CernRoot/root_v5.32.00/root
 export LD_LIBRARY_PATH=$ROOTSYS/lib
 PATH=$PATH:$ROOTSYS/bin
 

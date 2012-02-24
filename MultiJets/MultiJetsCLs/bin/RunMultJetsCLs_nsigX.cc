@@ -363,7 +363,8 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   const char* nuisPriorName     = "";
 
   // Run the actual CLs
-  RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
+  RooStats::HypoTestInvTool HTIT;
+  RooStats::HypoTestInverterResult* MyResult = HTIT.RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
   // Number of entries in result
   const int NEntries = MyResult->ArraySize();

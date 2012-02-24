@@ -96,7 +96,7 @@ int AddHTIR (int const SignalMass, std::vector<TString>& InFileNames)
     //SamplingPlot->SetLogYaxis(true);
     delete SamplingPlot;
   }
-  CanHTI.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
+  CanHTI.SaveAs(TString::Format("HTI_Result_%i.gif", (int) SignalMass));
   OutRootFile.cd();
   CanHTI.Write();
 
