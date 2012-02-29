@@ -33,10 +33,10 @@ float const MJJJMIN =  260;
 float const MJJJMAX = 1620;
 
 // Luminosity
-float const LUMINOSITY = 5000.0;
-float const LUMIERROR  =   0.036;
-//float const LUMINOSITY = 4632.0;
-//float const LUMIERROR  =   0.045;
+//float const LUMINOSITY = 5000.0;
+//float const LUMIERROR  =   0.036;
+float const LUMINOSITY = 4632.0;
+float const LUMIERROR  =   0.045;
 
 
 
@@ -60,7 +60,12 @@ float GetAcceptanceForMjjj (float const Mjjj)
   //p3                        = -3.69426e-11   +/-   9.06989e-12
 
 
-  return -2.12900022490592165e-02 + 1.08977199027775987e-04*Mjjj + -6.75844597940117972e-08*Mjjj*Mjjj + 1.03590838339000778e-11*Mjjj*Mjjj*Mjjj;
+  // Update by dan on 29/2/2012
+  return -0.0172876 + 8.94367e-05 * Mjjj - 4.05152e-08 * Mjjj*Mjjj;
+
+  // One used for most 4.6/fb studies
+  //return -2.12900022490592165e-02 + 1.08977199027775987e-04*Mjjj + -6.75844597940117972e-08*Mjjj*Mjjj + 1.03590838339000778e-11*Mjjj*Mjjj*Mjjj;
+
   // old 2.X
   //return -0.01027 + 4.38331e-05*Mjjj + 4.43791e-08*Mjjj*Mjjj - 3.69426e-11*Mjjj*Mjjj*Mjjj;
   //return -0.0173967 + 8.54121e-05 * Mjjj + -2.44194e-08 * Mjjj * Mjjj;
@@ -106,7 +111,7 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const SeedOffset)
 {
   // Get the mass for this section
-  float const SignalMass = (int) MJJJMIN + (20 * Section);
+  float const SignalMass = (int) MJJJMIN + (50 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   // Set the roostats random seed based on secton number..fine..
@@ -119,12 +124,13 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   // Min and max xs for CLs
   float const MINPOI     =      0;
+
   float const MAXPOI     =   
     SignalMass <=  260 ?   70   :
     SignalMass <=  280 ?   70   :
 
     SignalMass <=  300 ?   60   :
-    SignalMass <=  320 ?   50   :
+    SignalMass <=  320 ?   40   :
     SignalMass <=  340 ?   30   :
     SignalMass <=  360 ?   25   :
     SignalMass <=  380 ?   20   :
@@ -207,6 +213,96 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
     SignalMass <= 1660 ?    0.35:
     SignalMass <= 1680 ?    0.35:
     0.35;
+    /*
+  float const MAXPOI     =   
+    SignalMass <=  260 ?    5   :
+    SignalMass <=  280 ?    5 :
+
+    SignalMass <=  300 ?    5 :
+    SignalMass <=  320 ?    5 :
+    SignalMass <=  340 ?    1   :
+    SignalMass <=  360 ?    1   :
+    SignalMass <=  380 ?    1   :
+
+    SignalMass <=  400 ?    0.5 :
+    SignalMass <=  420 ?    0.5 :
+    SignalMass <=  440 ?    0.5 :
+    SignalMass <=  460 ?    0.4 :
+    SignalMass <=  480 ?    0.4 :
+
+    SignalMass <=  500 ?    0.3 :
+    SignalMass <=  520 ?    0.3 :
+    SignalMass <=  540 ?    0.3 :
+    SignalMass <=  560 ?    0.3 :
+    SignalMass <=  580 ?    0.3 :
+
+    SignalMass <=  600 ?    0.25 :
+    SignalMass <=  620 ?    0.25 :
+    SignalMass <=  640 ?    0.25:
+    SignalMass <=  660 ?    0.25 :
+    SignalMass <=  680 ?    0.25 :
+
+    SignalMass <=  700 ?    0.2 :
+    SignalMass <=  720 ?    0.2 :
+    SignalMass <=  740 ?    0.2 :
+    SignalMass <=  760 ?    0.2 :
+    SignalMass <=  780 ?    0.2 :
+
+    SignalMass <=  800 ?    0.2 :
+    SignalMass <=  820 ?    0.2 :
+    SignalMass <=  840 ?    0.2 :
+    SignalMass <=  860 ?    0.2 :
+    SignalMass <=  880 ?    0.2 :
+
+    SignalMass <=  900 ?    0.2 :
+    SignalMass <=  920 ?    0.2 :
+    SignalMass <=  940 ?    0.2 :
+    SignalMass <=  960 ?    0.2 :
+    SignalMass <=  980 ?    0.2 :
+
+    SignalMass <= 1000 ?    0.2 :
+    SignalMass <= 1020 ?    0.2 :
+    SignalMass <= 1040 ?    0.2 :
+    SignalMass <= 1060 ?    0.2 :
+    SignalMass <= 1080 ?    0.2 :
+
+    SignalMass <= 1100 ?    0.2 :
+    SignalMass <= 1120 ?    0.2 :
+    SignalMass <= 1140 ?    0.2 :
+    SignalMass <= 1160 ?    0.2 :
+    SignalMass <= 1180 ?    0.2 :
+
+    SignalMass <= 1200 ?    0.2 :
+    SignalMass <= 1220 ?    0.2 :
+    SignalMass <= 1240 ?    0.2 :
+    SignalMass <= 1260 ?    0.2 :
+    SignalMass <= 1280 ?    0.2 :
+
+    SignalMass <= 1300 ?    0.2 :
+    SignalMass <= 1320 ?    0.2 :
+    SignalMass <= 1340 ?    0.2 :
+    SignalMass <= 1360 ?    0.2 :
+    SignalMass <= 1380 ?    0.2 :
+
+    SignalMass <= 1400 ?    0.2 :
+    SignalMass <= 1420 ?    0.2 :
+    SignalMass <= 1440 ?    0.2 :
+    SignalMass <= 1460 ?    0.2 :
+    SignalMass <= 1480 ?    0.2 :
+
+    SignalMass <= 1500 ?    0.2 :
+    SignalMass <= 1520 ?    0.2 :
+    SignalMass <= 1540 ?    0.2 :
+    SignalMass <= 1560 ?    0.2 :
+    SignalMass <= 1580 ?    0.2 :
+
+    SignalMass <= 1600 ?    0.2 :
+    SignalMass <= 1620 ?    0.2 :
+    SignalMass <= 1640 ?    0.2 :
+    SignalMass <= 1660 ?    0.2 :
+    SignalMass <= 1680 ?    0.2 :
+    0.2;
+    */
 
 
   // Setup output root file based on mass
@@ -267,12 +363,12 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("p1")->Print();
   ws.factory("p2[0]");
   ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
-  ws.var("p2")->setVal(-FitFunction->GetParameter(2));
+  ws.var("p2")->setVal(FitFunction->GetParameter(2));
   ws.var("p2")->setConstant(true);
   ws.var("p2")->Print();
   ws.factory("p3[0]");
   ws.var("p3")->setRange(FitFunction->GetParameter(3) - 5 * FitFunction->GetParError(3), FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
-  ws.var("p3")->setVal(-FitFunction->GetParameter(3));
+  ws.var("p3")->setVal(FitFunction->GetParameter(3));
   ws.var("p3")->setConstant(true);
   ws.var("p3")->Print();
 
@@ -360,7 +456,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (7) {
+  switch (6) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -441,12 +537,24 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   // Set the observable to zero and add POI snapsnot, import this modelconfig to the workspace
   ws.var("xs")->setVal(0);
   ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Extended(kTRUE));
+  TCanvas CanFitBG("FitBG", "FitBG");
+  CanFitBG.cd();
+  RooPlot* ThisDataFitBG = ws.var("mjjj")->frame();
+  ws.data("Data")->plotOn(ThisDataFitBG);
+  ws.pdf("bgmodel_noprior")->plotOn(ThisDataFitBG);
+  ThisDataFitBG->SetTitle(TString::Format("Background Fit M_{jjj} = %i", (int) SignalMass));
+  ThisDataFitBG->Draw();
+  CanFitBG.SetLogy(1);
+  OutRootFile.cd();
+  CanFitBG.Write();
+  CanFitBG.SaveAs(TString::Format("Fit_BG_%i.eps", (int) SignalMass));
+
+
   RooArgSet POIAndNuisBG("POIAndNuisBG");
   POIAndNuisBG.add(*ModelConfigBG.GetParametersOfInterest());
   ModelConfigBG.SetSnapshot(POIAndNuisBG);
   ModelConfigBG.SetGlobalObservables( RooArgSet() );
   ws.import(ModelConfigBG);
-
 
   // Build modelconfig for sbmodel and set current workspace
   RooStats::ModelConfig ModelConfigSB("ModelConfigSB");
@@ -461,17 +569,17 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
   ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"),  RooFit::Extended(kTRUE));
-  TCanvas CanFit("Fit", "Fit");
-  CanFit.cd();
+  TCanvas CanFitSB("FitSB", "FitSB");
+  CanFitSB.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
   ws.data("Data")->plotOn(ThisDataFit);
-  ws.pdf("bgmodel_noprior")->plotOn(ThisDataFit);
-  ThisDataFit->SetTitle(TString::Format("M_{jjj} = %i", (int) SignalMass));
+  ws.pdf("sbmodel_noprior")->plotOn(ThisDataFit);
+  ThisDataFit->SetTitle(TString::Format("Signal+Background Fit M_{jjj} = %i", (int) SignalMass));
   ThisDataFit->Draw();
-  CanFit.SetLogy(1);
+  CanFitSB.SetLogy(1);
   OutRootFile.cd();
-  CanFit.Write();
-  //CanFit.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
+  CanFitSB.Write();
+  CanFitSB.SaveAs(TString::Format("Fit_SB_%i.eps", (int) SignalMass));
 
   RooArgSet POIAndNuisSB("POIAndNuisSB");
   POIAndNuisSB.add(*ModelConfigSB.GetParametersOfInterest());
@@ -489,6 +597,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("xs")->Print();
   ws.var("nbkg")->Print();
 
+
   // Parameters of the CLs method we'll call
   int   const calculatorType    = 0;
   int   const testStatType      = 3;
@@ -496,7 +605,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   int   const npoints           = 50;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 1000;
+  int   const ntoys             = 500;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
