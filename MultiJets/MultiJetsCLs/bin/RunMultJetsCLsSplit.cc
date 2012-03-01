@@ -456,7 +456,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (6) {
+  switch (7) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -547,7 +547,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   CanFitBG.SetLogy(1);
   OutRootFile.cd();
   CanFitBG.Write();
-  CanFitBG.SaveAs(TString::Format("Fit_BG_%i.eps", (int) SignalMass));
+  CanFitBG.SaveAs(TString::Format("Fit_%i_BG.eps", (int) SignalMass));
 
 
   RooArgSet POIAndNuisBG("POIAndNuisBG");
@@ -568,7 +568,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ModelConfigSB.SetNuisanceParameters(*ws.set("nuisance"));
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
-  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"),  RooFit::Extended(kTRUE));
+  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"),  RooFit::Extended(kTRUE), RooFit::Minimizer("Minuit", "minimize"));
   TCanvas CanFitSB("FitSB", "FitSB");
   CanFitSB.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
@@ -579,7 +579,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   CanFitSB.SetLogy(1);
   OutRootFile.cd();
   CanFitSB.Write();
-  CanFitSB.SaveAs(TString::Format("Fit_SB_%i.eps", (int) SignalMass));
+  CanFitSB.SaveAs(TString::Format("Fit_%i_SB.eps", (int) SignalMass));
 
   RooArgSet POIAndNuisSB("POIAndNuisSB");
   POIAndNuisSB.add(*ModelConfigSB.GetParametersOfInterest());
@@ -599,7 +599,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Parameters of the CLs method we'll call
-  int   const calculatorType    = 0;
+  int   const calculatorType    = 2;
   int   const testStatType      = 3;
   bool  const useCls            = true;
   int   const npoints           = 50;
