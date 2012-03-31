@@ -33,10 +33,10 @@ float const MJJJMIN =  260;
 float const MJJJMAX = 1620;
 
 // Luminosity
-//float const LUMINOSITY = 5000.0;
-//float const LUMIERROR  =   0.036;
-float const LUMINOSITY = 4632.0;
-float const LUMIERROR  =   0.045;
+float const LUMINOSITY = 4980.0;
+float const LUMIERROR  =   0.022;
+//float const LUMINOSITY = 4632.0;
+//float const LUMIERROR  =   0.045;
 
 
 
@@ -111,7 +111,7 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const SeedOffset)
 {
   // Get the mass for this section
-  float const SignalMass = (int) MJJJMIN + (50 * Section);
+  float const SignalMass = (int) MJJJMIN + (10 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   // Set the roostats random seed based on secton number..fine..
@@ -437,7 +437,13 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("sigMean")->setConstant(true);
 
   // prior on the signal width
-  ws.factory("RooUniform::sigWidth_prior(sigWidth)");
+  ws.factory("RooLognormal::sigWidth_prior(sigWidth, sigWidthM0[0], sigWidthS0[0])");
+  ws.var("sigWidthS0")->setVal( 1 + 0.03 );  // 3% error
+  ws.var("sigWidthS0")->setConstant(true);
+  ws.var("sigWidthM0")->setVal(ws.var("sigWidth")->getVal());
+  ws.var("sigWidthM0")->setConstant(true);
+
+  //ws.factory("RooUniform::sigWidth_prior(sigWidth)");
 
   // nbkg prior
   ws.factory("RooLognormal::nbkg_prior(nbkg[0,60000], nbkgM0[0], nbkgS0[0])");

@@ -84,6 +84,7 @@ int AddHTIR (int const SignalMass, std::vector<TString>& InFileNames)
   Plot->SetTitle(TString::Format("Hybrid CL Scan for M_{jjj} = %i", (int) SignalMass));
   Plot->Draw("CLb 2CL");  // plot all and Clb
   CanCLb.SaveAs(TString::Format("CLb2L_%i.eps", (int) SignalMass));
+  CanCLb.SaveAs(TString::Format("CLb2L_%i.pdf", (int) SignalMass));
   OutRootFile.cd();
   CanCLb.Write();
 

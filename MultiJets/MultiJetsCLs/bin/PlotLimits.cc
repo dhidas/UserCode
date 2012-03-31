@@ -336,18 +336,18 @@ void DrawLimits (std::vector<TString> const& FileNames)
   //SMLine->Draw();
   //MyLegend.AddEntry(SMLine, "SM", "l");
   MyLegend.AddEntry(&grModel, "#sigma^{NLO}(Gluino)", "l");
-  MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
+  //MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
   grModel.SetLineWidth(2);
   grModel.SetLineColor(2);
   grModel.Draw("samec");
   grModelP.SetLineWidth(1);
   grModelP.SetLineColor(2);
   grModelP.SetLineStyle(2);
-  grModelP.Draw("samec");
+  //grModelP.Draw("samec");
   grModelM.SetLineWidth(1);
   grModelM.SetLineColor(2);
   grModelM.SetLineStyle(2);
-  grModelM.Draw("samec");
+  //grModelM.Draw("samec");
   //grModelShade.Draw("samef");
 
   TPaveLabel *HMassLabel = new TPaveLabel();
@@ -412,7 +412,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   // Draw the legend and canvas.  Save to file
   MyLegend.Draw();
   HiggsLimits.Draw();
-  HiggsLimits.SaveAs("GraphLimits.eps");
+  HiggsLimits.SaveAs("GraphLimits.pdf");
 
   return;
 }
