@@ -18,6 +18,9 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TVectorD.h"
+#include "TMatrixD.h"
+#include "TMatrixDEigen.h"
 
 
 #include "RooDataHist.h"
@@ -355,40 +358,109 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   printf("Data vs fit: %12.1f %12.1f\n", NData, NBackground);
 
 
-  // Define background and parameters
-  ws.factory("p1[0]");
-  ws.var("p1")->setRange(FitFunction->GetParameter(1) - 5 * FitFunction->GetParError(1), FitFunction->GetParameter(1) + 5 * FitFunction->GetParError(1));
-  ws.var("p1")->setVal(FitFunction->GetParameter(1));
-  ws.var("p1")->setConstant(true);
-  ws.var("p1")->Print();
-  ws.factory("p2[0]");
-  ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
-  ws.var("p2")->setVal(FitFunction->GetParameter(2));
-  ws.var("p2")->setConstant(true);
-  ws.var("p2")->Print();
-  ws.factory("p3[0]");
-  ws.var("p3")->setRange(FitFunction->GetParameter(3) - 5 * FitFunction->GetParError(3), FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
-  ws.var("p3")->setVal(FitFunction->GetParameter(3));
-  ws.var("p3")->setConstant(true);
-  ws.var("p3")->Print();
 
 
-  // define priors (constraints) for these params
-  ws.factory("RooLognormal::p1_prior(p1, p1M0[0], p1S0[1])");
-  ws.var("p1S0")->setVal(1.0 + FitFunction->GetParError(1) / FitFunction->GetParameter(1));
-  ws.var("p1S0")->setConstant(true);
-  ws.var("p1M0")->setVal(FitFunction->GetParameter(1));
-  ws.var("p1M0")->setConstant(true);
-  ws.factory("RooLognormal::p2_prior(-p2, p2M0[0], p2S0[1])");
-  ws.var("p2S0")->setVal(1.0 - FitFunction->GetParError(2) / FitFunction->GetParameter(2));
-  ws.var("p2S0")->setConstant(true);
-  ws.var("p2M0")->setVal(-FitFunction->GetParameter(2));
-  ws.var("p2M0")->setConstant(true);
-  ws.factory("RooLognormal::p3_prior(-p3, p3M0[0], p3S0[1])");
-  ws.var("p3S0")->setVal(1.0 - FitFunction->GetParError(3) / FitFunction->GetParameter(3));
-  ws.var("p3S0")->setConstant(true);
-  ws.var("p3M0")->setVal(-FitFunction->GetParameter(3));
-  ws.var("p3M0")->setConstant(true);
+
+
+  int const N = 3;
+  TMatrixD Cov(N, N);
+  //          0.402   0.0007862    0.004456 
+  //      0.0007862    0.001734   0.0003212 
+  //       0.004456   0.0003212   0.0001293 
+  Cov(0,0) =     0.402;
+  Cov(0,1) = 0.0007862;
+  Cov(0,2) =  0.004456;
+
+  Cov(1,0) = 0.0007862;
+  Cov(1,1) =  0.001734;
+  Cov(1,2) = 0.0003212;
+
+  Cov(2,0) =  0.004456;
+  Cov(2,1) = 0.0003212;
+  Cov(2,2) = 0.0001293;
+  Cov.Print();
+
+  TMatrixDEigen Eigen(Cov);
+
+  TMatrixD EigenVectors = Eigen.GetEigenVectors();
+  EigenVectors.Print();
+
+  TMatrixD EigenVectorsI = EigenVectors;
+  EigenVectorsI.Invert();
+  EigenVectorsI.Print();
+
+  TMatrixD R(N, N);
+  R.Mult(Cov, EigenVectors);
+  TMatrixD Diag(N, N);
+  Diag.Mult(EigenVectorsI, R);
+  Diag.Print();
+
+  TVectorD FP(N);
+  TVectorD FE(N);
+  for (int i = 0; i < N; ++i) {
+    FP(i) = FitFunction->GetParameter(i + 1);
+    FE(i) = FitFunction->GetParError(i + 1);
+  }
+
+
+  // LP and LE are the Parameters and Errors that will go into the fit
+  // uncorrelated.
+  TVectorD LP = EigenVectors * FP;
+  TVectorD LE(3);
+  for (int i = 0; i < N; ++i) {
+    LE(i) = Diag(i, i);
+  }
+
+  LP.Print();
+  LE.Print();
+
+  // uncorrelated variables for RooCraps
+  ws.factory("L1[0]");
+  ws.var("L1")->setRange(LP[0] - 5 * LE[0], LP[0] + 5 * LE[0]);
+  ws.var("L1")->setVal(LP[0]);
+  ws.var("L1")->setConstant(true);
+  ws.var("L1")->Print();
+  ws.factory("L2[0]");
+  ws.var("L2")->setRange(LP[1] - 5 * LE[1], LP[1] + 5 * LE[1]);
+  ws.var("L2")->setVal(LP[1]);
+  ws.var("L2")->setConstant(true);
+  ws.var("L2")->Print();
+  ws.factory("L3[0]");
+  ws.var("L3")->setRange(LP[2] - 5 * LE[2], LP[2] + 5 * LE[2]);
+  ws.var("L3")->setVal(LP[2]);
+  ws.var("L3")->setConstant(true);
+  ws.var("L3")->Print();
+
+  // uncertainties on uncorrelated vars (labeled as prior, but you know it ain't if you're a frequentist
+  ws.factory("RooLognormal::L1_prior(L1, L1M0[0], L1S0[1])");
+  ws.var("L1S0")->setVal(1.0 + LE[0]);
+  ws.var("L1S0")->setConstant(true);
+  ws.var("L1M0")->setVal(LP[0]);
+  ws.var("L1M0")->setConstant(true);
+  ws.factory("RooLognormal::L2_prior(-L2, L2M0[0], L2S0[1])");
+  ws.var("L2S0")->setVal(1.0 - LE[1]);
+  ws.var("L2S0")->setConstant(true);
+  ws.var("L2M0")->setVal(LP[1]);
+  ws.var("L2M0")->setConstant(true);
+  ws.factory("RooLognormal::L3_prior(L3, L3M0[0], L3S0[1])");
+  ws.var("L3S0")->setVal(1.0 + LE[2]);
+  ws.var("L3S0")->setConstant(true);
+  ws.var("L3M0")->setVal(LP[2]);
+  ws.var("L3M0")->setConstant(true);
+
+
+  TString PS;
+  PS.Form("RooFormulaVar::p%i('L1 * %f + L2 * %f + L3 * %f', {L1, L2, L3} )", 1, EigenVectorsI(0, 0),  EigenVectorsI(0, 1),  EigenVectorsI(0, 2));
+  ws.factory(PS);
+  PS.Form("RooFormulaVar::p%i('L1 * %f + L2 * %f + L3 * %f', {L1, L2, L3} )", 2, EigenVectorsI(1, 0),  EigenVectorsI(1, 1),  EigenVectorsI(1, 2));
+  ws.factory(PS);
+  PS.Form("RooFormulaVar::p%i('L1 * %f + L2 * %f + L3 * %f', {L1, L2, L3} )", 3, EigenVectorsI(2, 0),  EigenVectorsI(2, 1),  EigenVectorsI(2, 2));
+  ws.factory(PS);
+  ws.Print();
+
+  // Now ned to rewrite p123 in terms of the LPs
+
+
 
 
   // Background function
@@ -460,7 +532,6 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.factory("SUM::sbmodel_noprior(nsig*signal, nbkg*background)");
   ws.factory("SUM::bgmodel_noprior(nbkg*background)");
 
-
   // Pick which constraints and nuisance params you want to use
   switch (7) {
     case 0:
@@ -473,52 +544,52 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
       ws.var("nbkg")->setConstant(false);
       break;
     case 2:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior)");
-      ws.defineSet("nuisance", "nbkg,p1");
+      ws.factory("PROD::constraints(nbkg_prior,L1_prior)");
+      ws.defineSet("nuisance", "nbkg,L1");
       ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
+      ws.var("L1")->setConstant(false);
       break;
     case 3:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2");
+      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior)");
+      ws.defineSet("nuisance", "nbkg,L1,L2");
       ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("p2")->setConstant(false);
+      ws.var("L1")->setConstant(false);
+      ws.var("L2")->setConstant(false);
       break;
     case 4:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3");
+      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior)");
+      ws.defineSet("nuisance", "nbkg,L1,L2,L3");
       ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
+      ws.var("L1")->setConstant(false);
+      ws.var("L2")->setConstant(false);
+      ws.var("L3")->setConstant(false);
       break;
     case 5:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi");
+      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior,lumi_prior)");
+      ws.defineSet("nuisance", "nbkg,L1,L2,L3,lumi");
       ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
+      ws.var("L1")->setConstant(false);
+      ws.var("L2")->setConstant(false);
+      ws.var("L3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       break;
     case 6:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior,acceptance_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi,acceptance");
+      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior,lumi_prior,acceptance_prior)");
+      ws.defineSet("nuisance", "nbkg,L1,L2,L3,lumi,acceptance");
       ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
+      ws.var("L1")->setConstant(false);
+      ws.var("L2")->setConstant(false);
+      ws.var("L3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       break;
     case 7:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi,acceptance,sigWidth");
+      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
+      ws.defineSet("nuisance", "nbkg,L1,L2,L3,lumi,acceptance,sigWidth");
       ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
+      ws.var("L1")->setConstant(false);
+      ws.var("L2")->setConstant(false);
+      ws.var("L3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       ws.var("sigWidth")->setConstant(false);
@@ -527,6 +598,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
       std::cerr << "pick something I have please" << std::endl;
       throw;
   }
+
 
 
   // Build modelconfig for bgmodel and set current workspace

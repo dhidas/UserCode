@@ -58,10 +58,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   TCanvas HiggsLimits("Limits","Limits",200,10,700,500);
   HiggsLimits.SetGrid();
   if (true) {
-    HiggsLimits.DrawFrame(250,0.05,1620,100);
+    HiggsLimits.DrawFrame(260,0.05,1620,100);
     HiggsLimits.SetLogy(1);
   } else {
-    HiggsLimits.DrawFrame(250,0,1620,100);
+    HiggsLimits.DrawFrame(260,0,1620,100);
     HiggsLimits.SetLogy(0);
   }
   HiggsLimits.cd();
@@ -283,6 +283,18 @@ void DrawLimits (std::vector<TString> const& FileNames)
       UseShade1S->Draw("f");
       ShadeLabel = MyLabel;
     }
+    if (false && DrawExpected && ifile != 0) {
+      std::cout << "Will draw +/- 1.2 sigma for: " << MyLabel << std::endl;
+      UseShade2S = grShade2S;
+      UseShade1S = grShade1S;
+      UseShade2S->SetLineColor(Color);
+      UseShade1S->SetLineColor(Color);
+      UseShade2S->SetLineStyle(3);
+      UseShade1S->SetLineStyle(2);
+      UseShade2S->Draw("l");
+      UseShade1S->Draw("l");
+      ShadeLabel = MyLabel;
+    }
 
     // Add pbserved to legend to be above expected
     if (DrawObserved) {
@@ -297,6 +309,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
     grMedian->SetLineColor(Color);
     grMedian->SetMarkerStyle(0);
     if (DrawExpected && ifile == 0) {
+      grMedian->Draw("l");
+      MyLegend.AddEntry(grMedian, (MyLabel+" Expected").c_str(), "l");
+    }
+    if (DrawExpected && ifile != 0) {
       grMedian->Draw("l");
       MyLegend.AddEntry(grMedian, (MyLabel+" Expected").c_str(), "l");
     }
@@ -354,7 +370,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   HMassLabel->SetLabel("M_{jjj} (GeV/c^{2})");
   HMassLabel->SetX1NDC(0.71);
   HMassLabel->SetX2NDC(0.90);
-  HMassLabel->SetY1NDC(0.018);
+  HMassLabel->SetY1NDC(0.022);
   HMassLabel->SetY2NDC(0.056);
   HMassLabel->SetFillColor(0);
   //HMassLabel->SetTextSize();
@@ -386,7 +402,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
 
   TPaveLabel *RunII = new TPaveLabel();
   //RunII->SetLabel("CDF Run II Preliminary");
-  RunII->SetLabel("CMS Preliminary");
+  RunII->SetLabel("CMS");
   RunII->SetX1NDC(0.1);
   RunII->SetX2NDC(0.5);
   RunII->SetY1NDC(0.92);
@@ -394,10 +410,10 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->SetFillColor(0);
   //RunII->SetTextAlign(22);
   RunII->SetTextSize(0.7);
-  //RunII->Draw("same");
+  RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
-  Lumi->SetLabel("#int L = 2177 pb^{-1}");
+  Lumi->SetLabel("#int L = 4.7 fb^{-1}");
   Lumi->SetX1NDC(0.5);
   Lumi->SetX2NDC(0.9);
   Lumi->SetY1NDC(0.92);
@@ -405,14 +421,17 @@ void DrawLimits (std::vector<TString> const& FileNames)
   Lumi->SetFillColor(0);
   Lumi->SetTextAlign(31);
   Lumi->SetTextSize(0.44);
-  //Lumi->Draw("same");
+  Lumi->Draw("same");
 
 
 
   // Draw the legend and canvas.  Save to file
   MyLegend.Draw();
   HiggsLimits.Draw();
+
+  HiggsLimits.SaveAs("GraphLimits.eps");
   HiggsLimits.SaveAs("GraphLimits.pdf");
+  HiggsLimits.SaveAs("GraphLimits.png");
 
   return;
 }
