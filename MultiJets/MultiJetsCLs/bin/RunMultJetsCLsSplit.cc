@@ -421,8 +421,8 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("L1")->setConstant(true);
   ws.var("L1")->Print();
   ws.factory("L2[0]");
-  ws.var("L2")->setRange(LP[1] - 5 * LE[1], LP[1] + 5 * LE[1]);
-  ws.var("L2")->setVal(LP[1]);
+  ws.var("L2")->setRange(-LP[1] + 5 * LE[1], -LP[1] - 5 * LE[1]);
+  ws.var("L2")->setVal(-LP[1]);
   ws.var("L2")->setConstant(true);
   ws.var("L2")->Print();
   ws.factory("L3[0]");
@@ -437,10 +437,10 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.var("L1S0")->setConstant(true);
   ws.var("L1M0")->setVal(LP[0]);
   ws.var("L1M0")->setConstant(true);
-  ws.factory("RooLognormal::L2_prior(-L2, L2M0[0], L2S0[1])");
+  ws.factory("RooLognormal::L2_prior(L2, L2M0[0], L2S0[1])");
   ws.var("L2S0")->setVal(1.0 - LE[1]);
   ws.var("L2S0")->setConstant(true);
-  ws.var("L2M0")->setVal(LP[1]);
+  ws.var("L2M0")->setVal(-LP[1]);
   ws.var("L2M0")->setConstant(true);
   ws.factory("RooLognormal::L3_prior(L3, L3M0[0], L3S0[1])");
   ws.var("L3S0")->setVal(1.0 + LE[2]);
@@ -450,11 +450,11 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   TString PS;
-  PS.Form("RooFormulaVar::p%i('L1 * %f + L2 * %f + L3 * %f', {L1, L2, L3} )", 1, EigenVectorsI(0, 0),  EigenVectorsI(0, 1),  EigenVectorsI(0, 2));
+  PS.Form("RooFormulaVar::p%i('L1 * %f - L2 * %f + L3 * %f', {L1, L2, L3} )", 1, EigenVectorsI(0, 0),  EigenVectorsI(0, 1),  EigenVectorsI(0, 2));
   ws.factory(PS);
-  PS.Form("RooFormulaVar::p%i('L1 * %f + L2 * %f + L3 * %f', {L1, L2, L3} )", 2, EigenVectorsI(1, 0),  EigenVectorsI(1, 1),  EigenVectorsI(1, 2));
+  PS.Form("RooFormulaVar::p%i('L1 * %f - L2 * %f + L3 * %f', {L1, L2, L3} )", 2, EigenVectorsI(1, 0),  EigenVectorsI(1, 1),  EigenVectorsI(1, 2));
   ws.factory(PS);
-  PS.Form("RooFormulaVar::p%i('L1 * %f + L2 * %f + L3 * %f', {L1, L2, L3} )", 3, EigenVectorsI(2, 0),  EigenVectorsI(2, 1),  EigenVectorsI(2, 2));
+  PS.Form("RooFormulaVar::p%i('L1 * %f - L2 * %f + L3 * %f', {L1, L2, L3} )", 3, EigenVectorsI(2, 0),  EigenVectorsI(2, 1),  EigenVectorsI(2, 2));
   ws.factory(PS);
   ws.Print();
 
