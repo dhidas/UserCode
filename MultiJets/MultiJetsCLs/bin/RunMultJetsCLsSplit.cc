@@ -119,6 +119,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   // Set the roostats random seed based on secton number..fine..
   RooRandom::randomGenerator()->SetSeed(7 * (100 * Section + SeedOffset));
+  gRandom->SetSeed(7 * (100 * Section + SeedOffset));
 
 
   // Min and max ax for roovar
@@ -364,20 +365,42 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   int const N = 3;
   TMatrixD Cov(N, N);
+  // from 4-param fit
   //          0.402   0.0007862    0.004456 
   //      0.0007862    0.001734   0.0003212 
   //       0.004456   0.0003212   0.0001293 
   Cov(0,0) =     0.402;
   Cov(0,1) = 0.0007862;
   Cov(0,2) =  0.004456;
-
+  
   Cov(1,0) = 0.0007862;
   Cov(1,1) =  0.001734;
   Cov(1,2) = 0.0003212;
-
+  
   Cov(2,0) =  0.004456;
   Cov(2,1) = 0.0003212;
   Cov(2,2) = 0.0001293;
+
+  //The covariance matrix for a fixed p0 is:
+  //     |      0    |      1    |      2    |
+  //--------------------------------------------
+  //   0 |      1.037      0.1276      0.0363
+  //   1 |     0.1276     0.01679    0.004835
+  //   2 |     0.0363    0.004835    0.001396
+  //Cov(0,0) = 1.037;
+  //Cov(0,1) = 0.1276;
+  //Cov(0,2) = 0.0363;
+    
+  //Cov(1,0) = 0.1276;
+  //Cov(1,1) = 0.01679;
+  //Cov(1,2) = 0.004835;
+    
+  //Cov(2,0) = 0.0363;
+  //Cov(2,1) = 0.004835;
+  //Cov(2,2) = 0.001396;
+
+
+
   Cov.Print();
 
   TMatrixDEigen Eigen(Cov);
@@ -408,7 +431,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   TVectorD LP = EigenVectors * FP;
   TVectorD LE(3);
   for (int i = 0; i < N; ++i) {
-    LE(i) = Diag(i, i);
+    LE(i) = sqrt(Diag(i, i));
   }
 
   LP.Print();
@@ -416,34 +439,37 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
   // uncorrelated variables for RooCraps
   ws.factory("L1[0]");
-  ws.var("L1")->setRange(LP[0] - 5 * LE[0], LP[0] + 5 * LE[0]);
+  //ws.var("L1")->setRange(LP[0] - 5 * LE[0], LP[0] + 5 * LE[0]);
+  ws.var("L1")->setRange(0, 2*LP[0]);
   ws.var("L1")->setVal(LP[0]);
   ws.var("L1")->setConstant(true);
   ws.var("L1")->Print();
   ws.factory("L2[0]");
-  ws.var("L2")->setRange(-LP[1] + 5 * LE[1], -LP[1] - 5 * LE[1]);
+  //ws.var("L2")->setRange(-LP[1] - 5 * LE[1], -LP[1] + 5 * LE[1]);
+  ws.var("L2")->setRange(0, -2*LP[1]);
   ws.var("L2")->setVal(-LP[1]);
   ws.var("L2")->setConstant(true);
   ws.var("L2")->Print();
   ws.factory("L3[0]");
-  ws.var("L3")->setRange(LP[2] - 5 * LE[2], LP[2] + 5 * LE[2]);
+  //ws.var("L3")->setRange(LP[2] - 5 * LE[2], LP[2] + 5 * LE[2]);
+  ws.var("L3")->setRange(0, 2*LP[2]);
   ws.var("L3")->setVal(LP[2]);
   ws.var("L3")->setConstant(true);
   ws.var("L3")->Print();
 
   // uncertainties on uncorrelated vars (labeled as prior, but you know it ain't if you're a frequentist
   ws.factory("RooLognormal::L1_prior(L1, L1M0[0], L1S0[1])");
-  ws.var("L1S0")->setVal(1.0 + LE[0]);
+  ws.var("L1S0")->setVal(1.0 + LE[0] / fabs(LP[0]));
   ws.var("L1S0")->setConstant(true);
   ws.var("L1M0")->setVal(LP[0]);
   ws.var("L1M0")->setConstant(true);
   ws.factory("RooLognormal::L2_prior(L2, L2M0[0], L2S0[1])");
-  ws.var("L2S0")->setVal(1.0 - LE[1]);
+  ws.var("L2S0")->setVal(1.0 + LE[1] / fabs(LP[1]));
   ws.var("L2S0")->setConstant(true);
   ws.var("L2M0")->setVal(-LP[1]);
   ws.var("L2M0")->setConstant(true);
   ws.factory("RooLognormal::L3_prior(L3, L3M0[0], L3S0[1])");
-  ws.var("L3S0")->setVal(1.0 + LE[2]);
+  ws.var("L3S0")->setVal(1.0 + LE[2] / fabs(LP[2]));
   ws.var("L3S0")->setConstant(true);
   ws.var("L3M0")->setVal(LP[2]);
   ws.var("L3M0")->setConstant(true);
@@ -457,6 +483,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   PS.Form("RooFormulaVar::p%i('L1 * %f - L2 * %f + L3 * %f', {L1, L2, L3} )", 3, EigenVectorsI(2, 0),  EigenVectorsI(2, 1),  EigenVectorsI(2, 2));
   ws.factory(PS);
   ws.Print();
+  exit(0);
 
   // Now ned to rewrite p123 in terms of the LPs
 
@@ -470,7 +497,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   // Define lumi and lumi prior
   ws.factory("RooLognormal::lumi_prior(lumi[0], lumiM0[0], lumiS0[0])");
   ws.var("lumi")->setVal(LUMINOSITY);
-  ws.var("lumi")->setRange(LUMINOSITY * (1. - 3. * LUMIERROR), LUMINOSITY * (1. + 3. * LUMIERROR));
+  ws.var("lumi")->setRange(LUMINOSITY * (1. - 5. * LUMIERROR), LUMINOSITY * (1. + 5. * LUMIERROR));
   ws.var("lumiM0")->setVal(LUMINOSITY);
   ws.var("lumiS0")->setVal(1.0 + LUMIERROR);
 
@@ -610,7 +637,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ModelConfigBG.SetParametersOfInterest(*ws.set("POI"));
   ModelConfigBG.SetObservables(*ws.var("mjjj"));
   ModelConfigBG.SetPriorPdf(*ws.pdf("constraints"));
-  ModelConfigBG.SetNuisanceParameters(*ws.set("nuisance"));
+  ModelConfigBG.SetConstraintParameters(*ws.set("nuisance"));
 
   // Set the observable to zero and add POI snapsnot, import this modelconfig to the workspace
   ws.var("xs")->setVal(0);
@@ -643,7 +670,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ModelConfigSB.SetParametersOfInterest(*ws.set("POI"));
   ModelConfigSB.SetObservables(*ws.var("mjjj"));
   ModelConfigSB.SetPriorPdf(*ws.pdf("constraints"));
-  ModelConfigSB.SetNuisanceParameters(*ws.set("nuisance"));
+  ModelConfigSB.SetConstraintParameters(*ws.set("nuisance"));
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
   ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"),  RooFit::Extended(kTRUE), RooFit::Minimizer("Minuit", "minimize"));
