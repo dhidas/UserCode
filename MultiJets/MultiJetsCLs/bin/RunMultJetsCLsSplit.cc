@@ -483,7 +483,6 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   PS.Form("RooFormulaVar::p%i('L1 * %f - L2 * %f + L3 * %f', {L1, L2, L3} )", 3, EigenVectorsI(2, 0),  EigenVectorsI(2, 1),  EigenVectorsI(2, 2));
   ws.factory(PS);
   ws.Print();
-  exit(0);
 
   // Now ned to rewrite p123 in terms of the LPs
 
@@ -704,10 +703,10 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Parameters of the CLs method we'll call
-  int   const calculatorType    = 2;
+  int   const calculatorType    = 0;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 50;
+  int   const npoints           = 20;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
   int   const ntoys             = 500;
