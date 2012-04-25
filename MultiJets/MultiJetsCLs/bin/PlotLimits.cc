@@ -131,7 +131,12 @@ void DrawLimits (std::vector<TString> const& FileNames)
         ModelY[9]  * (1.0 - XUncert[9]),
         ModelY[10] * (1.0 - XUncert[10])
   };
+  float ModelXLO[10] = {250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
+  float ModelYLO[10] = {91.9774, 30.1622, 11.4508, 4.69154, 2.10048, 1.00457, 0.044206, 0.00221818, 0.000160116, 1.08423e-05};
+
+
   TGraph grModel(11, ModelX, ModelY);
+  TGraph grModelLO(10, ModelXLO, ModelYLO);
   TGraph grModelP(11, ModelX, ModelYP);
   TGraph grModelM(11, ModelX, ModelYM);
   TGraph grModelShade(22);
@@ -351,8 +356,13 @@ void DrawLimits (std::vector<TString> const& FileNames)
   SMLine->SetLineColor(4);
   //SMLine->Draw();
   //MyLegend.AddEntry(SMLine, "SM", "l");
+  MyLegend.AddEntry(&grModelLO, "#sigma^{LO}(Gluino)", "l");
   MyLegend.AddEntry(&grModel, "#sigma^{NLO}(Gluino)", "l");
-  MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
+  //MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
+  grModelLO.SetLineWidth(2);
+  grModelLO.SetLineColor(2);
+  grModelLO.SetLineStyle(2);
+  grModelLO.Draw("samec");
   grModel.SetLineWidth(2);
   grModel.SetLineColor(2);
   grModel.Draw("samec");
