@@ -78,8 +78,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   std::string ShadeLabel;
 
   // TGraph for Model
-  float const XUncert[11] = {
-       15.5 / 100.,
+  float const XUncert[10] = {
        15.5 / 100.,
        15.7 / 100.,
        16.2 / 100.,
@@ -91,21 +90,21 @@ void DrawLimits (std::vector<TString> const& FileNames)
        23.6 / 100.,
        27.9 / 100.
   };
-  float ModelX[11] = { 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500 };
-  float ModelY[11] = {
-        336.6  * 1.6877,
-         88.28 * 1.7680,
-         28.8  * 1.8462,
-         11.37 * 1.9250,
-          4.69 * 2.0074,
-          2.09 * 2.0925,
-          1.01 * 2.1879,
-          0.103,
-          0.00745,
-          0.00652,
-          0.000602
+  float ModelX[10] = { 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500 };
+  float ModelY[10] = {
+         91.9774   * 1.7680,
+          30.1622    * 1.8462,
+         11.4508   * 1.9250,
+           4.69154   * 2.0074,
+          2.10048   * 2.0925,
+          1.00457   * 2.1879,
+          0.0442 * 2.33,
+          0.00222 * 2.75,
+          0.0001601 * 3.46,
+          1.0842e-5 * 4.63
   };
-  float ModelYP[11] = {
+
+  float ModelYP[10] = {
         ModelY[0]  * (1.0 + XUncert[0]),
         ModelY[1]  * (1.0 + XUncert[1]),
         ModelY[2]  * (1.0 + XUncert[2]),
@@ -116,9 +115,8 @@ void DrawLimits (std::vector<TString> const& FileNames)
         ModelY[7]  * (1.0 + XUncert[7]),
         ModelY[8]  * (1.0 + XUncert[8]),
         ModelY[9]  * (1.0 + XUncert[9]),
-        ModelY[10] * (1.0 + XUncert[10])
   };
-  float ModelYM[11] = {
+  float ModelYM[10] = {
         ModelY[0]  * (1.0 - XUncert[0]),
         ModelY[1]  * (1.0 - XUncert[1]),
         ModelY[2]  * (1.0 - XUncert[2]),
@@ -129,20 +127,19 @@ void DrawLimits (std::vector<TString> const& FileNames)
         ModelY[7]  * (1.0 - XUncert[7]),
         ModelY[8]  * (1.0 - XUncert[8]),
         ModelY[9]  * (1.0 - XUncert[9]),
-        ModelY[10] * (1.0 - XUncert[10])
   };
   float ModelXLO[10] = {250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
   float ModelYLO[10] = {91.9774, 30.1622, 11.4508, 4.69154, 2.10048, 1.00457, 0.044206, 0.00221818, 0.000160116, 1.08423e-05};
 
 
-  TGraph grModel(11, ModelX, ModelY);
+  TGraph grModel(10, ModelX, ModelY);
   TGraph grModelLO(10, ModelXLO, ModelYLO);
-  TGraph grModelP(11, ModelX, ModelYP);
-  TGraph grModelM(11, ModelX, ModelYM);
+  TGraph grModelP(10, ModelX, ModelYP);
+  TGraph grModelM(10, ModelX, ModelYM);
   TGraph grModelShade(22);
-  for (int i = 0; i < 11; ++i) {
+  for (int i = 0; i < 10; ++i) {
     grModelShade.SetPoint(i, ModelX[i], ModelYP[i]);
-    grModelShade.SetPoint(11 + i, ModelX[11 - i - 1], ModelYM[11 - i - 1]);
+    grModelShade.SetPoint(10 + i, ModelX[10 - i - 1], ModelYM[10 - i - 1]);
   }
   grModelShade.SetFillColor(2);
   grModelShade.SetFillStyle(3003);
