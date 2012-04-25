@@ -129,7 +129,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   // Min and max xs for CLs
   float const MINPOI     =      0;
 
-  float const MAXPOI     =   
+  float const MAXPOI     =   0.1 * (
     SignalMass <=  260 ?   70   :
     SignalMass <=  280 ?   70   :
 
@@ -216,7 +216,7 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
     SignalMass <= 1640 ?    0.35:
     SignalMass <= 1660 ?    0.35:
     SignalMass <= 1680 ?    0.35:
-    0.35;
+    0.35);
     /*
   float const MAXPOI     =   
     SignalMass <=  260 ?    5   :
@@ -559,50 +559,50 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
   ws.factory("SUM::bgmodel_noprior(nbkg*background)");
 
   // Pick which constraints and nuisance params you want to use
-  switch (7) {
+  switch (1) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
       break;
     case 1:
-      ws.factory("PROD::constraints(nbkg_prior)");
-      ws.defineSet("nuisance", "nbkg");
-      ws.var("nbkg")->setConstant(false);
+      ws.factory("PROD::constraints(sigWidth_prior)");
+      ws.defineSet("nuisance", "sigWidth");
+      ws.var("sigWidth")->setConstant(false);
       break;
     case 2:
-      ws.factory("PROD::constraints(nbkg_prior,L1_prior)");
-      ws.defineSet("nuisance", "nbkg,L1");
-      ws.var("nbkg")->setConstant(false);
+      ws.factory("PROD::constraints(sigWidth_prior,L1_prior)");
+      ws.defineSet("nuisance", "sigWidth,L1");
+      ws.var("sigWidth")->setConstant(false);
       ws.var("L1")->setConstant(false);
       break;
     case 3:
-      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior)");
-      ws.defineSet("nuisance", "nbkg,L1,L2");
-      ws.var("nbkg")->setConstant(false);
+      ws.factory("PROD::constraints(sigWidth_prior,L1_prior,L2_prior)");
+      ws.defineSet("nuisance", "sigWidth,L1,L2");
+      ws.var("sigWidth")->setConstant(false);
       ws.var("L1")->setConstant(false);
       ws.var("L2")->setConstant(false);
       break;
     case 4:
-      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior)");
-      ws.defineSet("nuisance", "nbkg,L1,L2,L3");
-      ws.var("nbkg")->setConstant(false);
+      ws.factory("PROD::constraints(sigWidth_prior,L1_prior,L2_prior,L3_prior)");
+      ws.defineSet("nuisance", "sigWidth,L1,L2,L3");
+      ws.var("sigWidth")->setConstant(false);
       ws.var("L1")->setConstant(false);
       ws.var("L2")->setConstant(false);
       ws.var("L3")->setConstant(false);
       break;
     case 5:
-      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior,lumi_prior)");
-      ws.defineSet("nuisance", "nbkg,L1,L2,L3,lumi");
-      ws.var("nbkg")->setConstant(false);
+      ws.factory("PROD::constraints(sigWidth_prior,L1_prior,L2_prior,L3_prior,lumi_prior)");
+      ws.defineSet("nuisance", "sigWidth,L1,L2,L3,lumi");
+      ws.var("sigWidth")->setConstant(false);
       ws.var("L1")->setConstant(false);
       ws.var("L2")->setConstant(false);
       ws.var("L3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       break;
     case 6:
-      ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior,lumi_prior,acceptance_prior)");
-      ws.defineSet("nuisance", "nbkg,L1,L2,L3,lumi,acceptance");
-      ws.var("nbkg")->setConstant(false);
+      ws.factory("PROD::constraints(sigWidth_prior,L1_prior,L2_prior,L3_prior,lumi_prior,acceptance_prior)");
+      ws.defineSet("nuisance", "sigWidth,L1,L2,L3,lumi,acceptance");
+      ws.var("sigWidth")->setConstant(false);
       ws.var("L1")->setConstant(false);
       ws.var("L2")->setConstant(false);
       ws.var("L3")->setConstant(false);
@@ -612,13 +612,13 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
     case 7:
       ws.factory("PROD::constraints(nbkg_prior,L1_prior,L2_prior,L3_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
       ws.defineSet("nuisance", "nbkg,L1,L2,L3,lumi,acceptance,sigWidth");
-      ws.var("nbkg")->setConstant(false);
+      ws.var("sigWidth")->setConstant(false);
       ws.var("L1")->setConstant(false);
       ws.var("L2")->setConstant(false);
       ws.var("L3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
-      ws.var("sigWidth")->setConstant(false);
+      ws.var("nbkg")->setConstant(false);
       break;
     default:
       std::cerr << "pick something I have please" << std::endl;
@@ -703,10 +703,10 @@ int RunMultJetsCLsSplit (TString const InFileName, int const Section, int const 
 
 
   // Parameters of the CLs method we'll call
-  int   const calculatorType    = 0;
+  int   const calculatorType    = 2;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 20;
+  int   const npoints           = 500;
   float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
   int   const ntoys             = 500;

@@ -352,7 +352,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   //SMLine->Draw();
   //MyLegend.AddEntry(SMLine, "SM", "l");
   MyLegend.AddEntry(&grModel, "#sigma^{NLO}(Gluino)", "l");
-  //MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
+  MyLegend.AddEntry(&grModelP, "#sigma^{NLO}(Gluino) #pm 1 #sigma", "l");
   grModel.SetLineWidth(2);
   grModel.SetLineColor(2);
   grModel.Draw("samec");
@@ -413,7 +413,7 @@ void DrawLimits (std::vector<TString> const& FileNames)
   RunII->Draw("same");
 
   TPaveLabel *Lumi = new TPaveLabel();
-  Lumi->SetLabel("#int L = 4.7 fb^{-1}");
+  Lumi->SetLabel("#int L = 5.0 fb^{-1}");
   Lumi->SetX1NDC(0.5);
   Lumi->SetX2NDC(0.9);
   Lumi->SetY1NDC(0.92);
