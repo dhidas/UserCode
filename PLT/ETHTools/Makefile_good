@@ -1,0 +1,58 @@
+# define compile command
+
+CC = g++
+
+CVS = cvs
+
+CFLAGS  = -Wall -g -Wno-deprecated 
+LDFLAGS = -g -lusb
+LDFLAGS = -L /usr/local/lib -lusb --allow-shlib-undefined
+LDFLAGS = -L /usr/local/lib -lusb 
+SOFLAGS = -shared -g
+
+ROOTCFLAGS    = $(shell $(ROOTSYS)/bin/root-config --cflags)
+ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --libs)
+ROOTGLIBS     = $(shell $(ROOTSYS)/bin/root-config --glibs)
+
+CFLAGS       += $(ROOTCFLAGS)
+
+FOBJECTS=BinaryFileReader.o PHCalibration.o\
+	 LangauFitter.o ConfigReader.o  
+	 # RocGeometry.o 
+	 
+GOBJECTS=pulseHeightSpectrum.o LangauFitter.o
+	 
+HOBJECTS=PHCalibration.o PHCalibrationFit.o	 	 
+
+.cc.o:
+	$(CC) $(CFLAGS) -c $<
+
+
+convert_to_tree: convert_to_tree.cxx $(FOBJECTS) 
+	$(CC) $(CFLAGS) -I $(CVS) $(LDFLAGS) $(ROOTGLIBS) convert_to_tree.cxx -o convert_to_tree \
+	$(FOBJECTS)
+
+raw: raw.cxx
+	$(CC) raw.cxx -o raw	
+	
+pulseHeightMain: pulseHeightMain.cxx $(GOBJECTS) 
+	$(CC) $(CFLAGS) -I $(CVS) $(LDFLAGS) $(ROOTGLIBS) pulseHeightMain.cxx -o pulseHeightMain \
+	$(GOBJECTS)	
+	
+fitParDis: fitParDis.cxx	$(HOBJECTS) 
+	$(CC) $(CFLAGS) -I $(CVS) $(LDFLAGS) $(ROOTGLIBS) fitParDis.cxx -o fitParDis \
+	$(HOBJECTS)	
+	
+noise: noise.cxx
+	$(CC) $(CFLAGS) $(ROOTGLIBS) noise.cxx -o noise
+	
+PHvsVcal: PHvsVcal.cxx
+	$(CC) $(CFLAGS) $(ROOTGLIBS) PHvsVcal.cxx -o PHvsVcal
+	
+charge_vs_bias: charge_vs_bias.cxx
+	$(CC) $(CFLAGS)  $(LDFLAGS) $(ROOTGLIBS) charge_vs_bias.cxx -o charge_vs_bias			
+	
+clean:	
+	rm *.o
+	#rm ViewerDict.cc ViewerDict.h
+

@@ -1,0 +1,110 @@
+*******************************************************************************
+How To Run CCE Analysis (from command line)
+
+Created: 2009-06-23 by Jennifer Sibille
+
+*******************************************************************************
+
+There are two possibilities to run data analysis through the command line:
+      1. A single run at a time
+      2. Many runs at the same time
+Here the instructions for each case are listed.
+
+All programs are run from the /sensorTest/tilmanOffline directory.
+
+
+
+1. SINGLE RUN AT A TIME
+   
+   There are two programs that must be run to analyze a run.
+
+   convert_to_tree and pulseHeightMain: 
+   
+   ./convert_to_tree -l -r <run#>
+		     - creates the file run_00<run#>.root
+		     - for trim different from 60, add -t <trim>
+
+   ./pulseHeightMain <run#>
+		     - creates the file spectra_00<run#>.root which
+		     contains all relevant graphs and histograms such
+		     as charge distributions and hitmaps
+
+
+
+   charge_vs_bias:
+
+   Once all of the runs for a chip have been analyzed in this fashion,
+   a third program (charge_vs_bias) must be run in order to get the
+   various plots vs. bias voltage for the whole chip. First you must
+   put the information for the chip in the listOfSamples.tab file.
+
+   The format for this is:
+        "Dir. name" "fluence" "particle" "trim vcal" "temp" "structure"
+
+        "Dir. name" = everything after "singleROC_"
+        "fluence" = fluence in units 10^14 Neq/cm^2
+        "particle" = oo for unirradiated
+                     pi for pions
+                     pr for protons
+        "trim vcal" = value used for trim Vcal (set in GUI, see step 5
+		      of "HowToCCE_newGui.txt)
+        "temp" = average temperature during testing in Celsius
+                 To find the temperature take the average resistance
+                 in Ohms, input to the spreadsheet
+		 "TemperatureInterpolation.sxc" on the Desktop to get the temp
+		 in C. 
+        "structure" = dot1 for chips ending in 6, 7, 11, 12
+                      gap30 for chips ending in 5, 10
+                      gap30-2 for chips ending in 8, 13
+
+         Example: For chip 8613-13-08 in directory singleROC_8613-13-08_C,
+         which is irradiated with protons at 2.8*10^15 Neq/cm^2, and tested
+         with trim vcal = 45 at an average temperature of -9.62C:
+
+         8613-13-08_C 28 pr 45 -9.62 gap30-2
+
+   ./charge_vs_bias -n
+	Creates the following plots:
+            -"charge_vs_bias"
+            -"charge_vs_phi"
+            -"ileak_vs_bias"
+            -"noise_vs_bias"
+            -"noisyPix_vs_bias"
+	in the following file formats (in tilmanOffline dir.):
+            -eps
+            -pdf
+            -tif (only charge_vs_bias and charge_vs_phi)
+	Creates "AllChipPlots.root" with the above-listed plots.
+	Analyzes the scurves for noise information.
+
+
+
+
+2. MANY RUNS AT THE SAME TIME
+
+   To analyze many runs at the same time the charge_vs_bias program
+   can be run with command line options to run the convert_to_tree and
+   pulseHeightSpectrum programs "on the fly."  Read the directions for
+   running charge_vs_bias above.  Instead of ./charge_vs_bias -n, use
+   ./charge_vs_bias -c -s -n.
+		    -c : runs convert_to_tree
+		    -s : runs pulseHeightSpectrum
+		    -n : runs noise
+
+   This can take a long time!  It is recommended to set this to run
+   over lunch or night, when it will not take up computer resources
+   that you would be using.
+
+
+
+3. NOISE ANALYSIS ONLY
+
+   The analysis of the scurves for the noise information is generally
+   done in the charge_vs_bias program, but can be run alone.
+
+   ./noise <dirName>
+	   - dirName is the name of the singleROC directory where the
+	   scurves are stored, but without the "singleROC_"
+	   Example:
+		To run the noise analyzer on singleROC_8244-17-06_C,
+		./noise 8244-17-06_C

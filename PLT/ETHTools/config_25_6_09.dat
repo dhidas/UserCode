@@ -1,0 +1,17 @@
+
+#copied from default config.dat
+roc.deconvolution  0.02
+roc.deconvolution2 0.0
+roc.tbmLevels  -423 -272  -52   88  228  660
+roc.rocLevels[0]  -424 -318  -22  135  290  439  582  839
+
+
+
+verbose 0
+roc.clusterCut 2
+chi2Cut 4
+QminTrk 100
+QminEff 100
+roc.anaOffset -120 
+roc.anaSlope 0.906 
+
