@@ -186,7 +186,6 @@ int RunCLsLimit ()
       ws.defineSet("nuisance", "nbkg,p1");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
-      break;
     case 3:
       ws.factory("PROD::constraints(nbkg_prior,p1_prior,sigWidth_prior)");
       ws.defineSet("nuisance", "nbkg,p1,sigWidth");
@@ -245,7 +244,7 @@ int RunCLsLimit ()
   int   const npoints           = 4;
   float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = 100;
-  int   const ntoys             = 400;
+  int   const ntoys             = 1000;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 

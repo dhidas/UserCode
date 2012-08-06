@@ -12,61 +12,23 @@
 #include <iostream>
 
 
-LHEEvent::LHEEvent (TString const In)
+LHEEvent::LHEEvent (TString const InFileName)
 {
-  LHEFile = 0x0;
-  LHEFileNames.push_back(In);
-  ifile = 0;
-  OpenNextFile();
-}
-
-
-
-LHEEvent::LHEEvent (std::vector<TString> const& In)
-{
-  LHEFile = 0x0;
-  LHEFileNames = In;
-  ifile = 0;
-  OpenNextFile();
+  LHEFile = new std::ifstream(InFileName.Data());
+  LHEFileName = InFileName;
+  if (!LHEFile->is_open()) {
+    std::cerr << "ERROR: cannot open file " << InFileName << std::endl;
+  }
 }
 
 
 
 LHEEvent::~LHEEvent ()
 {
-  if (!LHEFile) {
-    LHEFile->close();
-    delete LHEFile;
-  }
-}
-
-
-
-bool LHEEvent::OpenNextFile ()
-{
   if (LHEFile != 0x0) {
     LHEFile->close();
-    delete LHEFile;
   }
-
-
-  if (ifile < LHEFileNames.size()) {
-    std::cout << "Attempting to open file " << LHEFileNames[ifile] << std::endl;
-    LHEFile = new std::ifstream(LHEFileNames[ifile].Data());
-    LHEFileName = LHEFileNames[ifile];
-    if (!LHEFile->is_open()) {
-      std::cerr << "ERROR: cannot open file " << LHEFileNames[ifile] << std::endl;
-      return false;
-    }
-  } else {
-    return false;
-  }
-
-  ++ifile;
-  return true;
 }
-
-
 
 
 
@@ -115,9 +77,6 @@ int LHEEvent::NextEvent ()
     return 1;
   }
 
-  if (OpenNextFile()) {
-    return 1;
-  }
 
   return 0;
 }

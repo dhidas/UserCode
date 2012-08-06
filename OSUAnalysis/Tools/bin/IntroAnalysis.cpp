@@ -23,7 +23,7 @@
 #include "../interface/EventCounter.h"
 #include "../interface/Printers/EventTablePrinter.h"
 
-#include "Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON.C"
+#include "Cert_160404-166861_7TeV_PromptReco_Collisions11_JSON.C"
 
 using namespace ROOT;
 using namespace std;

@@ -44,7 +44,7 @@ struct InterestingEvent {
 
     }
     BAT::TopPairEventCandidate candidate;
-    unsigned long long runNumber, eventNumber;
+    unsigned long runNumber, eventNumber;
     std::string fileName;
 
     void print() {
@@ -81,10 +81,6 @@ private:
     std::map<unsigned long, std::vector<unsigned long> > eventCheck;
     BAT::EventWeightProvider weights;
     double weight;
-    //CS
-    double PileUpWeight;
-    double HT;
-    int nPileUpVtx;
     BAT::Counter cutflowPerSample;
     BAT::Counter mucutflowPerSample;
 
@@ -94,13 +90,7 @@ private:
     TTree *microTuple;
 
     // general event information: 
-
-
-    unsigned long eTrig;  // bitset [0-39] for the electron triggers as defined in interface/HighLevelTriggers.h
-    unsigned long muTrig; // bitset [0-29] for the muon triggers mapped to [40-69] entries of enum in interface/HighLevelTriggers.h
-
-    int    type,  numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
-    unsigned long long eventNumber, runNumber;
+    int    type, eventNumber, runNumber, numberOfJets, numberOfBJets, eSEL, muSEL, leptoCharge;
     double ST, MET;
     // leading non-b-jet:
     int    leadingJetPdgId, leadingJetIndGen;
@@ -112,10 +102,6 @@ private:
     double JetPz[100];
     double JetE[100];
     int    JetBTag[100];
-    double BJetPx[100];
-    double BJetPy[100];
-    double BJetPz[100];
-    double BJetE[100];
 
     // highest pT leftover jet (gen-level: radiation for the background and d-jet in signals)
     int    freeJetPdgId,    freeJetIndGen;

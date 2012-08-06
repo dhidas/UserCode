@@ -14,11 +14,6 @@
 #include <map>
 
 #include "TString.h"
-#include "TMath.h"
-#include "TH1F.h"
-#include "TCanvas.h"
-#include "TLine.h"
-#include "TPaveLabel.h"
 
 int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 {
@@ -41,24 +36,17 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   InLine.str(Line.Data());
 
   size_t const NMasses = Masses.size();
-  printf("NMasses %i\n", (int) NMasses);
+  printf("NMasses %i\n", NMasses);
 
   float tmp;
   for (size_t im = 0; im != NMasses; ++im) {
-    InLine >> tmp;
+    InDataFile >> tmp;
     printf("%7E  ", tmp);
     DataXS.push_back(tmp);
   }
   printf("\n");
 
 
-  std::vector<TH1F*> hD;
-  for (size_t imass = 0; imass < NMasses; ++imass) {
-    char BUFF[100];
-    sprintf(BUFF, "D_%i", (int) Masses[imass]);
-    TH1F* h = new TH1F(BUFF, BUFF, 100, 0, 20);
-    hD.push_back(h);
-  }
   std::map<float, std::pair<int, int> > PassFail;
 
 
@@ -70,13 +58,11 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
 
     while (Line.ReadLine(InDataFile)) {
       InLine.str(Line.Data());
-      for (size_t i = 0; i != NMasses; ++i) {
+      for (int i = 0; i != NMasses; ++i) {
         InLine >> tmp;
-        if (tmp == -9999) {
+        if (tmp <= -9999) {
           continue;
         }
-
-        hD[i]->Fill(tmp);
 
         if (tmp >= DataXS[i]) {
           ++PassFail[Masses[i]].first;
@@ -89,39 +75,8 @@ int GetPValues (TString const DataFileName, std::vector<TString> PEFileNames)
   }
 
   for (size_t i = 0; i != NMasses; ++i) {
-    float const PVal = ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second);
-    printf("Mass: %4i DataXS: %6.2f  Pass/Fail %10i  %10i  p-value: %12E  Sigma: %8.2f\n",
-        (int) Masses[i], DataXS[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
-        PVal,
-        TMath::Sqrt(2)*TMath::ErfcInverse(PVal));
-  }
-
-
-  for (size_t im = 0; im != NMasses; ++im) {
-    TCanvas Can;
-    Can.cd();
-    hD[im]->Draw("hist");
-    TLine MyLine(DataXS[im], 0, DataXS[im], hD[im]->GetMaximum());
-    MyLine.SetLineColor(2);
-    MyLine.SetLineWidth(2);
-    MyLine.Draw("same");
-    Can.SetLogy(true);
-    char BUFF[100];
-
-    float const PVal = ((float) PassFail[ Masses[im] ].first) / ((float) PassFail[ Masses[im] ].first + PassFail[ Masses[im] ].second);
-    sprintf(BUFF, "p-value: %10E = %5.2f#sigma", PVal, (float) TMath::Sqrt(2)*TMath::ErfcInverse(PVal));
-    std::cout << BUFF << std::endl;
-    TPaveLabel PLabel;
-    PLabel.SetLabel(BUFF);
-    PLabel.SetX1NDC(0.40);
-    PLabel.SetX2NDC(0.90);
-    PLabel.SetY1NDC(0.51);
-    PLabel.SetY2NDC(0.55);
-    PLabel.SetTextSize();
-    PLabel.Draw("same");
-
-    sprintf(BUFF, "TestStatisticDist_%i.eps", (int) Masses[im]);
-    Can.SaveAs(BUFF);
+    printf("Mass: %4i Pass/Fail %10i  %10i  p-value: %12E\n", (int) Masses[i], PassFail[ Masses[i] ].first, PassFail[ Masses[i] ].second,
+        ((float) PassFail[ Masses[i] ].first) / ((float) PassFail[ Masses[i] ].first + PassFail[ Masses[i] ].second));
   }
 
   return 0;

@@ -25,7 +25,7 @@ process.PlotPhotonVariables = cms.EDAnalyzer('PlotPhotonVariables',
 
 # This will provide the FillDtuple analyzer the output file
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string("PlotsFromSkim.root")
+  fileName = cms.string("Plots.root")
 )
 
 

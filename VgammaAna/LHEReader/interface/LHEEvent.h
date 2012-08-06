@@ -23,7 +23,6 @@ class LHEEvent
 {
   public:
     LHEEvent (TString const);
-    LHEEvent (std::vector<TString> const&);
     ~LHEEvent ();
 
     float Weight;
@@ -33,11 +32,8 @@ class LHEEvent
     int NextEvent ();
 
   private:
-    bool OpenNextFile ();
     TString LHEFileName;
     std::ifstream* LHEFile;
-    std::vector<TString> LHEFileNames;
-    size_t ifile;
 
 };
 

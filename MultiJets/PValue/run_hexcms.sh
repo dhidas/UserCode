@@ -2,26 +2,18 @@
 
 echo 'Hello World!'
 echo 'Section: ' $1
+echo 'OUTDIR:  ' $2
 
-source /osg/apps/osg/setup.sh
-
-export PATH=/home/cdfcaf/condor/dist/bin:${PATH}
-
-export VO_CMS_SW_DIR=/cms/base/cmssoft
-export SCRAM_ARCH=slc5_amd64_gcc434
-source $VO_CMS_SW_DIR/cmsset_default.sh
+export PATH=/cms/data15/dhidas/CernRoot/root_v5.28.00/root/bin:${PATH}
+export LD_LIBRARY_PATH=/cms/data15/dhidas/CernRoot/root_v5.28.00/root/lib
+. /cms/data15/dhidas/CernRoot/root_v5.28.00/root/bin/thisroot.sh
 
 
-cd /users/h2/dhidas/CMSSW_4_2_5/src
-eval `scramv1 runtime -sh`
-cd -
+EXE=/users/h2/dhidas/Expo/RunMultiJetsRooStats
 
+mkdir -pv $2
+cd $2
 
-EXE=./RunPValue
-
-DAT=dataGE6jets_2177pb_10GeVBins_Hist.root
-
-
-echo "$EXE $DAT $1"
-$EXE $DAT $1
+echo "$EXE -1 $1"
+$EXE -1 $1
 

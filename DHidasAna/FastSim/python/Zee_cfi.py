@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 source = cms.Source("PythiaSource",
-    comEnergy = cms.untracked.double(7000.),
+    comEnergy = cms.untracked.double(4000.),
     pythiaVerbosity = cms.untracked.bool(False),
     PythiaParameters = cms.PSet(
         pythiaZee = cms.vstring('MSEL = 11 ', 

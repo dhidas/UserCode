@@ -12,8 +12,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <cstdlib>
-
 
 #include "TGraph.h"
 #include "TCanvas.h"
@@ -25,7 +23,7 @@ int ShowGainCalPoints (std::string const InFileName, int const InmFec, int const
   std::ifstream f(InFileName.c_str());
   if (!f) {
     std::cerr << "ERROR; Cannot open file: " << InFileName << std::endl;
-    throw;
+    exit(1);
   }
 
   int const NMaxPoints = 200;
@@ -64,7 +62,7 @@ int ShowGainCalPoints (std::string const InFileName, int const InmFec, int const
   TCanvas c;
   c.cd();
   g.Draw("a*");
-  c.SaveAs("plots/GainCalPlot.eps");
+  c.SaveAs("GainCalPlot.eps");
 
 
   return 0;

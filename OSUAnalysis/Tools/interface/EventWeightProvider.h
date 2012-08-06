@@ -28,7 +28,7 @@ private:
     bool useSkimEff;
     boost::array<double, DataType::NUMBER_OF_DATA_TYPES> xsection;
     boost::shared_ptr<TH1D> estimatedPileUp;
-    boost::array<double, 35> pileUpWeights;
+    boost::array<double, 25> pileUpWeights;
     unsigned long numberOfEventsWithTooHighPileUp;
 //    void defineNumberOfSkimmedEvents();
     void defineNumberOfProducedEvents();

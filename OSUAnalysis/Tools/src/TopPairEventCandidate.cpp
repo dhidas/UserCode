@@ -111,7 +111,6 @@ bool TopPairEventCandidate::passesScrapingFilter() const {
 
 bool TopPairEventCandidate::passesHighLevelTrigger() const {
   if (isRealData()) {
-    bool trigOn = false;
     if (runNumber < 140041)
       return HLT(HLTriggers::HLT_Ele10_LW_L1R);
     else if (runNumber >= 140041 && runNumber <= 143962)
@@ -128,38 +127,16 @@ bool TopPairEventCandidate::passesHighLevelTrigger() const {
     else if(runNumber >= 149181 && runNumber < 160000)
       return HLT(HLTriggers::HLT_Ele22_SW_TighterEleId_L1R);
     //return HLT(HLTriggers::HLT_Ele22_SW_TighterEleId_L1R_v3);
-
-    else if (runNumber >= 160404 && runNumber <= 163869)
-      trigOn = HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT);
-    /*else if (runNumber >= 165970 && runNumber <= 166346)
-      trigOn = HLT(HLTriggers::HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT);*/
-    else if (runNumber >= 165970 && runNumber <= 178380)
-      trigOn =
-	HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralJet30);
-    else if (runNumber >= 178420)
-      trigOn =
-	HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralPFJet30);
-    if (trigOn)
-      return (true);
-    // Now try muon triggers if electron triggers failed
-    /*    else if ((runNumber >= 160404 && runNumber <= 163869) ||
-	     (runNumber >= 165088 && runNumber <= 166967))
-      return (HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu17));
-    else if (runNumber >= 167039 && runNumber <= 167913)
-      return (HLT(HLTriggers::HLT_IsoMu17_eta2p1) ||
-	      HLT(HLTriggers::HLT_IsoMu24));
-    else if (runNumber >= 170249 && runNumber <= 173198)
-      return (HLT(HLTriggers::HLT_Mu40)||HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu24));
-    else if (runNumber >= 173236 && runNumber <= 173692)
-      return (HLT(HLTriggers::HLT_Mu40_eta2p1) || HLT(HLTriggers::HLT_IsoMu20));
-    else if (runNumber >= 175860 && runNumber <= 178160)
-      return ((HLT(HLTriggers::HLT_Mu40_eta2p1) || HLT(HLTriggers::HLT_IsoMu24_eta2p1));
-    else if (runNumber >= 178162)
-      return (HLT(HLTriggers::HLT_IsoMu30_eta2p1) || (HLT(HLTriggers::HLT_Mu40_eta2p1));*/
-  else if (runNumber >= 160404)
-    return (HLT(HLTriggers::HLT_IsoMu24_eta2p1) || HLT(HLTriggers::HLT_IsoMu24));     
-  else return false;
-  } else return (HLT(HLTriggers::HLT_IsoMu24));// || HLT(HLTriggers::HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT) || HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT));  // do not use HLT for MC
+    else if(runNumber > 160000)
+      return (HLT(HLTriggers::HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT) ||
+          HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralJet30)
+          || HLT(HLTriggers::HLT_Ele25_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TriCentralPFJet30)
+          || HLT(HLTriggers::HLT_Mu30) || HLT(HLTriggers::HLT_IsoMu20)
+          || HLT(HLTriggers::HLT_IsoMu17) || HLT(HLTriggers::HLT_IsoMu17_eta2p1)
+          || HLT(HLTriggers::HLT_IsoMu24) || HLT(HLTriggers::HLT_IsoMu24_eta2p1)
+          || HLT(HLTriggers::HLT_IsoMu30_eta2p1));
+    else return false;
+  } else return true;  // do not use HLT for MC
 }
 
 bool TopPairEventCandidate::hasOneGoodPrimaryVertex() const {

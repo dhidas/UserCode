@@ -103,11 +103,10 @@ bool Analysis::initiateEvent() {
     string filename( eventReader->getCurrentFile() );
 
     if( currentEvent.isRealData() && (
-				      //      !isGood(currentEvent.runnumber(), currentEvent.lumiblock())
-      	     (filename.find("PromptReco") != string::npos && !isGood             (currentEvent.runnumber(), currentEvent.lumiblock())) ||
-	     (filename.find("May10ReReco")!= string::npos && !isGoodMay10ReRecoV3(currentEvent.runnumber(), currentEvent.lumiblock())) ||
-	     (filename.find("05Aug2011") != string::npos && !isGoodReReco5AugV3 (currentEvent.runnumber(), currentEvent.lumiblock())) ||
-	     (filename.find("PromptReco")==string::npos && filename.find("May10ReReco")==string::npos && filename.find("05Aug2011")==string::npos ) // Unknown
+ (filename.find("PromptReco") != string::npos && !isGood             (currentEvent.runnumber(), currentEvent.lumiblock())) ||
+ (filename.find("May10ReReco")!= string::npos && !isGoodMay10ReRecoV3(currentEvent.runnumber(), currentEvent.lumiblock())) ||
+ (filename.find("ReReco5Aug") != string::npos && !isGoodReReco5AugV3 (currentEvent.runnumber(), currentEvent.lumiblock())) ||
+ (filename.find("PromptReco")==string::npos && filename.find("May10ReReco")==string::npos && filename.find("ReReco5Aug")==string::npos ) // Unknown
                                      )
     ) return false;
 
@@ -118,11 +117,8 @@ bool Analysis::initiateEvent() {
 //			currentEvent.getDataType() != DataType::WprimeTToTTD_M1000
     ) {
 			// W' samples lack pile-up.
-            weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
-	PileUpWeight= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices()); 
-	//	std::cout<<PileUpWeight<<" "<<weight<<std::endl;
+        // weight *= weights.reweightPileUp(currentEvent.numberOfGeneratedPileUpVertices());
     }
-    else if (currentEvent.isRealData())  PileUpWeight=1;
     tPlusXCandidates = ToplikeCandidate(currentEvent);
     twoTopsNonRes = TwoNonResTops(currentEvent);
     goodTopBadTop = TwoNonResTops(currentEvent);
@@ -894,42 +890,28 @@ void Analysis::doMicroNtuple() {
         if(!elecEvt && !muEvt) return;
 
         // make sure top reconstruction was ran 
-
         if( !goodTopBadTop.isReconstructed() ){
            cout<<"Reconstruction wasn't done: nothing to save into the micro ntuple"<<endl;
-
-
-
-	   return;
+           return;
         }
 
         LeptonPointer lepton;
         if( twoTopsNonRes.GoodPFIsolatedElectrons().size() >= 1 )
-	  {    lepton = twoTopsNonRes.GoodPFIsolatedElectrons().front();
-	    eSEL=2;
-	  }
+            lepton = twoTopsNonRes.GoodPFIsolatedElectrons().front();
         if( twoTopsNonRes.GoodIsolatedMuons().size() >= 1 )
-	  { lepton = twoTopsNonRes.GoodIsolatedMuons().front();
-	    muSEL=2;
-	  }
+            lepton = twoTopsNonRes.GoodIsolatedMuons().front();
+
         // general information oabout this event:
         type          = currentEvent.getDataType();
         eventNumber   = currentEvent.eventnumber();
-	//        std::cout<<"Num: "<<eventNumber<<"  "<<currentEvent.eventnumber()<<std::endl;
         runNumber     = currentEvent.runnumber();
-        leptoCharge   = (lepton->charge()<0?-1:1);
-	
         numberOfJets  = goodTopBadTop.GoodJets().size();
         numberOfBJets = goodTopBadTop.GoodBJets().size();
+        leptoCharge   = (lepton->charge()<0?-1:1);
         ST            = goodTopBadTop.ST();
-        HT            = goodTopBadTop.fullHT();
         MET           = goodTopBadTop.MET()->et();
-	
         eSEL          = 0;
-	nPileUpVtx    = currentEvent.numberOfGeneratedPileUpVertices();
-
-        
-for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at least 1 b-tag
+        for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at least 1 b-tag
             if(goodTopBadTop.passesSelectionStepUpTo(cut, toplikeElectronSelection)) {
                eSEL = cut;
             } else break;
@@ -939,19 +921,13 @@ for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at 
             if(goodTopBadTop.passesSelectionStepUpTo(cut, toplikeMuonSelection)) {
                muSEL = cut;
             } else break;
-       
-	}
-	//TRIGGER Stuff
-	eTrig = 0; muTrig = 0;
-        for(unsigned int trg=0; trg<40; trg++) if( currentEvent.HLT(HLTriggers::value(trg))    ) eTrig  |= (1<<trg);
-        for(unsigned int trg=0; trg<30; trg++) if( currentEvent.HLT(HLTriggers::value(trg+40)) ) muTrig |= (1<<trg);
+        }
 
         // jets in the event:
         //  leading non-b-jet jet parameters and highest pT leftover jet (may not be the same jet):
         leadingJetPtRec = -1; leadingJetEtaRec = 0; leadingJetPhiRec = 0;
            freeJetPtRec = -1;    freeJetEtaRec = 0;    freeJetPhiRec = 0;
         int iDeanJet = -1;
-	
         for( JetCollection::const_iterator jet  = goodTopBadTop.GoodJets().begin();
                                            jet != goodTopBadTop.GoodJets().end();
                                            jet ++ ){
@@ -968,32 +944,19 @@ for(unsigned int cut=7; cut < toplikeElectronSelSize; ++cut) { // start with at 
            JetPz[iDeanJet] = (*jet)->pz();
            JetE[iDeanJet] = (*jet)->energy();
            JetBTag[iDeanJet] = (*jet == goodTopBadTop.getLeptonicBJet() ? 1 : 0);
-	   //std::cout<<(*jet)->pt()<<endl;
+        }
 
-       
-	}
-	//	std::cout<<currentEvent.GoodBJets().size()<<"  "<<goodTopBadTop.getLeptonicBJet()->pt()<<std::endl;
-	for (unsigned int k=0; k < currentEvent.GoodBJets().size(); k++){
-	  //std::cout<<currentEvent.GoodBJets().at(k)->pt()<<std::endl;
-	  BJetPx[k] = currentEvent.GoodBJets().at(k)->px();
-	  BJetPy[k] = currentEvent.GoodBJets().at(k)->py();
-	  BJetPz[k] = currentEvent.GoodBJets().at(k)->pz();
-	  BJetE[k] = currentEvent.GoodBJets().at(k)->energy();
+        std::cout << goodTopBadTop.fullHT() << std::endl;
 
-	}
-
-	// std::cout << goodTopBadTop.fullHT() << std::endl;
-	//std::cout<<"----------------------------"<<endl;
-leptonPtRec  = lepton->pt();
-        leptonEtaRec = lepton->eta();
-        leptonPhiRec = lepton->phi();	
-	
         freeJetPtRec  = goodTopBadTop.dJetFromWp->pt();
         freeJetEtaRec = goodTopBadTop.dJetFromWp->eta();
         freeJetPhiRec = goodTopBadTop.dJetFromWp->phi();
-        
 
-	bJetTlPtRec  = goodTopBadTop.getLeptonicBJet()->pt();
+        leptonPtRec  = lepton->pt();
+        leptonEtaRec = lepton->eta();
+        leptonPhiRec = lepton->phi();
+
+        bJetTlPtRec  = goodTopBadTop.getLeptonicBJet()->pt();
         bJetTlEtaRec = goodTopBadTop.getLeptonicBJet()->eta();
         bJetTlPhiRec = goodTopBadTop.getLeptonicBJet()->phi();
 
@@ -1041,7 +1004,7 @@ leptonPtRec  = lepton->pt();
         tNegJetPtRec   = goodTopBadTop.wpFrom1Top->pt();
         tNegJetEtaRec  = goodTopBadTop.wpFrom1Top->eta();
         tNegJetPhiRec  = goodTopBadTop.wpFrom1Top->phi();
-	
+
         microTuple->Fill();
 }
 
@@ -1892,8 +1855,7 @@ void Analysis::createHistograms() {
 void Analysis::initMicroNtuple() {
     microTuple->Branch("type",   &type,   "type/I");
     microTuple->Branch("weight", &weight, "weight/D");
-    microTuple->Branch("PileUpWeight", &PileUpWeight, "PileUpWeight/D");
-    microTuple->Branch("eventNumber",   &eventNumber,   "eventNumber/l");
+    microTuple->Branch("eventNumber",   &eventNumber,   "eventNumber/I");
     microTuple->Branch("runNumber",     &runNumber,     "runNumber/I");
     microTuple->Branch("numberOfJets",  &numberOfJets,  "numberOfJets/I");
     microTuple->Branch("numberOfBJets", &numberOfBJets, "numberOfBJets/I");
@@ -1901,9 +1863,8 @@ void Analysis::initMicroNtuple() {
     microTuple->Branch("eSEL",          &eSEL,          "eSEL/I");
     microTuple->Branch("muSEL",         &muSEL,         "muSEL/I");
     microTuple->Branch("ST",            &ST,            "ST/D");
-    microTuple->Branch("HT",            &HT,            "HT/D");
     microTuple->Branch("MET",           &MET,           "MET/D");
-    microTuple->Branch("nPileUpVtx",           &nPileUpVtx,           "nPileUpVtx/I");
+
     microTuple->Branch("leadingJetPdgId", &leadingJetPdgId, "leadingJetPdgId/I");
     microTuple->Branch("leadingJetIndGen",&leadingJetIndGen,"leadingJetIndGen/I");
     microTuple->Branch("leadingJetPtGen", &leadingJetPtGen, "leadingJetPtGen/D");
@@ -1918,11 +1879,6 @@ void Analysis::initMicroNtuple() {
     microTuple->Branch("JetPz[numberOfJets]",JetPz);
     microTuple->Branch("JetE[numberOfJets]",JetE);
     microTuple->Branch("JetBTag[numberOfJets]",JetBTag);
-   
-    microTuple->Branch("BJetPx[numberOfBJets]",BJetPx);
-    microTuple->Branch("BJetPy[numberOfBJets]",BJetPy);
-    microTuple->Branch("BJetPz[numberOfBJets]",BJetPz);
-    microTuple->Branch("BJetE[numberOfBJets]",BJetE);
 
 
     microTuple->Branch("freeJetPdgId",    &freeJetPdgId,   "freeJetPdgId/I");
@@ -2073,7 +2029,7 @@ Analysis::Analysis() :
     interestingEvents(),
     brokenEvents(),
     eventCheck(),
-    weights(Analysis::luminosity/*current lumi*/, 7, "Cert_160404_180252_7TeV_Collisions11_JSON.pileup_v2.root"),
+    weights(Analysis::luminosity/*current lumi*/, 7, "pileup_160404-165970.root"),
     weight(0),
     cutflowPerSample(DataType::NUMBER_OF_DATA_TYPES, toplikeElectronSelSize,
                     JetBin::NUMBER_OF_JET_BINS),

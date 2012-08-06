@@ -1,9 +1,0 @@
-
-
-<use name="DHidasLJAna/LeptonPlusJets" />
-<use name="root" />
-
-<environment>
-<bin file="RunLJDtuple.cc"></bin>
-</environment>
-

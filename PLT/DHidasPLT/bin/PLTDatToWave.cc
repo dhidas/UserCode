@@ -10,7 +10,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cstdlib>
 
 #include "TString.h"
 #include "TGraph.h"
@@ -20,8 +19,7 @@
 int PLTDatToWave (int const N, TString const InputFileName)
 {
   //int const kNUMBER = 205;
-  int const kBEGIN  =  30;
-  int const kNUMBER =  60;
+  int const kNUMBER = 70;
 
   float Time[kNUMBER];
   float Value[kNUMBER];
@@ -29,7 +27,7 @@ int PLTDatToWave (int const N, TString const InputFileName)
   std::ifstream InFile(InputFileName.Data());
   if (!InFile.is_open()) {
     std::cerr << "ERROR: cannot open file for reading: " << InputFileName << std::endl;
-    throw;
+    exit(1);
   }
 
   std::string line;
@@ -37,21 +35,16 @@ int PLTDatToWave (int const N, TString const InputFileName)
     std::getline(InFile, line);
   }
 
-  for (int i = 0; !InFile.eof(); ++i) {
-    if (i < kBEGIN) {
-      continue;
-    } else if (i >= kBEGIN + kNUMBER) {
-      break;
-    }
-    Time[i - kBEGIN] = (float) i - kBEGIN;
-    InFile >> Value[i - kBEGIN];
+  for (int i = 0; i != kNUMBER; ++i) {
+    Time[i] = (float) i;
+    InFile >> Value[i];
   }
 
   TGraph gr(kNUMBER, Time, Value);
   TCanvas Can;
   Can.cd();
-  gr.Draw("ac*");
-  Can.SaveAs("plots/Wave.gif");
+  gr.Draw("ac");
+  Can.SaveAs("Wave.gif");
 
   return 0;
 }

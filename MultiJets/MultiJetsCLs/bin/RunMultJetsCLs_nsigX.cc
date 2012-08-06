@@ -97,7 +97,7 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLs (TString const InFileName, int const Section)
 {
   // Get the mass for this section
-  float const SignalMass = 250 + (10 * Section);
+  int const SignalMass = 250 + (10 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   float const MINXS      =      0;
@@ -363,8 +363,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   const char* nuisPriorName     = "";
 
   // Run the actual CLs
-  RooStats::HypoTestInvTool HTIT;
-  RooStats::HypoTestInverterResult* MyResult = HTIT.RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
+  RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
   // Number of entries in result
   const int NEntries = MyResult->ArraySize();

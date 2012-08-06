@@ -63,15 +63,6 @@ source = cms.Source("PoolSource",
                              'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleElectron/El27_v2/trigVal_patTuple_6_2_ELz.root',
                              'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleElectron/El27_v2/trigVal_patTuple_7_1_HR1.root',
                              'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleElectron/El27_v2/trigVal_patTuple_8_1_Rft.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleElectron/El27_v2/trigVal_patTuple_9_3_pu8.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_1_1_5bG.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_2_1_P8u.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_3_1_5I2.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_4_1_Doo.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_5_1_6AB.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_6_1_xpN.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_7_1_QlS.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_8_1_ieZ.root',
-                             'file:/cms/se/store/user/duggan/Collisions11/PostTechStop/SemiOfficial_v2/SingleElectron/El27_v2//trigVal_patTuple_9_1_N6G.root'
+                             'file:/cms/se/store/user/duggan/Collisions11/PreTechStop/SemiOfficial_v2/SingleElectron/El27_v2/trigVal_patTuple_9_3_pu8.root'
                                                              )                              )
 

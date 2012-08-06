@@ -3,8 +3,6 @@
 <use name=FWCore/ParameterSet>
 <use name=DataFormats/PatCandidates>
 <use name=PhysicsTools/UtilAlgos>
-<use name=RecoEcal/EgammaCoreTools>
-<use name=RecoEgamma/ElectronIdentification>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=DHidasAnaPlotElectronVariables>
@@ -13,6 +11,4 @@
    <use name=FWCore/ParameterSet>
    <use name=DataFormats/PatCandiates>
    <use name=PhysicsTools/UtilAlgos>
-   <use name=RecoEcal/EgammaCoreTools>
-   <use name=RecoEgamma/ElectronIdentification>
 </export>

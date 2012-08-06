@@ -1,8 +1,8 @@
 CC = g++
 LD = g++
 CFLAGS = -Wall `root-config --cflags`
-LIBS = `root-config --libs` -L${ROOFITSYS}/lib -Llib -lMinuit -lRooFitCore -lRooFit -lFoam -lRooStats
-INCLUDE = -Iinterface -Idict -I../../ -I${ROOFITSYS}/include
+LIBS = `root-config --libs` -Llib -lMinuit -lRooFitCore -lRooFit -lFoam -lRooStats
+INCLUDE = -Iinterface -Idict -I../../
 OBJS  = $(patsubst src/%.cc,lib/%.o,$(wildcard src/*.cc))
 EXECS = $(patsubst bin/%.cc,%,$(wildcard bin/*.cc))
 SCRIPTS = $(patsubst scripts/%.cc,%,$(wildcard scripts/*.cc))
@@ -34,11 +34,6 @@ dict/%_dict.cc : include/%.h dict/%_linkdef.h
 
 
 
-
-allclean: cleanimg clean
-
-cleanimg:
-	rm -f *.eps *.gif *.pdf
 
 clean:
 	rm -f $(EXECS) $(SCRIPTS) lib/*.o dict/*_dict.cc dict/*_dict.h Roo*Func*.*

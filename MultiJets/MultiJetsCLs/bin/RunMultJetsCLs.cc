@@ -8,7 +8,6 @@
 
 
 #include <iostream>
-#include <fstream>
 #include <vector>
 
 #include "StandardHypoTestInvDemo.h"
@@ -16,7 +15,6 @@
 #include "TString.h"
 #include "TCanvas.h"
 #include "TF1.h"
-#include "TFile.h"
 #include "TTree.h"
 
 
@@ -25,7 +23,6 @@
 #include "RooExponential.h"
 #include "RooGenericPdf.h"
 #include "RooPlot.h"
-#include "RooFitResult.h"
 
 
 // Min and max for observable
@@ -100,48 +97,17 @@ float GetAcceptanceError (float const m)
 int RunMultJetsCLs (TString const InFileName, int const Section)
 {
   // Get the mass for this section
-  float const SignalMass = 250 + (20 * Section);
+  int const SignalMass = 250 + (10 * Section);
   std::cout << "SignalMass = " << SignalMass << std::endl;
 
   float const MINXS      =      0;
-  float const MAXXS      =    100;
-
-  float const MINPOI     =      0;
-  float const MAXPOI     =   
-    SignalMass <  300 ?  35   :
-    SignalMass <  400 ?  13   :
-    SignalMass <  500 ?  10   :
-    SignalMass <  600 ?   6   :
-    SignalMass <  650 ?   3   :
-    SignalMass <  700 ?   2   :
-    SignalMass <  780 ?   1.8 :
-    SignalMass <  840 ?   1.3 :
-    SignalMass < 860 ?   1.0 :
-    SignalMass < 950 ?   0.7 :
-    SignalMass < 1030 ?   0.5 :
-    SignalMass < 1110 ?   0.4 :
-    SignalMass < 1270 ?   0.3 :
-    SignalMass < 1370 ?   0.18 :
-    SignalMass < 1500 ?   0.16 :
-    0.16;
-
-
-  // Open output file for limits
-  std::ofstream OutFile(TString::Format("Limits_CLs_%i.dat", (int) SignalMass).Data());
-  if (!OutFile.is_open()) {
-    std::cerr << "ERROR: cannot open output file Limits_CLs_*.dat for mass: " << SignalMass << std::endl;
-    throw;
-  }
-
-  // Setup output root file based on mass
-  TFile OutRootFile(TString::Format("MultiJetsCLs_%i.root", (int) SignalMass), "recreate");
-  if (!OutRootFile.IsOpen()) {
-    std::cerr << "ERROR: cannot open output root file for mass: " << SignalMass << std::endl;
-    throw;
-  }
-  OutRootFile.cd();
-
-
+  float const MAXXS      =   SignalMass <  350 ? 100   :
+    SignalMass <  500 ?  30   :
+    SignalMass <  800 ?  20   :
+    SignalMass <  900 ?  15   :
+    SignalMass < 1200 ?  10   :
+    SignalMass < 1400 ?  10   :
+    10;
 
 
   // Start a workspace
@@ -168,7 +134,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 
   // Get the fit function from the hist
-  TF1* FitFunction = (TF1*) DataHist->GetFunction("g4");
+  TF1* FitFunction = (TF1*) DataHist->GetFunction("g3");
   if (FitFunction == 0x0) {
     std::cout << "ERROR: cannot get fitted function." << std::endl;
     throw;
@@ -190,36 +156,25 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   ws.var("p1")->Print();
   ws.factory("p2[0]");
   ws.var("p2")->setRange(FitFunction->GetParameter(2) - 5 * FitFunction->GetParError(2), FitFunction->GetParameter(2) + 5 * FitFunction->GetParError(2));
-  ws.var("p2")->setVal(-FitFunction->GetParameter(2));
+  ws.var("p2")->setVal(FitFunction->GetParameter(2));
   ws.var("p2")->setConstant(true);
   ws.var("p2")->Print();
-  ws.factory("p3[0]");
-  ws.var("p3")->setRange(FitFunction->GetParameter(3) - 5 * FitFunction->GetParError(3), FitFunction->GetParameter(3) + 5 * FitFunction->GetParError(3));
-  ws.var("p3")->setVal(-FitFunction->GetParameter(3));
-  ws.var("p3")->setConstant(true);
-  ws.var("p3")->Print();
-
 
   // define priors (constraints) for these params
   ws.factory("RooLognormal::p1_prior(p1, p1M0[0], p1S0[1])");
-  ws.var("p1S0")->setVal(1.0 + FitFunction->GetParError(1) / FitFunction->GetParameter(1));
+  ws.var("p1S0")->setVal(1.03);
   ws.var("p1S0")->setConstant(true);
   ws.var("p1M0")->setVal(FitFunction->GetParameter(1));
   ws.var("p1M0")->setConstant(true);
   ws.factory("RooLognormal::p2_prior(p2, p2M0[0], p2S0[1])");
-  ws.var("p2S0")->setVal(1.0 + FitFunction->GetParError(2) / FitFunction->GetParameter(2));
+  ws.var("p2S0")->setVal(1.03);
   ws.var("p2S0")->setConstant(true);
   ws.var("p2M0")->setVal(FitFunction->GetParameter(2));
   ws.var("p2M0")->setConstant(true);
-  ws.factory("RooLognormal::p3_prior(p3, p3M0[0], p3S0[1])");
-  ws.var("p3S0")->setVal(1.0 + FitFunction->GetParError(3) / FitFunction->GetParameter(3));
-  ws.var("p3S0")->setConstant(true);
-  ws.var("p3M0")->setVal(FitFunction->GetParameter(3));
-  ws.var("p3M0")->setConstant(true);
 
 
   // Background function
-  ws.factory("RooGenericPdf::background('(((1. - mjjj/7000.)^p1)/((mjjj/7000.)^(p2+ p3*log(mjjj/7000.))))', {mjjj, p1, p2, p3})");
+  ws.factory("RooGenericPdf::background('( ((1.0 - mjjj/7000.0)^p1) / (mjjj/7000.)^p2)', {mjjj, p1, p2})");
 
 
   // Define lumi and lumi prior
@@ -283,7 +238,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
 
   // Pick which constraints and nuisance params you want to use
-  switch (4) {
+  switch (6) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
@@ -307,39 +262,28 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
       ws.var("p2")->setConstant(false);
       break;
     case 4:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3");
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,lumi");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
       ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
-      break;
-    case 5:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi");
-      ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       break;
-    case 6:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior,acceptance_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi,acceptance");
+    case 5:
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,lumi,acceptance");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
       ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       break;
-    case 7:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,p3_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,p2,p3,lumi,acceptance,sigWidth");
+    case 6:
+      ws.factory("PROD::constraints(nbkg_prior,p1_prior,p2_prior,lumi_prior,acceptance_prior,sigWidth_prior)");
+      ws.defineSet("nuisance", "nbkg,p1,p2,lumi,acceptance,sigWidth");
       ws.var("nbkg")->setConstant(false);
       ws.var("p1")->setConstant(false);
       ws.var("p2")->setConstant(false);
-      ws.var("p3")->setConstant(false);
       ws.var("lumi")->setConstant(false);
       ws.var("acceptance")->setConstant(false);
       ws.var("sigWidth")->setConstant(false);
@@ -363,10 +307,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // Set the observable to zero and add POI snapsnot, import this modelconfig to the workspace
   ws.var("xs")->setVal(0);
-  RooFitResult* FitResult = ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
-  FitResult->covarianceMatrix();
-  FitResult->correlationMatrix();
-  exit(0);
+  ws.pdf("bgmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
   RooArgSet POIAndNuisBG("POIAndNuisBG");
   POIAndNuisBG.add(*ModelConfigBG.GetParametersOfInterest());
   ModelConfigBG.SetSnapshot(POIAndNuisBG);
@@ -386,18 +327,15 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   ModelConfigSB.SetNuisanceParameters(*ws.set("nuisance"));
 
   // Fit model and add POI snapsnot, import this modelconfig to the workspace
-  ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
-  TCanvas CanFit("Fit", "Fit");
-  CanFit.cd();
+  //ws.pdf("sbmodel_noprior")->fitTo(*ws.data("Data"), RooFit::Range(MJJJMIN, MJJJMAX), RooFit::Extended(kTRUE));
+  TCanvas Can;
+  Can.cd();
   RooPlot* ThisDataFit = ws.var("mjjj")->frame();
   ws.data("Data")->plotOn(ThisDataFit);
   ws.pdf("bgmodel_noprior")->plotOn(ThisDataFit);
-  ThisDataFit->SetTitle(TString::Format("M_{jjj} = %i", (int) SignalMass));
   ThisDataFit->Draw();
-  CanFit.SetLogy(1);
-  OutRootFile.cd();
-  CanFit.Write();
-  CanFit.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
+  Can.SetLogy(1);
+  Can.SaveAs(TString::Format("Fit_%i.eps", (int) SignalMass));
 
   RooArgSet POIAndNuisSB("POIAndNuisSB");
   POIAndNuisSB.add(*ModelConfigSB.GetParametersOfInterest());
@@ -407,8 +345,7 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // For debugging, why not save the workspace
   ws.Print();
-  OutRootFile.cd();
-  ws.Write();
+  ws.SaveAs(TString::Format("Workspace_%i.root", (int) SignalMass));
 
   ws.var("acceptance")->Print();
   ws.var("lumi")->Print();
@@ -419,16 +356,15 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
   int   const calculatorType    = 1;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 20;
-  float const poimin            = MINPOI;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
-  float const poimax            = MAXPOI; //1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
-  int   const ntoys             = 600;
+  int   const npoints           = 4;
+  float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
+  float const poimax            = 1;//60 / (LUMINOSITY * GetAcceptanceForMjjj(SignalMass));
+  int   const ntoys             = 5;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
   // Run the actual CLs
-  RooStats::HypoTestInvTool HTIT;
-  RooStats::HypoTestInverterResult* MyResult = HTIT.RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
+  RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
   // Number of entries in result
   const int NEntries = MyResult->ArraySize();
@@ -440,48 +376,33 @@ int RunMultJetsCLs (TString const InFileName, int const Section)
 
   // Grab the result plot
   RooStats::HypoTestInverterPlot *Plot = new RooStats::HypoTestInverterPlot("HTI_Result_Plot", PlotTitle, MyResult);
-  TCanvas CanCLb("CLb_2CL", "CLb_2CL");
+  TCanvas CanCLb;
   CanCLb.cd();
-  Plot->SetTitle(TString::Format("Hybrid CL Scan for M_{jjj} = %i", (int) SignalMass));
   Plot->Draw("CLb 2CL");  // plot all and Clb
   CanCLb.SaveAs(TString::Format("CLb2L_%i.eps", (int) SignalMass));
-  OutRootFile.cd();
-  CanCLb.Write();
 
-  // Draw the sampling distributions
-  TCanvas CanHTI("HTI_Result", "HTI_Result");
-  CanHTI.Divide(3, (int) TMath::Ceil(NEntries/3));
-  for (int i = 0; i < NEntries; ++i) {
-    CanHTI.cd(i + 1);
-    RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
-    SamplingPlot->SetLogYaxis(true);
-    delete SamplingPlot;
+  if (true) {
+    TCanvas Can;
+    Can.Divide(2, TMath::Ceil(NEntries/2));
+    for (int i = 0; i < NEntries; ++i) {
+      Can.cd(i + 1);
+      RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
+      SamplingPlot->SetLogYaxis(true);
+      SamplingPlot->Draw();
+      delete SamplingPlot;
+    }
+    Can.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
   }
-  CanHTI.SaveAs(TString::Format("HTI_Result_%i.eps", (int) SignalMass));
-  OutRootFile.cd();
-  CanHTI.Write();
 
-  // Print the limits
   printf(" expected limit (-2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-2));
   printf(" expected limit (-1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-1));
   printf(" expected limit (median) %12.3E\n", MyResult->GetExpectedUpperLimit(0) );
   printf(" expected limit (+1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(1) );
   printf(" expected limit (+2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(2) );
+
   printf(" observed limit          %12.3E +/- %12.3E\n", MyResult->UpperLimit(), MyResult->UpperLimitEstimatedError()); 
 
 
-  // Write results and close file
-  OutFile << SignalMass << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit(-2) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit(-1) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit( 0) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit( 1) << std::endl;
-  OutFile << MyResult->GetExpectedUpperLimit( 2) << std::endl;
-  OutFile << MyResult->UpperLimit() << std::endl;
-  OutFile.close();
-
-  // Close root file
-  OutRootFile.Close();
 
   return 0;
 }

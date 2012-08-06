@@ -1,8 +1,8 @@
 CC = g++
 LD = g++
-CFLAGS = -O3 -Wall `root-config --cflags`
-LIBS = `root-config --libs` -Llib -lMinuit -lSpectrum -lEve -lGeom
-INCLUDE = -Iinterface -Idict
+CFLAGS = -Wall `root-config --cflags`
+LIBS = `root-config --libs` -Llib -lMinuit
+INCLUDE = -Iinterface -Idict -I../../
 OBJS  = $(patsubst src/%.cc,lib/%.o,$(wildcard src/*.cc))
 EXECS = $(patsubst bin/%.cc,%,$(wildcard bin/*.cc))
 SCRIPTS = $(patsubst scripts/%.cc,%,$(wildcard scripts/*.cc))
@@ -37,5 +37,3 @@ dict/%_dict.cc : include/%.h dict/%_linkdef.h
 
 clean:
 	rm -f $(EXECS) $(SCRIPTS) lib/*.o dict/*_dict.cc dict/*_dict.h
-cleanimg:
-	rm -f *.eps *.gif *.jpg plots/*.*

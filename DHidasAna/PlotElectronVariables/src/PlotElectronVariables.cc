@@ -13,14 +13,13 @@ Implementation:
 //
 // Original Author:  Dean Andrew Hidas
 //         Created:  Thu Aug 20 15:45:17 CEST 2009
-// $Id: PlotElectronVariables.cc,v 1.1.1.1 2009/08/28 14:02:00 dhidas Exp $
+// $Id$
 //
 //
 
 
 // system include files
 #include <memory>
-#include <vector>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -36,7 +35,6 @@ Implementation:
 
 #include "TH1D.h"
 
-#include "RecoEgamma/ElectronIdentification/interface/ElectronIDAlgo.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "PhysicsTools/UtilAlgos/interface/TFileService.h"
 
@@ -45,7 +43,7 @@ Implementation:
 // class decleration
 //
 
-class PlotElectronVariables : public ElectronIDAlgo, public edm::EDAnalyzer {
+class PlotElectronVariables : public edm::EDAnalyzer {
   public:
     explicit PlotElectronVariables(const edm::ParameterSet&);
     ~PlotElectronVariables();
@@ -68,11 +66,6 @@ class PlotElectronVariables : public ElectronIDAlgo, public edm::EDAnalyzer {
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
-#include "DataFormats/Common/interface/Ref.h"
-#include "DataFormats/EgammaReco/interface/BasicCluster.h"
-#include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-
 
 //
 // constants, enums and typedefs
@@ -88,7 +81,6 @@ class PlotElectronVariables : public ElectronIDAlgo, public edm::EDAnalyzer {
 PlotElectronVariables::PlotElectronVariables(const edm::ParameterSet& iConfig) :
 electronSrc_(iConfig.getUntrackedParameter<edm::InputTag>("electronSrc"))
 {
-  baseSetup(iConfig);
   //now do what ever initialization is needed
 
 }
@@ -118,75 +110,23 @@ PlotElectronVariables::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   edm::Handle< edm::View<pat::Electron> > electrons;
   iEvent.getByLabel(electronSrc_, electrons);
 
-  // Ecal tools
-  edm::Handle< EcalRecHitCollection > pEBRecHits;
-  edm::InputTag reducedBarrelRecHitCollection("ecalRecHit", "EcalRecHitsEB");
-  iEvent.getByLabel( reducedBarrelRecHitCollection, pEBRecHits );
-
-  edm::Handle< EcalRecHitCollection > pEERecHits;
-  edm::InputTag reducedEndcapRecHitCollection("ecalRecHit", "EcalRecHitsEE");
-  iEvent.getByLabel( reducedEndcapRecHitCollection, pEERecHits );
-
-  EcalClusterLazyTools lazyTools( iEvent, iSetup, reducedBarrelRecHitCollection, reducedEndcapRecHitCollection ) ;
-
-
   for (edm::View<pat::Electron>::const_iterator electron = electrons->begin(); electron != electrons->end(); ++electron) {
-
-    if (electron->electronID("eidRobustHighEnergy") != 1) {
-      continue;
-    }
-
-    std::vector<float> vLocCov = lazyTools.localCovariances(*(electron->superCluster()->seed()));
-    double sigmaee = sqrt(vLocCov[0]);
-    double e25Max = lazyTools.e2x5Max(*(electron->superCluster()->seed()))  ;
-    double e15 = lazyTools.e1x5(*(electron->superCluster()->seed()))  ;
-    double e55 = lazyTools.e5x5(*(electron->superCluster()->seed())) ;
-    double e25Maxoe55 = e25Max/e55 ;
-    double e15oe55 = e15/e55 ;
-
-    if (electron->isEB()) {
-      Hist1D["Barrel_hOverE"]->Fill(electron->hadronicOverEm());
-      Hist1D["Barrel_sigmaee"]->Fill(sigmaee);
-      Hist1D["Barrel_deltaPhiIn"]->Fill( electron->deltaPhiSuperClusterTrackAtVtx() );
-      Hist1D["Barrel_deltaEtaIn"]->Fill( electron->deltaEtaSuperClusterTrackAtVtx() );
-      Hist1D["Barrel_e25Maxoe55"]->Fill(e25Maxoe55);
-      Hist1D["Barrel_e15oe55"]->Fill(e15oe55);
-
-      Hist1D["Barrel_et"]->Fill(electron->et());
-      Hist1D["Barrel_eta"]->Fill(electron->eta());
-      Hist1D["Barrel_eSuperClusterOverP"]->Fill(electron->eSuperClusterOverP());
-      Hist1D["Barrel_eSeed"]->Fill(electron->superCluster()->seed()->energy());
-      Hist1D["Barrel_pin"]->Fill(electron->trackMomentumAtVtx().R());
-      Hist1D["Barrel_eSeedOverPin"]->Fill(electron->superCluster()->seed()->energy()/electron->trackMomentumAtVtx().R());
-      Hist1D["Barrel_pout"]->Fill(electron->trackMomentumOut().R());
-      Hist1D["Barrel_fBrem"]->Fill( (electron->trackMomentumAtVtx().R() - electron->trackMomentumOut().R())/electron->trackMomentumAtVtx().R());
-      Hist1D["Barrel_trackIso"]->Fill(electron->trackIso());
-      Hist1D["Barrel_caloIso"]->Fill(electron->caloIso());
-      Hist1D["Barrel_ecalIso"]->Fill(electron->ecalIso());
-      Hist1D["Barrel_hcalIso"]->Fill(electron->hcalIso());
-      Hist1D["Barrel_userIso"]->Fill(electron->userIso());
-    } else {
-      Hist1D["Endcap_hOverE"]->Fill(electron->hadronicOverEm());
-      Hist1D["Endcap_sigmaee"]->Fill(sigmaee);
-      Hist1D["Endcap_deltaPhiIn"]->Fill( electron->deltaPhiSuperClusterTrackAtVtx() );
-      Hist1D["Endcap_deltaEtaIn"]->Fill( electron->deltaEtaSuperClusterTrackAtVtx() );
-      Hist1D["Endcap_e25Maxoe55"]->Fill(e25Maxoe55);
-      Hist1D["Endcap_e15oe55"]->Fill(e15oe55);
-
-      Hist1D["Endcap_et"]->Fill(electron->et());
-      Hist1D["Endcap_eta"]->Fill(electron->eta());
-      Hist1D["Endcap_eSuperClusterOverP"]->Fill(electron->eSuperClusterOverP());
-      Hist1D["Endcap_eSeed"]->Fill(electron->superCluster()->seed()->energy());
-      Hist1D["Endcap_pin"]->Fill(electron->trackMomentumAtVtx().R());
-      Hist1D["Endcap_eSeedOverPin"]->Fill(electron->superCluster()->seed()->energy()/electron->trackMomentumAtVtx().R());
-      Hist1D["Endcap_pout"]->Fill(electron->trackMomentumOut().R());
-      Hist1D["Endcap_fBrem"]->Fill( (electron->trackMomentumAtVtx().R() - electron->trackMomentumOut().R())/electron->trackMomentumAtVtx().R());
-      Hist1D["Endcap_trackIso"]->Fill(electron->trackIso());
-      Hist1D["Endcap_caloIso"]->Fill(electron->caloIso());
-      Hist1D["Endcap_ecalIso"]->Fill(electron->ecalIso());
-      Hist1D["Endcap_hcalIso"]->Fill(electron->hcalIso());
-      Hist1D["Endcap_userIso"]->Fill(electron->userIso());
-    }
+    Hist1D["et"]->Fill(electron->et());
+    Hist1D["eta"]->Fill(electron->eta());
+    Hist1D["eSuperClusterOverP"]->Fill(electron->eSuperClusterOverP());
+    //Hist1D["eSeed"]->Fill(electron->superCluster()->seed()->energy());
+    Hist1D["pin"]->Fill(electron->trackMomentumAtVtx().R());
+    //Hist1D["eSeedOverPin"]->Fill(electron->superCluster()->seed()->energy()/electron->trackMomentumAtVtx().R());
+    Hist1D["pout"]->Fill(electron->trackMomentumOut().R());
+    Hist1D["fBrem"]->Fill( (electron->trackMomentumAtVtx().R() - electron->trackMomentumOut().R())/electron->trackMomentumAtVtx().R());
+    Hist1D["hOverE"]->Fill(electron->hadronicOverEm());
+    Hist1D["deltaPhiIn"]->Fill(electron->deltaPhiSuperClusterTrackAtVtx());
+    Hist1D["deltaEtaIn"]->Fill(electron->deltaEtaSuperClusterTrackAtVtx());
+    Hist1D["trackIso"]->Fill(electron->trackIso());
+    Hist1D["caloIso"]->Fill(electron->caloIso());
+    Hist1D["ecalIso"]->Fill(electron->ecalIso());
+    Hist1D["hcalIso"]->Fill(electron->hcalIso());
+    Hist1D["userIso"]->Fill(electron->userIso());
   }
 
 
@@ -197,50 +137,24 @@ PlotElectronVariables::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   void 
 PlotElectronVariables::beginJob(const edm::EventSetup&)
 {
-  std::cout << "PlotElectronVariables::beginJob" << std::endl;
   edm::Service<TFileService> fs;
 
-  Hist1D["Barrel_sigmaee"] = fs->make<TH1D>("Barrel_sigmaee", "sigmaee", 100, 0, 0.15);
-  Hist1D["Barrel_deltaPhiIn"] = fs->make<TH1D>("Barrel_deltaPhiIn", "deltaPhiIn", 100, -0.2, 0.2);
-  Hist1D["Barrel_deltaEtaIn"] = fs->make<TH1D>("Barrel_deltaEtaIn", "deltaEtaIn", 100, -0.05, 0.05);
-  Hist1D["Barrel_e25Maxoe55"] = fs->make<TH1D>("Barrel_e25Maxoe55", "e25Maxoe55", 100, 0, 1);
-  Hist1D["Barrel_e15oe55"] = fs->make<TH1D>("Barrel_e15oe55", "e15oe55", 100, 0, 1);
-
-  Hist1D["Barrel_et"] = fs->make<TH1D>("Barrel_et", "et", 100, 0, 150);
-  Hist1D["Barrel_eta"] = fs->make<TH1D>("Barrel_eta", "eta", 100, -3, 3);
-  Hist1D["Barrel_eSuperClusterOverP"] = fs->make<TH1D>("Barrel_eSuperClusterOverP", "eSuperClusterOverP", 100, 0, 3);
-  Hist1D["Barrel_eSeed"] = fs->make<TH1D>("Barrel_eSeed", "eSeed", 100, 0, 200);
-  Hist1D["Barrel_pin"] = fs->make<TH1D>("Barrel_pin", "pin", 100, 0, 200);
-  Hist1D["Barrel_eSeedOverPin"] = fs->make<TH1D>("Barrel_eSeedOverPin", "eSeedOverPin", 100, 0, 3);
-  Hist1D["Barrel_pout"] = fs->make<TH1D>("Barrel_pout", "pout", 100, 0, 200);
-  Hist1D["Barrel_fBrem"] = fs->make<TH1D>("Barrel_fBrem", "fBrem", 100, 0, 1.1);
-  Hist1D["Barrel_hOverE"] = fs->make<TH1D>("Barrel_hOverE", "hOverE", 100, 0, 0.2);
-  Hist1D["Barrel_trackIso"] = fs->make<TH1D>("Barrel_trackIso", "trackIso", 100, 0, 20);
-  Hist1D["Barrel_caloIso"] = fs->make<TH1D>("Barrel_caloIso", "caloIso", 100, 0, 20);
-  Hist1D["Barrel_ecalIso"] = fs->make<TH1D>("Barrel_ecalIso", "ecalIso", 100, 0, 20);
-  Hist1D["Barrel_hcalIso"] = fs->make<TH1D>("Barrel_hcalIso", "hcalIso", 100, 0, 20);
-  Hist1D["Barrel_userIso"] = fs->make<TH1D>("Barrel_userIso", "userIso", 100, 0, 20);
-
-  Hist1D["Endcap_sigmaee"] = fs->make<TH1D>("Endcap_sigmaee", "sigmaee", 100, 0, 0.15);
-  Hist1D["Endcap_deltaPhiIn"] = fs->make<TH1D>("Endcap_deltaPhiIn", "deltaPhiIn", 100, -0.2, 0.2);
-  Hist1D["Endcap_deltaEtaIn"] = fs->make<TH1D>("Endcap_deltaEtaIn", "deltaEtaIn", 100, -0.05, 0.05);
-  Hist1D["Endcap_e25Maxoe55"] = fs->make<TH1D>("Endcap_e25Maxoe55", "e25Maxoe55", 100, 0, 1);
-  Hist1D["Endcap_e15oe55"] = fs->make<TH1D>("Endcap_e15oe55", "e15oe55", 100, 0, 1);
-
-  Hist1D["Endcap_et"] = fs->make<TH1D>("Endcap_et", "et", 100, 0, 150);
-  Hist1D["Endcap_eta"] = fs->make<TH1D>("Endcap_eta", "eta", 100, -3, 3);
-  Hist1D["Endcap_eSuperClusterOverP"] = fs->make<TH1D>("Endcap_eSuperClusterOverP", "eSuperClusterOverP", 100, 0, 3);
-  Hist1D["Endcap_eSeed"] = fs->make<TH1D>("Endcap_eSeed", "eSeed", 100, 0, 200);
-  Hist1D["Endcap_pin"] = fs->make<TH1D>("Endcap_pin", "pin", 100, 0, 200);
-  Hist1D["Endcap_eSeedOverPin"] = fs->make<TH1D>("Endcap_eSeedOverPin", "eSeedOverPin", 100, 0, 3);
-  Hist1D["Endcap_pout"] = fs->make<TH1D>("Endcap_pout", "pout", 100, 0, 200);
-  Hist1D["Endcap_fBrem"] = fs->make<TH1D>("Endcap_fBrem", "fBrem", 100, 0, 1.1);
-  Hist1D["Endcap_hOverE"] = fs->make<TH1D>("Endcap_hOverE", "hOverE", 100, 0, 0.2);
-  Hist1D["Endcap_trackIso"] = fs->make<TH1D>("Endcap_trackIso", "trackIso", 100, 0, 20);
-  Hist1D["Endcap_caloIso"] = fs->make<TH1D>("Endcap_caloIso", "caloIso", 100, 0, 20);
-  Hist1D["Endcap_ecalIso"] = fs->make<TH1D>("Endcap_ecalIso", "ecalIso", 100, 0, 20);
-  Hist1D["Endcap_hcalIso"] = fs->make<TH1D>("Endcap_hcalIso", "hcalIso", 100, 0, 20);
-  Hist1D["Endcap_userIso"] = fs->make<TH1D>("Endcap_userIso", "userIso", 100, 0, 20);
+  Hist1D["et"] = fs->make<TH1D>("et", "et", 100, 0, 200);
+  Hist1D["eta"] = fs->make<TH1D>("eta", "eta", 100, -3, 3);
+  Hist1D["eSuperClusterOverP"] = fs->make<TH1D>("eSuperClusterOverP", "eSuperClusterOverP", 100, 0, 3);
+  Hist1D["eSeed"] = fs->make<TH1D>("eSeed", "eSeed", 100, 0, 200);
+  Hist1D["pin"] = fs->make<TH1D>("pin", "pin", 100, 0, 200);
+  Hist1D["peSeedOverPin"] = fs->make<TH1D>("peSeedOverPin", "peSeedOverPin", 100, 0, 3);
+  Hist1D["pout"] = fs->make<TH1D>("pout", "pout", 100, 0, 200);
+  Hist1D["fBrem"] = fs->make<TH1D>("fBrem", "fBrem", 100, 0, 3);
+  Hist1D["hOverE"] = fs->make<TH1D>("hOverE", "hOverE", 100, 0, 2);
+  Hist1D["deltaPhiIn"] = fs->make<TH1D>("deltaPhiIn", "deltaPhiIn", 100, -1, 1);
+  Hist1D["deltaEtaIn"] = fs->make<TH1D>("deltaEtaIn", "deltaEtaIn", 100, -1, 1);
+  Hist1D["trackIso"] = fs->make<TH1D>("trackIso", "trackIso", 100, 0, 100);
+  Hist1D["caloIso"] = fs->make<TH1D>("caloIso", "caloIso", 100, 0, 100);
+  Hist1D["ecalIso"] = fs->make<TH1D>("ecalIso", "ecalIso", 100, 0, 100);
+  Hist1D["hcalIso"] = fs->make<TH1D>("hcalIso", "hcalIso", 100, 0, 100);
+  Hist1D["userIso"] = fs->make<TH1D>("userIso", "hcalIso", 100, 0, 100);
 
   return;
 }
