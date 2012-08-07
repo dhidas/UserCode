@@ -23,6 +23,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstdio>
 
 // pixel hit and cluster struct
 #include "pixelForReadout.h"
@@ -56,15 +57,21 @@ using namespace std;
  *                                                                    *
  *********************************************************************/
 
- 
+bool fexists(const char* filename)
+{
+  ifstream ifile(filename);
+  bool qexists = ifile;
+  ifile.close();
+  return qexists;
+} 
  
  int main(int argc, char **argv)
 {
 
   //cout << "Size of long long int: "<< sizeof (long long int) << "byte" << endl;// output 8 byte
 
-  if (argc != 3) {
-    std::cout << "Usage: " << argv[0] << " [InFile] [OutFile]" << std::endl;
+  if (argc != 4) {
+    std::cout << "Usage: " << argv[0] << " [InFile] [RootOutFile] [TextOutFile]" << std::endl;
     return 1;
   }
   int run=0;
@@ -73,6 +80,7 @@ using namespace std;
   int sample=0;
   char* mtbfilename=argv[1];
   char* rootfileName=argv[2];
+  char* textfileName=argv[3];
   char fConfigfile[101]="";
   int trimValueForCalibrationFile = 60;
 
@@ -88,13 +96,27 @@ using namespace std;
   sprintf(fConfigfile, "config.dat");  
   fConfig=new ConfigReader(fConfigfile,"config.dat");
   
+  // create the output textfile
+  if(fexists(textfileName)){
+    cout<<"TextOutFile already exists. Choose a different name.\n";
+    return 0;
+  }
+  FILE * textFile = fopen(textfileName,"w");
+  cout << "rootfile = " << textfileName << endl;  
+  
+
   // create the tree to fill
   //
+  if(fexists(rootfileName)){
+    cout<<"RootOutFile already exists. Choose a different name.\n";
+    fclose(textFile);
+    remove(textfileName);
+    return 0;
+  }
   TFile tf(rootfileName,"RECREATE");
   cout << "rootfile = " << rootfileName << endl;  
-  
-  
-  
+
+ 
   // define all Variables to put into the tree
   vector<pixel> pixels;
   //const int nRow = 80, nCol = 52;    
@@ -229,6 +251,10 @@ using namespace std;
       // coordinates returned from binaryFileReader are 0-52 and 0-79
       //pixelAnaArray[pixels.at(countHits).col][pixels.at(countHits).row] = pixels.at(countHits).ana;
       //pixelCalArray[pixels.at(countHits).col][pixels.at(countHits).row] = pixels.at(countHits).anaVcal;
+
+      //Print to the text file. Choose to call this Channel 1 and ROC 0.
+      fprintf(textFile, "1 0 %i %i %i %i\n",PixCol[countHits],PixRow[countHits],PixAna[countHits],eventNumber);
+
     }
 
     
@@ -242,7 +268,7 @@ using namespace std;
        CluRow[clusterCounter]    = clusters.at(clusterCounter).row;       
     }*/
     
-    
+
     t1.Fill();
     
     if (verbose && fRoc){ 
@@ -274,7 +300,7 @@ using namespace std;
   fRoc->printRunSummary();
   fRoc->printRunSummary2();
   
-  
+  fclose(textFile);
   tf.Write();
   tf.Close();
  
