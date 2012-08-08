@@ -59,11 +59,13 @@ void PHCalibration::LoadFitParameters(char *dirName, int phTrim, int chip)
 
 	fgets(string, 500, file);
 	fgets(string, 500, file);
-	if (strcmp(string, "TMath::Exp(par[1]*x[0] - par[0]) + par[2]*x[0]*x[0]*x[0] + par[3]*x[0]*x[0] + par[4]*x[0] + par[5]\n") == 0) 
+	//if (strcmp(string, "TMath::Exp(par[1]*x[0] - par[0]) + par[2]*x[0]*x[0]*x[0] + par[3]*x[0]*x[0] + par[4]*x[0] + par[5]\n") == 0) 
+	if (strstr(string, "TMath::Exp(par[1]*x[0] - par[0]) + par[2]*x[0]*x[0]*x[0] + par[3]*x[0]*x[0] + par[4]*x[0] + par[5]") != NULL) 
 	{
 		version[chip] = 0;
 	}
-        else if (strcmp(string, "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])\n") == 0) 
+        //else if (strcmp(string, "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])\n") == 0) 
+        else if (strstr(string, "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])") != NULL) 
         {
                 version[chip] = 2;
         }
