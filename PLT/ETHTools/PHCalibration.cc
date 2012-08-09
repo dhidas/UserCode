@@ -65,7 +65,8 @@ void PHCalibration::LoadFitParameters(char *dirName, int phTrim, int chip)
 		version[chip] = 0;
 	}
         //else if (strcmp(string, "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])\n") == 0) 
-        else if (strstr(string, "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])") != NULL) 
+        else if (strstr(string, "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])") != NULL ||
+		 strstr(string, "(TMath::ATanH((x[0] - par[3])/par[2]) + par[1])/par[0]") != NULL ) 
         {
                 version[chip] = 2;
         }
