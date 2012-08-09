@@ -71,14 +71,16 @@ bool fexists(const char* filename)
   //cout << "Size of long long int: "<< sizeof (long long int) << "byte" << endl;// output 8 byte
 
   if (argc != 4) {
-    std::cout << "Usage: " << argv[0] << " [InFile] [RootOutFile] [TextOutFile]" << std::endl;
+    std::cout << "Usage: " << argv[0] << " [DataDirName] [RootOutFile] [TextOutFile]" << std::endl;
     return 1;
   }
   int run=0;
   int findlevels=0;
   int verbose=0;
   int sample=0;
-  char* mtbfilename=argv[1];
+  char* dirname=argv[1];
+  char* mtbfilename="mtb.bin";
+  //sprintf(mtbfilename,"%s/mtb.bin",dirname);
   char* rootfileName=argv[2];
   char* textfileName=argv[3];
   char fConfigfile[101]="";
@@ -161,7 +163,7 @@ bool fexists(const char* filename)
   // re-do level files if requested
   if(findlevels){
          cout << "Find the levels\n";
-	 fRocLv=new BinaryFileReader("",mtbfilename,"0","RtbTemp", fConfig,"roc",1, trimValueForCalibrationFile);
+	 fRocLv=new BinaryFileReader(dirname,mtbfilename,"0","RtbTemp", fConfig,"roc",1, trimValueForCalibrationFile);
 	 //fRocLv->requireSync(0);//no synchronisation anyway
 	 if((fRocLv->open()==0) ){
 		while( (fRocLv!=NULL)&&(!fRocLv->eof()) ){fRocLv->readRecord();}
@@ -173,7 +175,7 @@ bool fexists(const char* filename)
   
 
   
-  fRoc=new BinaryFileReader("",mtbfilename,"0", Form("roc%05d",run),
+  fRoc=new BinaryFileReader(dirname,mtbfilename,"0", Form("roc%05d",run),
 			    fConfig,"roc",0, trimValueForCalibrationFile);
 
   if( !(fRoc->open()==0) ){
