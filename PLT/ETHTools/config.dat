@@ -3,7 +3,7 @@
 roc.deconvolution  0.02
 roc.deconvolution2 0.0
 roc.tbmLevels  -600 -393  -92   94  280  699
-roc.rocLevels[0]  -595 -449  -30   197  429  647  856  1000
+roc.rocLevels[0]  -595 -449  -100   100  300  500  700  1000
 
 
 

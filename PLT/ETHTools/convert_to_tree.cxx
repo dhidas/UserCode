@@ -95,7 +95,7 @@ bool fexists(const char* filename)
   cout << "data file = "<<  mtbfilename << endl;
   
   ConfigReader *fConfig;
-  sprintf(fConfigfile, "config.dat");  
+  sprintf(fConfigfile, "%s/config.dat", dirname);  
   fConfig=new ConfigReader(fConfigfile,"config.dat");
   
   // create the output textfile
