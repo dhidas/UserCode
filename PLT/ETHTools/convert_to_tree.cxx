@@ -84,7 +84,7 @@ bool fexists(const char* filename)
   char* rootfileName=argv[2];
   char* textfileName=argv[3];
   char fConfigfile[101]="";
-  int trimValueForCalibrationFile = 60;
+  int trimValueForCalibrationFile = 0;
 
   
   // -- command line arguments
