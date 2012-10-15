@@ -239,10 +239,10 @@ int RunCLsLimit ()
 
 
   // Parameters of the CLs method we'll call
-  int   const calculatorType    = 1;
+  int   const calculatorType    = 2;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 4;
+  int   const npoints           = 20;
   float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = 100;
   int   const ntoys             = 400;
@@ -253,7 +253,10 @@ int RunCLsLimit ()
   ws.SaveAs("Workspace_Exp.root");
 
   // Run the actual CLs
-  RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
+  RooStats::HypoTestInvTool HTIT;
+  HTIT.SetParameter("GenerateBinned", true);
+  RooStats::HypoTestInverterResult* MyResult = HTIT.RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, useCls, npoints, poimin, poimax, ntoys, useNumberCounting, nuisPriorName);
+  //RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
 
   // Number of entries in result
   const int NEntries = MyResult->ArraySize();

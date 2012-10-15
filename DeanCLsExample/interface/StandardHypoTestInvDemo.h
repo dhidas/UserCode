@@ -28,26 +28,59 @@
 #include "RooStats/HypoTestInverterResult.h"
 #include "RooStats/HypoTestInverterPlot.h"
 
-// internal routine to run the inverter
-RooStats::HypoTestInverterResult* RunInverter(RooWorkspace * w, const char * modelSBName, const char * modelBName, const char * dataName,
-                                     int type,  int testStatType, int npoints, double poimin, double poimax, int ntoys, 
-                                     bool useCls, bool useNumberCounting, const char * nuisPriorName);
+namespace RooStats { 
 
-void StandardHypoTestInvDemo(const char * fileName =0,
-                             const char * wsName = "combined",
-                             const char * modelSBName = "ModelConfig",
-                             const char * modelBName = "",
-                             const char * dataName = "obsData",                 
-                             int calculatorType = 0,
-                             int testStatType = 3, 
-                             bool useCls = true ,  
-                             int npoints = 5,   
-                             double poimin = 0,  
-                             double poimax = 5, 
-                             int ntoys=1000,
-                             bool useNumberCounting = false,
-                             const char * nuisPriorName = 0);
-void ReadResult(const char * fileName, const char * resultName, bool useCLs);
+   class HypoTestInvTool{
+
+   public:
+      HypoTestInvTool();
+      ~HypoTestInvTool(){};
+
+      HypoTestInverterResult * 
+      RunInverter(RooWorkspace * w, 
+                  const char * modelSBName, const char * modelBName, 
+                  const char * dataName,
+                  int type,  int testStatType, 
+                  bool useCLs, 
+                  int npoints, double poimin, double poimax, int ntoys, 
+                  bool useNumberCounting = false, 
+                  const char * nuisPriorName = 0);
+
+
+
+      void
+      AnalyzeResult( HypoTestInverterResult * r,
+                     int calculatorType,
+                     int testStatType, 
+                     bool useCLs,  
+                     int npoints,
+                     const char * fileNameBase = 0 );
+
+      void SetParameter(const char * name, const char * value);
+      void SetParameter(const char * name, bool value);
+      void SetParameter(const char * name, int value);
+      void SetParameter(const char * name, double value);
+
+   private:
+
+      bool mPlotHypoTestResult;
+      bool mWriteResult;
+      bool mOptimize;
+      bool mUseVectorStore;
+      bool mGenerateBinned;
+      bool mUseProof;
+      bool mRebuild;
+      int     mNWorkers;
+      int     mNToyToRebuild;
+      int     mPrintLevel;
+      double  mNToysRatio;
+      double  mMaxPoi;
+      std::string mMassValue;
+      std::string mMinimizerType;                  // minimizer type (default is what is in ROOT::Math::MinimizerOptions::DefaultMinimizerType()
+
+   };
+
+} // end namespace RooStats
 
 
 #endif
