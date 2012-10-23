@@ -113,29 +113,16 @@ int RunCLsLimit ()
   ws.factory("SUM::bgmodel_noprior(nbkg*BackgroundPdf)");
 
 
+  // This is here for studying systematics
   // Pick which constraints and nuisance params you want to use
   switch (0) {
     case 0:
       ws.factory("RooUniform::constraints(x)");
       ws.defineSet("nuisance","");
       break;
-    case 1:
-      ws.factory("PROD::constraints(nbkg_prior)");
-      ws.defineSet("nuisance", "nbkg");
-      ws.var("nbkg")->setConstant(false);
-      break;
-    case 2:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior)");
-      ws.defineSet("nuisance", "nbkg,p1");
-      ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      break;
-    case 3:
-      ws.factory("PROD::constraints(nbkg_prior,p1_prior,sigWidth_prior)");
-      ws.defineSet("nuisance", "nbkg,p1,sigWidth");
-      ws.var("nbkg")->setConstant(false);
-      ws.var("p1")->setConstant(false);
-      ws.var("sigWidth")->setConstant(false);
+    default:
+      std::cerr << "ERROR: Incorrect choice for systematicsi" << std::endl;
+      exit(1);
       break;
   }
 
@@ -185,7 +172,7 @@ int RunCLsLimit ()
   int   const calculatorType    = 2;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 10;
+  int   const npoints           = 20;
   float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
   float const poimax            = 100;
   int   const ntoys             = 50;
@@ -215,7 +202,8 @@ int RunCLsLimit ()
   Plot->Draw("CLb 2CL");  // plot all and Clb
   CanCLb.SaveAs("CLb2L_Exp.eps");
 
-  if (true) {
+  // Does not work with newer root version.  To be figured out late.
+  if (false) {
     TCanvas Can;
     Can.Divide(2, TMath::Ceil(NEntries/2));
     for (int i = 0; i < NEntries; ++i) {
