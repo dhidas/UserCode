@@ -16,6 +16,7 @@
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TTree.h"
+#include "TRandom.h"
 
 
 #include "RooDataSet.h"
@@ -24,12 +25,13 @@
 #include "RooExponential.h"
 #include "RooGenericPdf.h"
 #include "RooHistPdf.h"
+#include "RooRandom.h"
 
 
 float const BGSlope = -0.003;
 float const XMin =    0;
 float const XMax = 2000;
-int   const NBins = 200;
+int   const NBins = 100;
 
 TH1F* GetFakeData (int const NBackground, int const NSignal, float const SignalMass, TString const Name)
 {
@@ -42,7 +44,7 @@ TH1F* GetFakeData (int const NBackground, int const NSignal, float const SignalM
   fMyExpo.SetParameter(1, BGSlope);
 
   // Gaus function - Signal
-  TF1 fMyGaus("MyGaus", "TMath::Gaus(x, [0], [0]*0.065)");
+  TF1 fMyGaus("MyGaus", "TMath::Gaus(x, [0], [0]*0.10)");
   fMyGaus.SetParameter(0, SignalMass);
 
   // Data histogram
@@ -56,7 +58,7 @@ TH1F* GetFakeData (int const NBackground, int const NSignal, float const SignalM
   TCanvas C;
   C.cd();
   hData.Draw("ep");
-  C.SaveAs(Name + ".eps");
+  C.SaveAs(Name + TString::Format("_%i.eps", (int) SignalMass));
 
   return (TH1F*) hData.Clone(Name);
 }
@@ -64,15 +66,9 @@ TH1F* GetFakeData (int const NBackground, int const NSignal, float const SignalM
 
 
 
-int RunCLsLimit ()
+int RunCLsLimit (float const TestMass, TH1F* DataHist, TH1F* MCHist_Background, TH1F* MCHist_Signal)
 {
-  // What mass for signal to consider?
-  float const SignalMass = 900;
-
   // Grab data histogram
-  TH1F* DataHist          = GetFakeData(  15000,       0, SignalMass, "Data");
-  TH1F* MCHist_Signal     = GetFakeData(      0, 1000000, SignalMass, "Signal");
-  TH1F* MCHist_Background = GetFakeData(1000000,       0, SignalMass, "Background");
   if ( !(DataHist && MCHist_Signal && MCHist_Background) ) {
     std::cerr << "ERROR: cannot get data histogram" << std::endl;
     throw;
@@ -172,15 +168,15 @@ int RunCLsLimit ()
   int   const calculatorType    = 2;
   int   const testStatType      = 3;
   bool  const useCls            = true;
-  int   const npoints           = 20;
+  int   const npoints           = 500;
   float const poimin            = 0;   // Set to bigger than max and npoints to zero for search (observed makes sense, expected do on own )
-  float const poimax            = 100;
+  float const poimax            = 400;
   int   const ntoys             = 50;
   bool  const useNumberCounting = false;
   const char* nuisPriorName     = "";
 
   // For debugging, why not save the workspace
-  ws.SaveAs("Workspace_Exp.root");
+  ws.SaveAs( TString::Format("Workspace_Exp_%i.root", (int) TestMass));
 
   // Run the actual CLs
   RooStats::HypoTestInvTool HTIT;
@@ -200,12 +196,12 @@ int RunCLsLimit ()
   TCanvas CanCLb;
   CanCLb.cd();
   Plot->Draw("CLb 2CL");  // plot all and Clb
-  CanCLb.SaveAs("CLb2L_Exp.eps");
+  CanCLb.SaveAs( TString::Format("CLb2L_Exp_%i.eps", (int) TestMass));
 
-  // Does not work with newer root version.  To be figured out late.
+  // Does not work with newer root version.  To be figured out later.
   if (false) {
     TCanvas Can;
-    Can.Divide(2, TMath::Ceil(NEntries/2));
+    Can.Divide(2, (int) TMath::Ceil(NEntries/2));
     for (int i = 0; i < NEntries; ++i) {
       Can.cd(i + 1);
       RooStats::SamplingDistPlot * SamplingPlot = Plot->MakeTestStatPlot(i);
@@ -213,7 +209,7 @@ int RunCLsLimit ()
       SamplingPlot->Draw();
       delete SamplingPlot;
     }
-    Can.SaveAs("HTI_Result_Exp.eps");
+    Can.SaveAs( TString::Format("HTI_Result_Exp_%i.eps", (int) TestMass));
   }
 
   printf(" expected limit (-2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(-2));
@@ -221,9 +217,23 @@ int RunCLsLimit ()
   printf(" expected limit (median) %12.3E\n", MyResult->GetExpectedUpperLimit(0) );
   printf(" expected limit (+1 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(1) );
   printf(" expected limit (+2 sig) %12.3E\n", MyResult->GetExpectedUpperLimit(2) );
-
   printf(" observed limit          %12.3E +/- %12.3E\n", MyResult->UpperLimit(), MyResult->UpperLimitEstimatedError()); 
 
+
+  TString const FileName = TString::Format("Limits_%i.dat", (int) TestMass);
+  FILE* f = fopen(FileName.Data(), "w");
+  if (!f) {
+    std::cerr << "ERROR: cannot open file for writing: " << FileName << std::endl;
+    exit(1);
+  }
+  fprintf(f, "%15.3E\n", TestMass);
+  fprintf(f, "%15.3E\n", MyResult->GetExpectedUpperLimit(-2));
+  fprintf(f, "%15.3E\n", MyResult->GetExpectedUpperLimit(-1));
+  fprintf(f, "%15.3E\n", MyResult->GetExpectedUpperLimit( 0));
+  fprintf(f, "%15.3E\n", MyResult->GetExpectedUpperLimit( 1));
+  fprintf(f, "%15.3E\n", MyResult->GetExpectedUpperLimit( 2));
+  fprintf(f, "%15.3E\n", MyResult->UpperLimit());
+  fclose(f);
 
 
   return 0;
@@ -237,7 +247,25 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  RunCLsLimit();
+  // Just in case you want to set the random seed
+  RooRandom::randomGenerator()->SetSeed(27);
+  gRandom->SetSeed(29);
+
+  // What mass should we put in the data?
+  float const SignalMass = 900;
+
+
+  // You only get one data hist and one BG hist!
+  TH1F* DataHist = GetFakeData(60000, 150, SignalMass, "Data");
+  TH1F* MCHist_Background = GetFakeData(10000000, 0, 0, "Background");
+
+  for (float mass = 200; mass <= 1800; mass += 50.) {
+    // Generate the signal model for this mass
+    TH1F* MCHist_Signal = GetFakeData(0, 10000000, mass, "Signal");
+
+    // Run the limit code for this data, bg model and signal model
+    RunCLsLimit(mass, DataHist, MCHist_Background, MCHist_Signal);
+  }
 
   return 0;
 }
