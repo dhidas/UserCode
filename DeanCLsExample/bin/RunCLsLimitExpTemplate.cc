@@ -78,9 +78,6 @@ int RunCLsLimit ()
     throw;
   }
 
-  float const NBackground = DataHist->Integral( DataHist->FindBin(XMin), DataHist->FindBin(XMax) );
-  std::cout << "NBackground: " << NBackground << std::endl;
-
 
   // Start a workspace
   RooWorkspace ws("ws");
@@ -94,15 +91,9 @@ int RunCLsLimit ()
   RooDataHist Signal("signal", "dataset with x", *ws.var("x"), MCHist_Signal);
   RooDataHist Background("background", "dataset with x", *ws.var("x"), MCHist_Background);
 
-  // If instead you want to use the unbinned data you can uncomment below and comment out above
-  //TFile InRootFile("FakeDataExp.root", "read");
-  //TTree* Tree = (TTree*) InRootFile.Get("FakeDataTree");
-  //std::cout << Tree->GetEntries() << std::endl;
-  //RooDataSet Data("Data", "dataset with x", *ws.var("x"), RooFit::Import(*Tree));
   ws.import(Data);
   ws.import(Signal);
   ws.import(Background);
-
 
 
   // Parameter of Interest
@@ -205,7 +196,9 @@ int RunCLsLimit ()
   ws.SaveAs("Workspace_Exp.root");
 
   // Run the actual CLs
-  RooStats::HypoTestInverterResult* MyResult = RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, npoints, poimin, poimax, ntoys, useCls, useNumberCounting, nuisPriorName);
+  RooStats::HypoTestInvTool HTIT;
+  HTIT.SetParameter("GenerateBinned", true);
+  RooStats::HypoTestInverterResult* MyResult = HTIT.RunInverter(&ws, "ModelConfigSB", "ModelConfigBG", "Data", calculatorType, testStatType, useCls, npoints, poimin, poimax, ntoys, useNumberCounting, nuisPriorName);
 
   // Number of entries in result
   const int NEntries = MyResult->ArraySize();
