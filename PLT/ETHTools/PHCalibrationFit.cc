@@ -37,8 +37,7 @@ const char *FitfcnStr()
 
 const char *FitfcnTanStr()
 {
-  //return "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])";
-  return "65.*((TMath::ATanH((x[0] - par[3])/par[2]) + par[1])/par[0])";
+  return "par[3] + par[2] * TMath::TanH(par[0]*x[0] - par[1])";
 }
 
 
